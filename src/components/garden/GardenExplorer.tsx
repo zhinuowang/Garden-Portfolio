@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { projects, projectsInRegion, regions, type GardenRegionId, type Project } from "@/data/projects";
-import { readRegion, readVisited, saveRegion, type RegionView } from "@/lib/gardenMemory";
+import { readLastProject, readRegion, readVisited, saveLastProject, saveRegion, type RegionView } from "@/lib/gardenMemory";
 import ProjectPreview from "../ProjectPreview";
 import GardenLandscape from "./GardenLandscape";
 import { objectArt, VisitedBloom } from "./GardenObjects";
@@ -36,11 +36,22 @@ export default function GardenExplorer() {
   const [open, setOpen] = useState<Project | null>(null);
   const [visited, setVisited] = useState<string[]>([]);
 
-  // Restore the last explored region and visited flowers for this session.
+  // Restore the last explored region and visited flowers for this session, and
+  // return keyboard focus to the landmark the visitor last opened.
   useEffect(() => {
     setView(readRegion());
     setVisited(readVisited());
+    const last = readLastProject();
+    if (last) {
+      const visible = [...document.querySelectorAll<HTMLButtonElement>(`[data-project="${last}"]`)].find((b) => b.offsetParent);
+      visible?.focus({ preventScroll: true });
+    }
   }, []);
+
+  const openProject = (p: Project) => {
+    saveLastProject(p.slug);
+    setOpen(p);
+  };
 
   const choose = (v: RegionView) => {
     setView(v);
@@ -113,7 +124,8 @@ export default function GardenExplorer() {
               <button
                 key={p.id}
                 type="button"
-                onClick={() => setOpen(p)}
+                data-project={p.slug}
+                onClick={() => openProject(p)}
                 onMouseEnter={() => setHovered(p.gardenRegion)}
                 onMouseLeave={() => setHovered(null)}
                 className={`hotspot group absolute flex flex-col rounded-2xl ${pos.labelEnd ? "items-end" : "items-center"}`}
@@ -121,9 +133,13 @@ export default function GardenExplorer() {
                 aria-label={`${p.title} — ${p.category === "personal" ? "Personal" : "Academic"} project at ${p.locationName}. Open preview.`}
               >
                 <Art className="art w-full overflow-visible" />
-                <span className="pointer-events-none -mt-1 w-max rounded-full whitespace-nowrap bg-paper/90 px-3 py-1 text-center shadow-sm transition group-hover:bg-paper group-focus-visible:bg-paper">
-                  <span className="block font-serif text-[clamp(0.8rem,1.15vw,1.05rem)] leading-tight font-medium text-ink">{p.title}</span>
-                  <span className="block text-[clamp(0.6rem,0.8vw,0.75rem)] text-ink-soft">{p.locationName}</span>
+                {/* handwritten label with a little drawn underline */}
+                <span className="hand-label pointer-events-none -mt-2 w-max text-center whitespace-nowrap">
+                  <span className="block font-hand text-[clamp(1.15rem,1.9vw,1.8rem)] leading-none font-semibold text-ink">{p.title}</span>
+                  <svg viewBox="0 0 120 10" preserveAspectRatio="none" className="hand-underline mx-auto -mt-0.5 h-2 w-full" aria-hidden="true">
+                    <path d="M3 6 C 30 2, 60 9, 117 4" stroke={p.category === "personal" ? "#c4705c" : "#6f8a5a"} strokeWidth="2.5" fill="none" strokeLinecap="round" />
+                  </svg>
+                  <span className="block font-hand text-[clamp(0.85rem,1.2vw,1.15rem)] leading-tight text-ink-soft">{p.locationName}</span>
                 </span>
                 {visited.includes(p.slug) && (
                   <span className="absolute -top-1 right-[8%] w-[16%] min-w-5" title="Visited this session">
@@ -179,13 +195,14 @@ export default function GardenExplorer() {
                   <li key={p.id}>
                     <button
                       type="button"
-                      onClick={() => setOpen(p)}
+                      data-project={p.slug}
+                      onClick={() => openProject(p)}
                       className="hotspot relative flex h-full w-full flex-col items-center rounded-2xl bg-paper/55 p-3 text-center"
                       aria-label={`${p.title} at ${p.locationName}. Open preview.`}
                     >
                       <Art className="art h-24 w-full" />
-                      <span className="mt-2 font-serif text-base leading-tight font-medium">{p.title}</span>
-                      <span className="text-xs text-ink-soft">{p.locationName}</span>
+                      <span className="mt-2 font-hand text-2xl leading-none font-semibold">{p.title}</span>
+                      <span className="font-hand text-lg text-ink-soft">{p.locationName}</span>
                       {visited.includes(p.slug) && (
                         <span className="absolute top-2 right-2 w-5" title="Visited this session">
                           <VisitedBloom className="w-full" />

@@ -2,7 +2,7 @@
 // One sky, one land; a winding path divides the warmer Creative Corner (left)
 // from the open, sage Growing Grounds (right). viewBox is 1600 × 900.
 
-import { scatterFlowers } from "./scatter";
+import { brushStrokes, ridge, scatterFlowers, type Stroke } from "./scatter";
 
 // Centre line of the path at a given y, used to keep flowers off it.
 function pathCenter(y: number) {
@@ -24,6 +24,35 @@ const rightFlowers = scatterFlowers({
   colors: ["#fbf3ea", "#fbf3ea", "#e3bf73", "#c9b8d8", "#e9afab", "#f6e3b0"],
   size: [1.2, 5.5], keep: offPath,
 });
+
+// Oil-paint strokes over each land mass so the meadows read as brushwork.
+const rightRidge = ridge([[760, 540], [1000, 480], [1330, 384], [1600, 410]]);
+const leftRidge = ridge([[0, 470], [380, 470], [920, 520]]);
+const rightStrokes = brushStrokes({
+  seed: 41, count: 520, x: [760, 1600], y: [384, 900], length: [14, 40], width: [3, 8], angle: -14,
+  colors: ["#93ab78", "#b9c79c", "#7f9a6a", "#a3b98e", "#c6d0a4"],
+  inside: (x, y) => y > rightRidge(x) + 6 && offPath(x, y),
+});
+const leftStrokes = brushStrokes({
+  seed: 42, count: 560, x: [0, 900], y: [470, 900], length: [14, 40], width: [3, 8], angle: -6,
+  colors: ["#a9b77a", "#c8c98e", "#93a86b", "#d4c690", "#e2b49c"],
+  inside: (x, y) => y > leftRidge(x) + 6 && offPath(x, y),
+});
+const shadowStrokes = brushStrokes({
+  seed: 43, count: 120, x: [0, 1600], y: [700, 900], length: [30, 70], width: [6, 12], angle: -18,
+  colors: ["#4f6f57", "#5f7d5a"],
+  inside: (x, y) => offPath(x, y) && (x < 640 || x > 980),
+});
+
+function StrokeLayer({ marks, opacity = 1 }: { marks: Stroke[]; opacity?: number }) {
+  return (
+    <g filter="url(#paint)" strokeLinecap="round" fill="none" opacity={opacity}>
+      {marks.map((m, i) => (
+        <path key={i} d={m.d} stroke={m.color} strokeWidth={m.w} opacity={m.o} />
+      ))}
+    </g>
+  );
+}
 
 function buildPath() {
   const left: string[] = [];
@@ -110,6 +139,10 @@ export default function GardenLandscape({ className }: { className?: string }) {
         <path d="M0 760 C 200 730, 420 760, 640 820" stroke="#4f6f57" strokeWidth="40" fill="none" opacity="0.18" />
         <path d="M1600 740 C 1380 720, 1180 760, 980 830" stroke="#4f6f57" strokeWidth="36" fill="none" opacity="0.16" />
       </g>
+
+      <StrokeLayer marks={rightStrokes} />
+      <StrokeLayer marks={leftStrokes} />
+      <StrokeLayer marks={shadowStrokes} opacity={0.35} />
 
       {/* the winding path */}
       <g filter="url(#wash)">

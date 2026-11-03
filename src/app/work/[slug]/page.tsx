@@ -38,8 +38,8 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
     <article className="px-4 pt-28 pb-20 sm:px-6">
       <MarkVisited slug={project.slug} />
       <div className="mx-auto max-w-4xl">
-        <Link href="/#garden" className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-forest underline-offset-4 hover:underline">
-          <span aria-hidden="true">←</span> Back to Garden
+        <Link href="/work" className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-forest underline-offset-4 hover:underline">
+          <span aria-hidden="true">←</span> Back to Work
         </Link>
 
         <header className="mt-6">
@@ -95,8 +95,8 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
         </section>
 
         <nav aria-label="More projects" className="mt-16 flex flex-wrap items-center justify-between gap-4 border-t border-forest/15 pt-8">
-          <Link href="/#garden" className="inline-flex min-h-11 items-center font-medium text-forest underline-offset-4 hover:underline">
-            ← Back to Garden
+          <Link href="/work" className="inline-flex min-h-11 items-center font-medium text-forest underline-offset-4 hover:underline">
+            ← Back to Work
           </Link>
           <Link href={`/work/${next.slug}`} className="group inline-flex min-h-11 flex-col items-end text-right">
             <span className="text-xs font-semibold tracking-[0.16em] text-moss uppercase">Next Project</span>

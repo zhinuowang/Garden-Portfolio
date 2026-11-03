@@ -13,8 +13,9 @@ contain files Zhinuo supplied. Source paths are relative to `~/Desktop/Portofoli
 | `public/assets/projects/dyson-brochure/cover.jpg` | `Dyson cover.png` (1920×1080) | Resized to 1600 wide, JPEG; ratio kept. The play button is part of the original export. | Preview, Work, case study |
 | `public/assets/about/portrait.jpg` | `Photo.jpg` (960×1282) | PNG→JPEG re-encode, original size | About |
 | `public/assets/projects/little-moments/` | *none yet* | n/a | Placeholder shown |
+| `public/resume/Zhinuo-Wang-Resume.pdf` | `~/Desktop/Resume.pdf` (byte-identical copy) | None | About → Download Resume |
 
-Text sources: `个人作品集.pdf`. Page 1 is the design statement, page 2 About Me, page 3 Nomi, page 4 the dog
+Text sources: `~/Desktop/Resume.pdf` (About: experience, skills, education wording; course names for the academic projects) and `个人作品集.pdf`. Page 1 is the design statement, page 2 About Me, page 3 Nomi, page 4 the dog
 app, page 5 Eliminate Bacteria Pro, page 6 Dyson.
 
 ## Category A: decorative garden artwork
@@ -23,7 +24,10 @@ All of it is currently code-drawn. There are no image files yet.
 
 | Component | What it draws |
 | --- | --- |
-| `src/components/GardenGate.tsx` | Hero sky, hills, ridge path and flowers |
+| `src/components/landing/LandingJourney.tsx` | Scroll-driven landing layers |
+| `src/components/garden/Painted.tsx` | Painted hills, brush strokes, wildflowers, stems, clouds |
+| `src/components/botanical/Pressed.tsx` | Pressed flowers and tape for the About page and previews |
+| `src/components/contact/MailboxScene.tsx` | Contact landscape, mailbox and envelope |
 | `src/components/garden/GardenLandscape.tsx` | The two-region panorama |
 | `src/components/garden/GardenObjects.tsx` | Greenhouse, cottage, puppy corner, fountain, windmill, visited daisy |
 | `src/components/garden/PaintDefs.tsx` | Shared paint and grain SVG filters |

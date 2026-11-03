@@ -1,27 +1,43 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const links = [
-  { href: "/#garden", label: "Garden" },
+  { href: "/", label: "Home" },
+  { href: "/about", label: "About" },
   { href: "/work", label: "Work" },
-  { href: "/#about", label: "About" },
-  { href: "/#contact", label: "Contact" },
+  { href: "/contact", label: "Contact" },
 ];
 
 export default function SiteHeader() {
+  const pathname = usePathname();
+  const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
+
   return (
-    <header className="absolute inset-x-0 top-0 z-30">
-      <nav aria-label="Main" className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-1 px-4 py-4 sm:px-6">
-        <Link href="/" className="font-serif text-lg font-medium text-ink">
-          A Garden of Ideas
+    <header className="fixed inset-x-0 top-0 z-40 border-b border-forest/10 bg-cream/80 backdrop-blur-md">
+      <nav aria-label="Main" className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 px-4 py-2 sm:px-6">
+        <Link href="/" className="flex flex-col py-1 leading-tight">
+          <span className="font-serif text-lg font-medium text-ink">A Garden of Ideas</span>
+          <span className="text-[0.7rem] font-semibold tracking-[0.2em] text-ink-soft uppercase">Zhinuo Wang</span>
         </Link>
-        <ul className="flex gap-1 sm:gap-2">
-          {links.map((l) => (
-            <li key={l.href}>
-              <Link href={l.href} className="inline-flex min-h-11 items-center rounded-full px-3 text-sm font-medium text-ink/85 transition hover:bg-paper/60 hover:text-ink">
-                {l.label}
-              </Link>
-            </li>
-          ))}
+        <ul className="flex gap-0.5 sm:gap-1">
+          {links.map((l) => {
+            const active = isActive(l.href);
+            return (
+              <li key={l.href}>
+                <Link
+                  href={l.href}
+                  aria-current={active ? "page" : undefined}
+                  className={`inline-flex min-h-11 items-center rounded-full px-3 text-sm font-medium transition ${
+                    active ? "bg-forest text-paper" : "text-ink/85 hover:bg-paper hover:text-ink"
+                  }`}
+                >
+                  {l.label}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       </nav>
     </header>

@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 import type { Project } from "@/data/projects";
 import CategoryBadge from "./CategoryBadge";
 import ProjectMedia from "./ProjectMedia";
+import { PressedDaisy, Tape } from "./botanical/Pressed";
 
 // Native modal <dialog>: traps focus, closes on Esc, returns focus to the
 // hotspot that opened it.
@@ -26,14 +27,17 @@ export default function ProjectPreview({ project, onClose }: { project: Project 
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="preview-dialog m-auto w-[min(92vw,640px)] max-h-[90dvh] overflow-y-auto rounded-3xl bg-paper p-0 text-ink shadow-[0_30px_80px_-20px_rgb(64_88_60/0.45)] backdrop:bg-[#40583c]/35 backdrop:backdrop-blur-[2px]"
+      className="preview-dialog m-auto w-[min(92vw,640px)] max-h-[90dvh] overflow-visible bg-transparent p-0 text-ink backdrop:bg-[#40583c]/35 backdrop:backdrop-blur-[2px]"
     >
       {project && (
-        <div className="p-5 sm:p-7">
+        <div className="paper-grain relative max-h-[90dvh] overflow-y-auto rounded-[6px] bg-paper p-5 shadow-[0_30px_80px_-20px_rgb(64_88_60/0.5)] sm:-rotate-[0.6deg] sm:p-7">
+          <Tape className="pointer-events-none absolute top-0 left-8 w-24 -rotate-6" />
+          <Tape className="pointer-events-none absolute top-0 right-20 w-20 rotate-6" color="#a4b68c" />
+          <PressedDaisy className="pointer-events-none absolute right-2 bottom-2 hidden w-10 rotate-12 opacity-80 sm:block" />
           <div className="flex items-start justify-between gap-4">
             <div>
               <CategoryBadge category={project.category} />
-              <p className="mt-3 text-sm text-ink-soft">{project.locationName}</p>
+              <p className="mt-2 font-hand text-xl text-ink-soft">found at {project.locationName}</p>
             </div>
             <button
               type="button"

@@ -38,3 +38,20 @@ export function markVisited(slug: string) {
     sessionStorage.setItem(VISITED_KEY, JSON.stringify([...set]));
   } catch {}
 }
+
+const LAST_KEY = "goi:last-project";
+
+/** The project whose preview was opened last, so Back to Work can return to it. */
+export function saveLastProject(slug: string) {
+  try {
+    sessionStorage.setItem(LAST_KEY, slug);
+  } catch {}
+}
+
+export function readLastProject(): string | null {
+  try {
+    return sessionStorage.getItem(LAST_KEY);
+  } catch {
+    return null;
+  }
+}

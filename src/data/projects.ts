@@ -123,9 +123,9 @@ export const projects: Project[] = [
     shortDescription:
       "A user-centred mobile app concept for dog feeding: visual nutrition progress, quick meal and treat logging, and shared records so multiple caregivers don't double-feed.",
     role:
-      "Team research, prototyping and two rounds of usability testing; individually refined the final wireframes and UI after the second round.",
+      "Wireframes and interactive prototypes in Figma, user interviews and usability testing; individually refined the final screens after the second test round.",
     collaboration: "Team project",
-    courseContext: null,
+    courseContext: "User Experience (UX) Design Studio — Toronto",
     projectDate: "Sep – Dec 2025",
     tools: ["Figma"],
     heroImage: {
@@ -179,11 +179,9 @@ export const projects: Project[] = [
       "Desktop/Portofolio/软件封面.JPG",
       "Desktop/Portofolio/个人作品集.pdf (page 4)",
       "Desktop/Portofolio/Nora Wang - 狗狗营养追踪App - 软件设计.pdf",
+      "Desktop/Resume.pdf (project experience)",
     ],
-    openQuestions: [
-      "Course code/name and team size.",
-      "Confirm the role sentence above matches what you did.",
-    ],
+    openQuestions: ["Team size.", "Should the app's name, FEEDO (from the resume), appear on the site?"],
   },
   {
     id: "eliminate-bacteria-pro",
@@ -196,9 +194,9 @@ export const projects: Project[] = [
     discipline: "Concept product design",
     shortDescription:
       "A concept that pairs a children's electric toothbrush with VR glasses, turning brushing into a game: grey “bacteria” on a live view of the teeth turn green once each spot is brushed.",
-    role: "Product concept, brand identity (logo and business card) and an experiential marketing activation.",
+    role: "Led the product concept and design; designed the logo and promotional materials; proposed the marketing approach for children and parents.",
     collaboration: null,
-    courseContext: null,
+    courseContext: "Design Thinking II — Mississauga",
     projectDate: "Dec 2023 – Apr 2024",
     tools: ["Adobe InDesign", "Adobe Illustrator"],
     heroImage: {
@@ -236,7 +234,7 @@ export const projects: Project[] = [
       "Desktop/Portofolio/Nora Wang - Eliminate Bacteria Pro - 产品设计.pdf",
     ],
     openQuestions: [
-      "Course name, and whether this was individual or team work.",
+      "Individual or team work? The resume says you collaborated on brand development.",
       "The 3D toothbrush render: confirm how it was produced so it can be credited correctly.",
     ],
   },
@@ -251,9 +249,9 @@ export const projects: Project[] = [
     discipline: "Interaction design",
     shortDescription:
       "An interactive digital brochure for the Dyson Supersonic hair dryer — colour switching, accessory hover details and video, in a minimal black-and-white layout with Dyson's purple accents.",
-    role: "Information architecture, visual style and interaction design of the brochure.",
+    role: "Designed the brochure's structure, visual style and interactions in Adobe InDesign: colour hover states, detail buttons, a Z-pattern layout and an accessible table of contents.",
     collaboration: null,
-    courseContext: null,
+    courseContext: "Design and Implementation of Multimedia Documents — Mississauga",
     projectDate: "Dec 2023 – Apr 2024",
     tools: ["Adobe InDesign"],
     heroImage: {
@@ -291,7 +289,7 @@ export const projects: Project[] = [
       "Desktop/Portofolio/Nora Wang - 戴森吹风机宣传手册 - 交互设计.pdf",
     ],
     openQuestions: [
-      "Course name, and whether this was individual or team work.",
+      "Individual or team work?",
       "Product photography in the brochure is Dyson's — confirm how you'd like it credited.",
     ],
   },
