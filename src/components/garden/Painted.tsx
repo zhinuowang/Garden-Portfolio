@@ -15,6 +15,7 @@ export function PaintedHill({
   density = 1,
   angle = -8,
   wash = true,
+  scale = 1,
 }: {
   points: Pt[];
   bottom?: number;
@@ -24,6 +25,8 @@ export function PaintedHill({
   density?: number;
   angle?: number;
   wash?: boolean;
+  /** Enlarges the brush marks, for areas nearer the viewer. */
+  scale?: number;
 }) {
   const f = ridge(points);
   const x0 = points[0][0];
@@ -32,12 +35,12 @@ export function PaintedHill({
   const area = (x1 - x0) * (bottom - top);
   const marks = brushStrokes({
     seed,
-    count: Math.round((area / 1400) * density),
+    count: Math.round((area / (1400 * scale * scale)) * density),
     x: [x0, x1],
     y: [top, bottom],
     colors: strokes,
-    length: [16, 46],
-    width: [3, 9],
+    length: [16 * scale, 46 * scale],
+    width: [3 * scale, 9 * scale],
     angle,
     spread: 26,
     inside: (x, y) => y > f(x) + 6,

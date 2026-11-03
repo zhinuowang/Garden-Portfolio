@@ -1,56 +1,56 @@
-# Landing garden: composition and painted-art spec
+# Landing garden: one tall painting
 
-The Landing page is one continuous garden. The visitor never leaves it. Scrolling moves a camera slowly forward
-along a winding path, and four short statements appear along the way. The artwork on screen today is a
-**code-drawn placeholder**, not the final watercolor. Each layer can be swapped for a painting without touching code.
+Checkpoints: `landing-v1-checkpoint` (four-page Landing), `landing-v2-checkpoint` (zoom-based Landing before this one).
 
-## Composition
+The Landing is **one continuous painting, 1600 × 4000 units, that the visitor travels down**. Distant pink sky and
+hills are at the top. Further down, the hills come closer, the brushwork gets bigger, and the flowers grow larger.
+The path winds from the horizon to the visitor's feet and ends under a rose arch. Moving down therefore reads as
+walking forward into the garden, the same idea as the Zilin reference, which pans down one tall painting.
 
-One scene, painted on a 1600 × 1000 artboard (16:10). Everything is anchored to the bottom edge, so wider screens
-crop the sky and narrower screens crop the sides. Keep the important things inside the **central 40%** of the
-width: the path, the horizon glow, and the clearest flowers. On a phone that band is all that shows.
+The artwork on screen today is a **code-drawn placeholder**, not the final watercolor. Each layer can be swapped for
+a painting in `src/data/landingArt.ts` without touching the code.
 
-```
- 0% ┌──────────────────────────────────────────────┐
-    │  sky: pink at the top, peach toward the horizon│  Title, Moments 2–4 sit here.
-    │      soft clouds                               │  Keep this area calm.
-    │  [Moment 2 · left]          [Moment 3 · right] │
-55% │~~~~~~~~~~ distant lavender / sage ranges ~~~~~~│
-63% │~~~~~ rolling green hills, hedgerows, trees ~~~~│
-    │                    ╲ path ╱                    │
-72% │~~~~~~~~ wildflower meadow, path widens ~~~~~~~~│
-    │ foreground left     ╲     ╱     foreground right│
-100%└──────────────────────────────────────────────┘
-```
+## How it moves
+
+- A sticky full-viewport stage holds the painting, and normal page scrolling drives it. There is no snapping and no
+  scroll-jacking. The painting moves 0.75 px for each pixel scrolled.
+- The painting is scaled to cover the viewport. One unit is `max(100vw / 1600, 100svh / 1000)`, so every screen
+  shows at most 1000 units of height. Phones crop the sides around the central path.
+- Layers drift a few percent against each other. Each layer lines up exactly at its anchor point, and every land layer
+  is painted all the way down to the bottom, so no gaps can open. Drift is halved on phones and switched off with
+  reduced motion; with reduced motion the painting simply scrolls as one still picture.
 
 ## Layers (back to front)
 
-| Slot (`src/data/landingArt.ts`) | Painted file | Contents | Movement over the whole scroll |
+All files cover the whole artboard: export them at **3200 × 8000 px**, transparent except the sky.
+
+| Slot | Contents | Drift | Lined up at |
 | --- | --- | --- | --- |
-| `sky` | 3200×2000, opaque | Pink and peach wash, faint watercolor blooms | Grows 3%; warms toward gold |
-| `clouds` | 3200×2000, transparent | Soft pink and apricot clouds | Drifts sideways, rises 6% |
-| `farHills` | 3200×2000, transparent | Lavender and grey-sage ranges, ridge 55–61% | Grows 9% |
-| `midground` | 3200×2000, transparent | Rolling green hills, hedges, tree clumps, far end of the path, ridge 63–67% | Grows 26% |
-| `meadow` | 3200×2000, transparent | Near meadow with wildflowers, near end of the path, ridge 71–74% | Grows 58% (passes below the frame) |
-| `flowerBed` | 3200×800, transparent | Tall grass and big flowers along the bottom edge, path gap in the centre | Rises in for Moments 3–4 |
-| `foregroundLeft` | 1200×1600, transparent | Grass, leaves and stems framing the bottom-left | Rises, then parts outward at the end |
-| `foregroundRight` | 1200×1600, transparent | Same for the bottom-right; not a mirror of the left | Rises, then parts outward at the end |
+| `sky` | Pink to peach sky and clouds (0–700), any ground colour below | −8% | top |
+| `farHills` | Lavender and grey-sage ranges, ridges about 530–620 | −4% | top |
+| `midground` | Seven rolling bands from 668 to 2200, each lit on its crest and shaded at its foot; trees; the tilled seedbed (around x 420, y 1400); the path from 650 to 2900 | 0 | everywhere |
+| `nearMeadow` | Four closer bands from 2360; the path widening; the daisy cluster (x 1040–1460, y 2390–2520) | +3% | 55% |
+| `foreground` | Tall grass and large flowers at both sides; the rose arch over the path (3420–4000) with warm light | +6% | the end |
+| `sideSprigs` | Leaf sprays along the left and right edges | +10% | the middle |
 
-All layers grow toward one vanishing point (centre, 62% down), so the scene feels like walking forward rather than
-sliding. On phones every movement is reduced to 55%. With reduced motion turned on, nothing moves and the text only
-fades.
+Paint the whole thing as **one painting**, then separate it into layers, so the brushwork and light match everywhere.
+Keep the path inside the central 40% of the width, because that is all a phone shows. Paint some extra ground above
+each layer's top edge. Leave calm areas where the notes sit: left at y ≈ 1170, right at y ≈ 2130, left at y ≈ 2740.
 
-**Paint all layers as one painting**, then separate it. The brushwork, palette and light must match across layers.
-Paint a little extra beneath each ridge, because the layer in front moves and can uncover it. Export as WebP or PNG
-with transparency, at 2× the artboard size shown above.
+## Timeline (scroll progress)
 
-## Narrative moments (scroll progress 0 → 1)
+| Progress | View (painting units, desktop) | What the visitor sees |
+| --- | --- | --- |
+| 0% | 0–1000 | Sky, title, "Scroll to Wander", distant hills, the path starting at the horizon |
+| 25% | ≈ 750–1750 | The sky has gone; rolling hills, trees; "Every idea starts as a little seed." on the left above the seedbed |
+| 50% | ≈ 1500–2500 | Nearer hills, more flowers; "I find inspiration in the little things." on the right above the daisies |
+| 75% | ≈ 2250–3250 | Close meadow, wide path; "Design is how I turn observations into experiences." on the left |
+| 100% | 3000–4000 | The rose arch with warm light; "Come see what I've been growing." and Explore My Work |
 
-| Progress | Moment | Text placement | What the garden does |
-| --- | --- | --- | --- |
-| 0 – 0.12 | 1 · Arrival | Centre, in the sky | Still, the full scene |
-| 0.18 – 0.42 | 2 · A little seed | Left edge, in the sky | Camera moves along the path |
-| 0.46 – 0.70 | 3 · Philosophy | Right edge, in the sky | Flower bed rises; foreground fuller |
-| 0.76 – 1 | 4 · Invitation + Explore My Work | Centre | Foreground parts; warm light at the path's end |
+Notes are written in word by word as they reach the lower three quarters of the screen. The copy is in
+`src/data/site.ts` → `landingScenes`.
 
-The copy lives in `src/data/site.ts` → `landingScenes`.
+## Still needed
+
+- The painted layers above, which replace the placeholder.
+- Optional: lettering in your own handwriting (images or a font), in place of Caveat.

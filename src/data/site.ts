@@ -19,9 +19,10 @@ export const landingScenes = {
     descriptor: "UX/UI & Product Design Portfolio",
     hint: "Scroll to Wander",
   },
-  // Moments 2–4
+  // Handwritten annotations along the walk, then the invitation at the gate
   seed: "Every idea starts as a little seed.",
   philosophy: "I find inspiration in the little things.",
+  observation: "Design is how I turn observations into experiences.",
   invitation: "Come see what I've been growing.",
   cta: "Explore My Work",
 };
