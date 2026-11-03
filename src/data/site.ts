@@ -12,13 +12,14 @@ export const site = {
 
 // Landing narrative. Provisional copy from the owner's brief — edit freely here.
 export const landingScenes = {
+  // Moment 1 — Arrival
   welcome: {
     title: "A Garden of Ideas",
-    eyebrow: "Zhinuo Wang",
+    name: "Zhinuo Wang",
     descriptor: "UX/UI & Product Design Portfolio",
-    subtitle: "A collection of ideas, stories & little moments.",
     hint: "Scroll to Wander",
   },
+  // Moments 2–4
   seed: "Every idea starts as a little seed.",
   philosophy: "I find inspiration in the little things.",
   invitation: "Come see what I've been growing.",

@@ -28,12 +28,8 @@ Removed (all recoverable from the tag): the homepage sections `GardenGate`, `Gar
 
 ## Composition per page
 
-- **Landing.** A 460vh section with a sticky viewport. Painted layers from back to front: sky, a warm gold overlay
-  that deepens as you scroll, drifting clouds, distant lavender ranges, green hills with hedgerows, a wildflower
-  meadow with a winding path, the fuller garden with small views of the cottage, greenhouse and windmill, and
-  swaying foreground stems. Scroll progress (`--p`) raises each layer by a depth-based amount and fades the four
-  statements in and out. Scrolling is native and nothing is hijacked. With reduced motion the layers stay put and
-  only opacity changes.
+- **Landing.** Redesigned 3 November 2026 (checkpoint tag `landing-v1-checkpoint`): one full-screen garden that the
+  camera walks into. The composition, layer list, timings and painted-art spec are in `docs/LANDING-ART-SPEC.md`.
 - **About.** A cream paper page with radial light, a taped polaroid portrait, pressed-flower ornaments, dashed
   journal headings with handwritten side notes, a dotted timeline for experience, and skills grouped as tags.
 - **Work.** The two-region panorama, now painted with oil-style brush strokes: a warmer olive and peach palette on

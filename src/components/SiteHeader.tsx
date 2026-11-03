@@ -13,15 +13,23 @@ const links = [
 export default function SiteHeader() {
   const pathname = usePathname();
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
+  // On the Landing page the garden fills the screen, so the bar disappears and the
+  // brand and links sit on soft paper washes that read over any part of the painting.
+  const overGarden = pathname === "/";
 
   return (
-    <header className="fixed inset-x-0 top-0 z-40 border-b border-forest/10 bg-cream/80 backdrop-blur-md">
+    <header
+      className={`fixed inset-x-0 top-0 z-40 ${overGarden ? "" : "border-b border-forest/10 bg-cream/80 backdrop-blur-md"}`}
+    >
       <nav aria-label="Main" className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 px-4 py-2 sm:px-6">
-        <Link href="/" className="flex flex-col py-1 leading-tight">
+        <Link
+          href="/"
+          className={`flex flex-col py-1 leading-tight ${overGarden ? "[text-shadow:0_1px_14px_rgb(251_247_238/0.95)]" : ""}`}
+        >
           <span className="font-serif text-lg font-medium text-ink">A Garden of Ideas</span>
           <span className="text-[0.7rem] font-semibold tracking-[0.2em] text-ink-soft uppercase">Zhinuo Wang</span>
         </Link>
-        <ul className="flex gap-0.5 sm:gap-1">
+        <ul className={`flex gap-0.5 sm:gap-1 ${overGarden ? "rounded-full bg-paper/75 p-1 shadow-[0_6px_20px_-12px_rgb(64_88_60/0.6)]" : ""}`}>
           {links.map((l) => {
             const active = isActive(l.href);
             return (
@@ -30,7 +38,7 @@ export default function SiteHeader() {
                   href={l.href}
                   aria-current={active ? "page" : undefined}
                   className={`inline-flex min-h-11 items-center rounded-full px-3 text-sm font-medium transition ${
-                    active ? "bg-forest text-paper" : "text-ink/85 hover:bg-paper hover:text-ink"
+                    active ? "bg-forest text-paper" : "text-ink hover:bg-paper hover:text-ink"
                   }`}
                 >
                   {l.label}

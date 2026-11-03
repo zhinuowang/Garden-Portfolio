@@ -24,7 +24,7 @@ All of it is currently code-drawn. There are no image files yet.
 
 | Component | What it draws |
 | --- | --- |
-| `src/components/landing/LandingJourney.tsx` | Scroll-driven landing layers |
+| `src/components/landing/LandingJourney.tsx` | Scroll-driven landing layers; each can be replaced by a painting via `src/data/landingArt.ts` (spec: `docs/LANDING-ART-SPEC.md`) |
 | `src/components/garden/Painted.tsx` | Painted hills, brush strokes, wildflowers, stems, clouds |
 | `src/components/botanical/Pressed.tsx` | Pressed flowers and tape for the About page and previews |
 | `src/components/contact/MailboxScene.tsx` | Contact landscape, mailbox and envelope |
