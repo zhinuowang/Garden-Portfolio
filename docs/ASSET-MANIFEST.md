@@ -24,7 +24,7 @@ Everything is code-drawn except the Landing painting, which is interim raster ar
 
 | Component | What it draws |
 | --- | --- |
-| `public/assets/garden/landing/scene-{1,2,3}-{desktop,mobile}-*.webp` | The Landing painting: interim raster artwork rendered by `scripts/paint-landing.mjs` (spec: `docs/LANDING-ART-SPEC.md`) |
+| `public/assets/garden/landing/*.webp` | The Landing painting and the wooden sign: interim raster artwork rendered by `scripts/paint-landing.mjs` (spec: `docs/LANDING-ART-SPEC.md`) |
 | `src/components/garden/Painted.tsx` | Painted hills, brush strokes, wildflowers, stems, clouds |
 | `src/components/botanical/Pressed.tsx` | Pressed flowers and tape for the About page and previews |
 | `src/components/contact/MailboxScene.tsx` | Contact landscape, mailbox and envelope |

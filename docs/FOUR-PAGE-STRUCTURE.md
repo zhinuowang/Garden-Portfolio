@@ -6,7 +6,7 @@ Checkpoint before the change: git tag `phase-2-checkpoint`.
 
 | Route | Page | Purpose |
 | --- | --- | --- |
-| `/` | Landing | A scroll-driven walk into the garden, with four short statements and Explore My Work |
+| `/` | Landing | Three scenes of one painted garden: the title, three thoughts on the hills, and afternoon tea with the Explore My Work sign |
 | `/about` | About | Botanical-journal page: intro, education, experience and skills from the resume, plus Download Resume |
 | `/work` | Work | The interactive two-region garden with five project objects, and a plain list below it |
 | `/contact` | Contact | Garden mailbox scene with a visible email link; the envelope reveals a note |
@@ -29,8 +29,8 @@ Removed (all recoverable from the tag): the homepage sections `GardenGate`, `Gar
 ## Composition per page
 
 - **Landing.** Three scenes of one tall painting, stacked edge to edge in normal scroll: the title only, then the
-  three thoughts, then the invitation with Explore My Work under a rose arch. Earlier versions are tagged
-  `landing-v1-checkpoint` to `landing-v3-checkpoint`. The composition and art spec are in `docs/LANDING-ART-SPEC.md`.
+  thoughts along the hills, then afternoon tea with a hanging wooden Explore My Work sign. Earlier versions are tagged
+  `landing-v1-checkpoint` to `landing-v4-checkpoint`. The composition and art spec are in `docs/LANDING-ART-SPEC.md`.
 - **About.** A cream paper page with radial light, a taped polaroid portrait, pressed-flower ornaments, dashed
   journal headings with handwritten side notes, a dotted timeline for experience, and skills grouped as tags.
 - **Work.** The two-region panorama, now painted with oil-style brush strokes: a warmer olive and peach palette on

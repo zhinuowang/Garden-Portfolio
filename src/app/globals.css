@@ -120,6 +120,34 @@ body {
   opacity: 0;
   transform: translateY(10px);
 }
+/* The wooden "Explore My Work" sign: sways on its ropes, warms, and its flower nods. */
+.garden-sign__board {
+  transform-origin: 50% 0;
+  transition: filter 0.4s ease;
+}
+.garden-sign__flower {
+  transition: transform 0.5s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.garden-sign:hover .garden-sign__board,
+.garden-sign:focus-visible .garden-sign__board {
+  animation: sign-sway 2.2s ease-in-out;
+  filter: brightness(1.08) saturate(1.06) drop-shadow(0 0 18px rgb(255 236 190 / 0.55));
+}
+.garden-sign:hover .garden-sign__flower,
+.garden-sign:focus-visible .garden-sign__flower {
+  transform: rotate(-22deg) scale(1.18);
+}
+.garden-sign:focus-visible {
+  outline: 3px solid #fbf3e4;
+  outline-offset: 6px;
+}
+@keyframes sign-sway {
+  0% { transform: rotate(0); }
+  20% { transform: rotate(2.6deg); }
+  45% { transform: rotate(-2deg); }
+  70% { transform: rotate(1.1deg); }
+  100% { transform: rotate(0); }
+}
 @keyframes cue {
   0%, 100% { transform: translateY(0); opacity: 0.7; }
   50% { transform: translateY(6px); opacity: 1; }
@@ -127,7 +155,7 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .sway, .drift, .blades, .bubble, .bloom { animation: none !important; }
+  .sway, .drift, .blades, .bubble, .bloom, .garden-sign__board { animation: none !important; }
   .journey-move { transform: none !important; }
   .journey-text { transform: none !important; }
   *, *::before, *::after { transition-duration: 0.01ms !important; }

@@ -1,13 +1,15 @@
 import Link from "next/link";
 import { landingScenes as copy } from "@/data/site";
 import { landingArt as art } from "@/data/landingArt";
+import anchors from "@/data/landing-anchors.json";
 import Reveal from "./Reveal";
 
 // The Landing is one tall garden painting in three scenes, stacked edge to edge
 // in normal document flow: scrolling simply moves down the painting. Each scene
 // is a slice of the same picture, so the joins are seamless. Viewports at or
 // narrower than 3:4 get the portrait composition (`portrait-art:` variant).
-// Text is real HTML placed over the calm areas the painting leaves for it.
+// Text is real HTML. The scene-2 notes sit on hill slopes whose position and
+// tilt the painting script measured (src/data/landing-anchors.json).
 
 function SceneArt({ scene }: { scene: 1 | 2 | 3 }) {
   const d = art.desktop;
@@ -39,16 +41,24 @@ function SceneArt({ scene }: { scene: 1 | 2 | 3 }) {
 }
 
 const glow = "[text-shadow:0_1px_18px_rgb(251_247_238/0.9),0_0_2px_rgb(251_247_238/0.7)]";
+/** Handwriting laid on the grass: dark ink with a soft halo of light. */
+const note = "[text-shadow:0_0_14px_rgb(246_242_214/0.85),0_1px_2px_rgb(246_242_214/0.9)]";
+
+type Anchor = { x: number; y: number; angle: number };
+const place = (d: Anchor, m: Anchor) =>
+  ({ "--dx": `${d.x * 100}%`, "--dy": `${d.y * 100}%`, "--da": `${d.angle}deg`, "--mx": `${m.x * 100}%`, "--my": `${m.y * 100}%`, "--ma": `${m.angle}deg` }) as React.CSSProperties;
 
 export default function LandingScenes() {
+  const sd = anchors.desktop.sign;
+  const sm = anchors.mobile.sign;
   return (
     <div className="relative overflow-hidden bg-[#9fb574]">
-      {/* ---- Scene 1 · The beginning: the title alone ---- */}
+      {/* ---- Scene 1 · A living garden: the title alone, centred in the first view ---- */}
       <section aria-labelledby="landing-title" className="relative">
         <SceneArt scene={1} />
         <h1
           id="landing-title"
-          className={`absolute inset-x-0 top-[9.5%] px-6 text-center font-serif text-[clamp(3rem,7.6vw,8rem)] leading-[0.95] font-medium tracking-[-0.01em] text-[#33402f] portrait-art:top-[11%] portrait-art:text-[clamp(2.9rem,14vw,5rem)] ${glow}`}
+          className={`absolute inset-x-0 top-[min(50svh,50%)] -translate-y-1/2 px-6 text-center font-serif text-[clamp(3rem,7.6vw,8rem)] leading-[0.95] font-medium tracking-[-0.01em] text-[#33402f] portrait-art:text-[clamp(2.9rem,14vw,5rem)] ${glow}`}
         >
           {copy.title}
         </h1>
@@ -62,47 +72,56 @@ export default function LandingScenes() {
         </div>
       </section>
 
-      {/* ---- Scene 2 · My thoughts ---- */}
+      {/* ---- Scene 2 · Thoughts on the hills: notes laid along three slopes ---- */}
       <section aria-label="Thoughts" className="relative">
         <SceneArt scene={2} />
-        <Reveal className="absolute top-[7%] left-[6%] max-w-[min(36rem,46%)] portrait-art:top-[10%] portrait-art:right-[7%] portrait-art:left-[7%] portrait-art:max-w-none">
-          {copy.thoughts.map((line, i) => (
-            <p
-              key={line}
-              style={{ transitionDelay: `${i * 260}ms` }}
-              className={`reveal-item font-serif text-[clamp(1.5rem,2.7vw,2.75rem)] leading-[1.2] text-[#2c3828] portrait-art:text-[clamp(1.45rem,6.6vw,2.2rem)] ${glow} ${
-                i === 1 ? "mt-[0.9em] ml-[1.4em] italic portrait-art:ml-[0.8em]" : i === 2 ? "mt-[0.9em] ml-[0.5em] portrait-art:ml-0" : ""
-              }`}
-            >
+        {copy.thoughts.map((line, i) => (
+          <Reveal
+            key={line}
+            style={place(anchors.desktop.phrases[i], anchors.mobile.phrases[i])}
+            className="absolute top-(--dy) left-(--dx) w-max max-w-[40vw] -translate-x-1/2 -translate-y-1/2 rotate-(--da) portrait-art:top-(--my) portrait-art:left-(--mx) portrait-art:max-w-[84vw] portrait-art:rotate-(--ma)"
+          >
+            <p className={`reveal-item text-center font-hand text-[clamp(2rem,3.5vw,3.7rem)] leading-[1.05] font-semibold text-[#2a3624] portrait-art:text-[clamp(1.8rem,8.4vw,2.7rem)] ${note}`}>
               {line}
             </p>
-          ))}
-        </Reveal>
+          </Reveal>
+        ))}
       </section>
 
-      {/* ---- Scene 3 · Enter my work ---- */}
+      {/* ---- Scene 3 · Afternoon tea in the garden ---- */}
       <section aria-labelledby="landing-invitation" className="relative">
         <SceneArt scene={3} />
-        <Reveal className="absolute inset-x-0 top-[6%] px-6 text-center portrait-art:top-[10%]">
+        <Reveal className="absolute top-[11%] left-[74%] w-max max-w-[44vw] -translate-x-1/2 -translate-y-1/2 -rotate-2 portrait-art:top-[13%] portrait-art:left-1/2 portrait-art:max-w-[88vw]">
           <h2
             id="landing-invitation"
-            className={`reveal-item font-serif text-[clamp(2rem,4.4vw,4.4rem)] leading-[1.1] text-[#2c3828] portrait-art:text-[clamp(1.9rem,8.6vw,3rem)] ${glow}`}
+            className={`reveal-item text-center font-hand text-[clamp(2.3rem,4.2vw,4.4rem)] leading-[1.05] font-semibold text-[#2a3624] portrait-art:text-[clamp(2rem,9.4vw,3rem)] ${note}`}
           >
             {copy.invitation}
           </h2>
         </Reveal>
-        {/* the way in: a painted sign standing in the light under the arch */}
-        <div className="absolute inset-x-0 top-[54%] flex justify-center px-6 portrait-art:top-[52%]">
-          <Link
-            href="/work"
-            className="group inline-flex min-h-14 items-center gap-3 rounded-[18px_14px_20px_12px] border border-[#7a5f48]/35 bg-[#fbf3e4]/95 px-8 py-3 font-serif text-[clamp(1.15rem,1.7vw,1.5rem)] text-[#2f4a2c] shadow-[0_18px_40px_-18px_rgb(60_48_30/0.75),inset_0_1px_0_rgb(255_255_255/0.6)] transition duration-300 hover:-translate-y-0.5 hover:bg-[#fffaf0] hover:shadow-[0_22px_44px_-18px_rgb(60_48_30/0.85)] focus-visible:-translate-y-0.5"
-          >
-            {copy.cta}
-            <span aria-hidden="true" className="transition-transform duration-300 group-hover:translate-x-1">
-              →
+        {/* the way in: a painted wooden sign hanging over the garden gate */}
+        <Link
+          href="/work"
+          style={{ "--sx": `${sd.x * 100}%`, "--sy": `${sd.y * 100}%`, "--sw": `${sd.w * 100}%`, "--mx": `${sm.x * 100}%`, "--my": `${sm.y * 100}%`, "--mw": `${sm.w * 100}%` } as React.CSSProperties}
+          className="garden-sign @container absolute top-(--sy) left-(--sx) w-(--sw) -translate-x-1/2 rounded-[1.5rem] portrait-art:top-(--my) portrait-art:left-(--mx) portrait-art:w-(--mw)"
+        >
+          <span className="garden-sign__board relative block">
+            {/* eslint-disable-next-line @next/next/no-img-element -- painted sign artwork, sized by the sign */}
+            <img src="/assets/garden/landing/sign.webp" alt="" width={760} height={470} className="block h-auto w-full select-none" draggable={false} />
+            <span className="absolute inset-x-[8%] top-[56%] -translate-y-1/2 text-center font-hand text-[12cqw] leading-none font-bold text-[#3a2618] [text-shadow:0_1px_0_rgb(255_236_200/0.45),0_-1px_0_rgb(40_25_15/0.25)]">
+              {copy.cta}
             </span>
-          </Link>
-        </div>
+            {/* eslint-disable-next-line @next/next/no-img-element -- painted flower that nods on hover */}
+            <img
+              src="/assets/garden/landing/sign-flower.webp"
+              alt=""
+              width={200}
+              height={200}
+              className="garden-sign__flower pointer-events-none absolute top-[13%] right-[3%] w-[19%] select-none"
+              draggable={false}
+            />
+          </span>
+        </Link>
       </section>
     </div>
   );

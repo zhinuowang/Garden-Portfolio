@@ -7,7 +7,7 @@ import { useEffect, useRef } from "react";
  * Content is only hidden after hydration, so it is never lost without
  * JavaScript; reduced motion shows it at once (globals.css).
  */
-export default function Reveal({ className, children }: { className?: string; children: React.ReactNode }) {
+export default function Reveal({ className, style, children }: { className?: string; style?: React.CSSProperties; children: React.ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -28,7 +28,7 @@ export default function Reveal({ className, children }: { className?: string; ch
   }, []);
 
   return (
-    <div ref={ref} className={className}>
+    <div ref={ref} className={className} style={style}>
       {children}
     </div>
   );
