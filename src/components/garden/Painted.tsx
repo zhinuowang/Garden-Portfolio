@@ -2,7 +2,7 @@
 // A hill is a watercolor wash under a ridge line, overlaid with short oil-paint
 // strokes that follow the slope; flowers are loose dabs rather than circles.
 
-import { brushStrokes, ridge, ridgePath, scatterFlowers, seeded } from "./scatter";
+import { brushStrokes, ridge, ridgePath, scatterFlowers } from "./scatter";
 
 type Pt = [number, number];
 
@@ -15,7 +15,6 @@ export function PaintedHill({
   density = 1,
   angle = -8,
   wash = true,
-  scale = 1,
 }: {
   points: Pt[];
   bottom?: number;
@@ -25,8 +24,6 @@ export function PaintedHill({
   density?: number;
   angle?: number;
   wash?: boolean;
-  /** Enlarges the brush marks, for areas nearer the viewer. */
-  scale?: number;
 }) {
   const f = ridge(points);
   const x0 = points[0][0];
@@ -35,12 +32,12 @@ export function PaintedHill({
   const area = (x1 - x0) * (bottom - top);
   const marks = brushStrokes({
     seed,
-    count: Math.round((area / (1400 * scale * scale)) * density),
+    count: Math.round((area / 1400) * density),
     x: [x0, x1],
     y: [top, bottom],
     colors: strokes,
-    length: [16 * scale, 46 * scale],
-    width: [3 * scale, 9 * scale],
+    length: [16, 46],
+    width: [3, 9],
     angle,
     spread: 26,
     inside: (x, y) => y > f(x) + 6,
@@ -126,72 +123,6 @@ export function Clouds({ items }: { items: { cx: number; cy: number; rx: number;
       {items.map((c, i) => (
         <ellipse key={i} cx={c.cx} cy={c.cy} rx={c.rx} ry={c.ry} fill={c.color} opacity={c.o} />
       ))}
-    </g>
-  );
-}
-
-/** Loose tapering grass blades rising from `bottom`, painted as filled strokes. */
-export function GrassBlades({
-  seed,
-  count,
-  x,
-  bottom,
-  height,
-  colors,
-  keep,
-}: {
-  seed: number;
-  count: number;
-  x: [number, number];
-  bottom: number;
-  height: [number, number];
-  colors: string[];
-  keep?: (x: number) => boolean;
-}) {
-  const rand = seeded(seed);
-  const blades: { d: string; c: string; o: number }[] = [];
-  let guard = 0;
-  while (blades.length < count && guard++ < count * 6) {
-    const bx = x[0] + rand() * (x[1] - x[0]);
-    if (keep && !keep(bx)) continue;
-    const h = height[0] + rand() * (height[1] - height[0]);
-    const lean = (rand() - 0.5) * h * 0.7;
-    const w = 3 + rand() * 6;
-    const tipX = bx + lean;
-    const tipY = bottom - h;
-    blades.push({
-      d: `M${(bx - w).toFixed(1)} ${bottom} Q${(bx + lean * 0.3 - w * 0.4).toFixed(1)} ${(bottom - h * 0.55).toFixed(1)} ${tipX.toFixed(1)} ${tipY.toFixed(1)} Q${(bx + lean * 0.35 + w * 0.4).toFixed(1)} ${(bottom - h * 0.5).toFixed(1)} ${(bx + w).toFixed(1)} ${bottom} Z`,
-      c: colors[Math.floor(rand() * colors.length)],
-      o: 0.55 + rand() * 0.4,
-    });
-  }
-  return (
-    <g filter="url(#paint)">
-      {blades.map((b, i) => (
-        <path key={i} d={b.d} fill={b.c} opacity={b.o} />
-      ))}
-    </g>
-  );
-}
-
-/** A curved stem with paired, softly painted leaves. */
-export function LeafSpray({ x, y, length, angle, color, scale = 1 }: { x: number; y: number; length: number; angle: number; color: string; scale?: number }) {
-  const leaves = [0.25, 0.45, 0.62, 0.78, 0.92];
-  return (
-    <g transform={`translate(${x} ${y}) rotate(${angle}) scale(${scale})`} filter="url(#paint)">
-      <path d={`M0 0 Q ${length * 0.12} ${-length * 0.5} 0 ${-length}`} stroke="#5f7d55" strokeWidth="3" fill="none" strokeLinecap="round" />
-      {leaves.map((t, i) => {
-        const side = i % 2 === 0 ? 1 : -1;
-        const s = 1.15 - t * 0.6;
-        return (
-          <path
-            key={t}
-            d={`M0 ${-length * t} q ${side * 26 * s} ${-14 * s} ${side * 46 * s} ${-4 * s} q ${-side * 20 * s} ${16 * s} ${-side * 46 * s} ${4 * s} Z`}
-            fill={color}
-            opacity={0.85}
-          />
-        );
-      })}
     </g>
   );
 }

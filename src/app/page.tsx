@@ -1,5 +1,5 @@
-import LandingJourney from "@/components/landing/LandingJourney";
+import LandingScenes from "@/components/landing/LandingScenes";
 
 export default function Home() {
-  return <LandingJourney />;
+  return <LandingScenes />;
 }

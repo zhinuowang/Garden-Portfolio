@@ -1,56 +1,61 @@
-# Landing garden: one tall painting
+# Landing: three scenes of one tall painting
 
-Checkpoints: `landing-v1-checkpoint` (four-page Landing), `landing-v2-checkpoint` (zoom-based Landing before this one).
+Checkpoints of earlier Landing versions: `landing-v1-checkpoint`, `landing-v2-checkpoint`, `landing-v3-checkpoint`
+(the last one is the code-drawn "tall painting" version this replaces).
 
-The Landing is **one continuous painting, 1600 × 4000 units, that the visitor travels down**. Distant pink sky and
-hills are at the top. Further down, the hills come closer, the brushwork gets bigger, and the flowers grow larger.
-The path winds from the horizon to the visitor's feet and ends under a rose arch. Moving down therefore reads as
-walking forward into the garden, the same idea as the Zilin reference, which pans down one tall painting.
+## Structure
 
-The artwork on screen today is a **code-drawn placeholder**, not the final watercolor. Each layer can be swapped for
-a painting in `src/data/landingArt.ts` without touching the code.
+The Landing is **one tall garden painting**, sliced into three scenes and stacked edge to edge in normal page flow.
+Scrolling simply moves down the painting. There is no sticky stage, no zoom, no parallax, no snapping, and no
+crossfade. Because the three files are slices of one picture, the joins are seamless by construction.
 
-## How it moves
-
-- A sticky full-viewport stage holds the painting, and normal page scrolling drives it. There is no snapping and no
-  scroll-jacking. The painting moves 0.75 px for each pixel scrolled.
-- The painting is scaled to cover the viewport. One unit is `max(100vw / 1600, 100svh / 1000)`, so every screen
-  shows at most 1000 units of height. Phones crop the sides around the central path.
-- Layers drift a few percent against each other. Each layer lines up exactly at its anchor point, and every land layer
-  is painted all the way down to the bottom, so no gaps can open. Drift is halved on phones and switched off with
-  reduced motion; with reduced motion the painting simply scrolls as one still picture.
-
-## Layers (back to front)
-
-All files cover the whole artboard: export them at **3200 × 8000 px**, transparent except the sky.
-
-| Slot | Contents | Drift | Lined up at |
+| Scene | Purpose | Text (real HTML, `src/data/site.ts` → `landingScenes`) | Focal point in the painting |
 | --- | --- | --- | --- |
-| `sky` | Pink to peach sky and clouds (0–700), any ground colour below | −8% | top |
-| `farHills` | Lavender and grey-sage ranges, ridges about 530–620 | −4% | top |
-| `midground` | Seven rolling bands from 668 to 2200, each lit on its crest and shaded at its foot; trees; the tilled seedbed (around x 420, y 1400); the path from 650 to 2900 | 0 | everywhere |
-| `nearMeadow` | Four closer bands from 2360; the path widening; the daisy cluster (x 1040–1460, y 2390–2520) | +3% | 55% |
-| `foreground` | Tall grass and large flowers at both sides; the rose arch over the path (3420–4000) with warm light | +6% | the end |
-| `sideSprigs` | Leaf sprays along the left and right edges | +10% | the middle |
+| 1 · The beginning | First impression | **A Garden of Ideas** only, upper centre | Pink and peach sunset sky, the sun low behind lavender hills, a lone tree; the path begins on the first hill |
+| 2 · My thoughts | Three short thoughts | The three lines as a stanza, upper left | Overlapping rounded hills, a pink flowering shrub on the right, daisy and cosmos clusters, the path winding through |
+| 3 · Enter my work | Invitation and CTA | "Come see what I've been growing." at the top; **Explore My Work** (→ `/work`) stands in the light under the arch | A rose arch over the path with warm light beyond it, flower beds, lavender, bushes, tall foreground grass |
 
-Paint the whole thing as **one painting**, then separate it into layers, so the brushwork and light match everywhere.
-Keep the path inside the central 40% of the width, because that is all a phone shows. Paint some extra ground above
-each layer's top edge. Leave calm areas where the notes sit: left at y ≈ 1170, right at y ≈ 2130, left at y ≈ 2740.
+Light is consistent throughout: a low sunset sun beyond the hills in scene 1. Crests are rim-lit warm, the faces of
+the hills turn cooler and darker toward their feet, and each nearer hill's lit crest overlaps the shaded foot of the
+one behind it. Distant forms are softer, hazier and use smaller marks; near forms have bigger brushwork, darker
+shadows and crisper flowers.
 
-## Timeline (scroll progress)
+## Files
 
-| Progress | View (painting units, desktop) | What the visitor sees |
+Put them in `public/assets/garden/landing/`. Use the same names to replace the art; no code changes are needed.
+
+| Composition | Used when | Slice size (W × H) | Files per scene |
+| --- | --- | --- | --- |
+| Landscape | Viewport wider than 3:4 | 2400 × 1800 (4:3) | `scene-N-desktop-2400.webp`, `scene-N-desktop-1600.webp` |
+| Portrait | Viewport 3:4 or narrower (phones, portrait tablets) | 1080 × 2340 (6:13) | `scene-N-mobile-1080.webp`, `scene-N-mobile-720.webp` |
+
+- Paint each composition as **one canvas**: landscape 2400 × 5400, portrait 1080 × 7020, at 2× that size if possible.
+  Then cut it into three equal slices. Never paint the scenes separately.
+- The portrait version is a recomposition, not a crop. Focal points move toward the centre, the path is narrower,
+  and the text areas span the width.
+- No transparent layers are required. Optional later: a transparent foreground-grass overlay for scene 3, to add
+  subtle depth.
+
+## Calm areas the painting must leave for the text
+
+Fractions are of a scene's width and height.
+
+| Text | Landscape | Portrait |
 | --- | --- | --- |
-| 0% | 0–1000 | Sky, title, "Scroll to Wander", distant hills, the path starting at the horizon |
-| 25% | ≈ 750–1750 | The sky has gone; rolling hills, trees; "Every idea starts as a little seed." on the left above the seedbed |
-| 50% | ≈ 1500–2500 | Nearer hills, more flowers; "I find inspiration in the little things." on the right above the daisies |
-| 75% | ≈ 2250–3250 | Close meadow, wide path; "Design is how I turn observations into experiences." on the left |
-| 100% | 3000–4000 | The rose arch with warm light; "Come see what I've been growing." and Explore My Work |
+| Title (scene 1) | x 0.15–0.85, y 0.05–0.25 | x 0.05–0.95, y 0.07–0.25 |
+| Thoughts (scene 2) | x 0.04–0.50, y 0.05–0.35 | x 0.05–0.95, y 0.08–0.38 |
+| Invitation (scene 3) | x 0.18–0.82, y 0.03–0.16 | x 0.05–0.95, y 0.08–0.2 |
+| CTA (scene 3) | centred, y ≈ 0.54, inside the arch's light | centred, y ≈ 0.52 |
 
-Notes are written in word by word as they reach the lower three quarters of the screen. The copy is in
-`src/data/site.ts` → `landingScenes`.
+## Interim artwork
 
-## Still needed
+The current files are **interim**. `scripts/paint-landing.mjs` renders them: it lays down watercolor washes, then
+opaque oil-style bristle strokes that follow each hill's contour, a wet-into-wet blending pass, deliberately placed
+flower clusters, warm light, and a canvas texture. Re-render with:
 
-- The painted layers above, which replace the placeholder.
-- Optional: lettering in your own handwriting (images or a font), in place of Caveat.
+```bash
+node scripts/paint-landing.mjs
+```
+
+They are original decorative artwork, not project work. They are much richer than the earlier vector garden, but
+they are still procedural. Hand-painted (or carefully art-directed) artwork made to this spec will look better still.

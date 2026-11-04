@@ -1,19 +1,20 @@
-// Painted artwork slots for the Landing garden (Category A, decorative only —
-// never project work). The Landing is one tall painting, 1600 × 4000 units, that
-// the visitor travels down. Each slot is null until the real painting exists;
-// while it is null the code-drawn placeholder for that layer is shown instead.
-// Every file covers the WHOLE tall artboard (export at 3200 × 8000 px, transparent
-// except the sky) so layers line up. Put files in public/assets/garden/landing/
-// and their paths here, e.g. "/assets/garden/landing/sky.webp".
-// Full spec: docs/LANDING-ART-SPEC.md.
+// The Landing painting (Category A, decorative only — never project work).
+// One tall garden painted as a single piece and sliced into three scenes, so
+// the joins are seamless. Two compositions: landscape (desktop) and portrait
+// (phones and portrait tablets), each three slices of the same painting.
+//
+// INTERIM ARTWORK: the current files are rendered by scripts/paint-landing.mjs
+// (`node scripts/paint-landing.mjs`). To use hand-painted artwork, export files
+// with the same names and sizes into public/assets/garden/landing/ — no code
+// changes needed. Spec: docs/LANDING-ART-SPEC.md.
 
-export type LandingArtSlot = "sky" | "farHills" | "midground" | "nearMeadow" | "foreground" | "sideSprigs";
+const dir = "/assets/garden/landing";
 
-export const landingArt: Record<LandingArtSlot, string | null> = {
-  sky: null, //        opaque; sky 0–1000, then any ground colour below
-  farHills: null, //   distant ranges, ridges ≈ 560–640
-  midground: null, //  rolling hills, trees, the path and seedbed, 660 → 4000
-  nearMeadow: null, // closer meadow and the daisy cluster, 2350 → 4000
-  foreground: null, // grass, big flowers and the garden arch, 3150 → 4000
-  sideSprigs: null, // leaves along the left and right edges, whole height
+export const landingArt = {
+  interim: true,
+  desktop: { width: 2400, height: 1800, sizes: [1600, 2400] },
+  portrait: { width: 1080, height: 2340, sizes: [720, 1080] },
+  /** Viewports at or narrower than this aspect ratio get the portrait composition. */
+  portraitQuery: "(max-aspect-ratio: 3/4)",
+  src: (scene: 1 | 2 | 3, format: "desktop" | "mobile", width: number) => `${dir}/scene-${scene}-${format}-${width}.webp`,
 };

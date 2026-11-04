@@ -10,19 +10,17 @@ export const site = {
     "Explore the UX/UI and product design portfolio of Zhinuo Wang, where personal explorations and academic projects grow together in an interactive illustrated garden.",
 };
 
-// Landing narrative. Provisional copy from the owner's brief — edit freely here.
+// Landing copy: three scenes down one tall painting. Provisional — edit freely here.
 export const landingScenes = {
-  // Moment 1 — Arrival
-  welcome: {
-    title: "A Garden of Ideas",
-    name: "Zhinuo Wang",
-    descriptor: "UX/UI & Product Design Portfolio",
-    hint: "Scroll to Wander",
-  },
-  // Handwritten annotations along the walk, then the invitation at the gate
-  seed: "Every idea starts as a little seed.",
-  philosophy: "I find inspiration in the little things.",
-  observation: "Design is how I turn observations into experiences.",
+  // Scene 1 — the only hero text
+  title: "A Garden of Ideas",
+  // Scene 2 — my thoughts
+  thoughts: [
+    "Every idea starts as a little seed.",
+    "I find inspiration in the little things.",
+    "Design is how I turn observations into experiences.",
+  ],
+  // Scene 3 — enter my work
   invitation: "Come see what I've been growing.",
   cta: "Explore My Work",
 };

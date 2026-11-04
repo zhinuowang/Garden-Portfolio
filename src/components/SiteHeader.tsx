@@ -13,23 +13,26 @@ const links = [
 export default function SiteHeader() {
   const pathname = usePathname();
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
-  // On the Landing page the garden fills the screen, so the bar disappears and the
-  // brand and links sit on soft paper washes that read over any part of the painting.
+  // On the Landing page the painting fills the screen and its title is the only
+  // hero text, so the bar and the brand step away: just the links, in a quiet
+  // paper wash in the corner that reads over any part of the painting.
   const overGarden = pathname === "/";
 
   return (
     <header
       className={`fixed inset-x-0 top-0 z-40 ${overGarden ? "" : "border-b border-forest/10 bg-cream/80 backdrop-blur-md"}`}
     >
-      <nav aria-label="Main" className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 px-4 py-2 sm:px-6">
-        <Link
-          href="/"
-          className={`flex flex-col py-1 leading-tight ${overGarden ? "[text-shadow:0_1px_14px_rgb(251_247_238/0.95)]" : ""}`}
-        >
-          <span className="font-serif text-lg font-medium text-ink">A Garden of Ideas</span>
-          <span className="text-[0.7rem] font-semibold tracking-[0.2em] text-ink-soft uppercase">Zhinuo Wang</span>
-        </Link>
-        <ul className={`flex gap-0.5 sm:gap-1 ${overGarden ? "rounded-full bg-paper/75 p-1 shadow-[0_6px_20px_-12px_rgb(64_88_60/0.6)]" : ""}`}>
+      <nav
+        aria-label="Main"
+        className={`mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 px-4 py-2 sm:px-6 ${overGarden ? "justify-end" : "justify-between"}`}
+      >
+        {!overGarden && (
+          <Link href="/" className="flex flex-col py-1 leading-tight">
+            <span className="font-serif text-lg font-medium text-ink">A Garden of Ideas</span>
+            <span className="text-[0.7rem] font-semibold tracking-[0.2em] text-ink-soft uppercase">Zhinuo Wang</span>
+          </Link>
+        )}
+        <ul className={`flex gap-0.5 sm:gap-1 ${overGarden ? "mt-1 rounded-full bg-paper/60 p-1" : ""}`}>
           {links.map((l) => {
             const active = isActive(l.href);
             return (

@@ -108,34 +108,21 @@ body {
 .hotspot:hover .hand-underline path,
 .hotspot:focus-visible .hand-underline path { stroke-dashoffset: 0; }
 
-/* ---------- Landing: handwritten notes written into the painting ---------- */
-.garden-note {
-  text-shadow: 0 1px 22px rgb(251 247 238 / 0.95), 0 0 3px rgb(251 247 238 / 0.8);
+/* ---------- Landing: three scenes of one tall painting ---------- */
+/* Viewports at or narrower than 3:4 get the portrait composition of the painting. */
+@custom-variant portrait-art (@media (max-aspect-ratio: 3/4));
+
+.reveal-item {
+  transition: opacity 1.1s ease, transform 1.1s ease;
 }
-/* A soft patch of light behind each note, so it reads over the meadow without a card. */
-.garden-note::before {
-  content: "";
-  position: absolute;
-  inset: -2.5rem -3.5rem;
-  z-index: -1;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, rgb(251 247 238 / 0.62), rgb(251 247 238 / 0.32) 60%, rgb(251 247 238 / 0));
-  filter: blur(6px);
-  pointer-events: none;
-  transition: opacity 1.2s ease;
-}
-.note-word {
-  display: inline-block;
-  transition: opacity 0.9s ease, transform 0.9s ease, filter 0.9s ease;
-}
-/* Hidden only once JavaScript is running, so the words are never lost without it. */
-.garden-walk[data-ready="true"] [data-shown="false"].garden-note::before {
+/* Hidden only once JavaScript has hydrated and the block is still below the fold. */
+[data-reveal="waiting"] .reveal-item {
   opacity: 0;
+  transform: translateY(10px);
 }
-.garden-walk[data-ready="true"] [data-shown="false"] .note-word {
-  opacity: 0;
-  transform: translateY(8px);
-  filter: blur(3px);
+@keyframes cue {
+  0%, 100% { transform: translateY(0); opacity: 0.7; }
+  50% { transform: translateY(6px); opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -143,6 +130,5 @@ body {
   .sway, .drift, .blades, .bubble, .bloom { animation: none !important; }
   .journey-move { transform: none !important; }
   .journey-text { transform: none !important; }
-  .garden-walk { --d: 0 !important; }
   *, *::before, *::after { transition-duration: 0.01ms !important; }
 }

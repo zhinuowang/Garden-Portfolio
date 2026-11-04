@@ -28,8 +28,9 @@ Removed (all recoverable from the tag): the homepage sections `GardenGate`, `Gar
 
 ## Composition per page
 
-- **Landing.** Redesigned twice on 3 November 2026 (checkpoints `landing-v1-checkpoint`, `landing-v2-checkpoint`): one tall painting that the
-  visitor travels down. The composition, layer list, timeline and painted-art spec are in `docs/LANDING-ART-SPEC.md`.
+- **Landing.** Three scenes of one tall painting, stacked edge to edge in normal scroll: the title only, then the
+  three thoughts, then the invitation with Explore My Work under a rose arch. Earlier versions are tagged
+  `landing-v1-checkpoint` to `landing-v3-checkpoint`. The composition and art spec are in `docs/LANDING-ART-SPEC.md`.
 - **About.** A cream paper page with radial light, a taped polaroid portrait, pressed-flower ornaments, dashed
   journal headings with handwritten side notes, a dotted timeline for experience, and skills grouped as tags.
 - **Work.** The two-region panorama, now painted with oil-style brush strokes: a warmer olive and peach palette on
