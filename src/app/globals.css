@@ -120,6 +120,63 @@ body {
   opacity: 0;
   transform: translateY(10px);
 }
+/* The living painting: dogs at play, a rocking chair (one-shot, on hover or tap). */
+.living-dogs[data-play] .living-dog-0 { animation: dog-chase 2.6s cubic-bezier(0.45, 0.05, 0.35, 1) both; }
+.living-dogs[data-play] .living-dog-1 { animation: dog-bow 2.6s ease-in-out both; }
+.living-dogs[data-play] .living-dog-2 { animation: dog-sit 2.6s ease-in-out both; }
+.living-dogs[data-play] .living-tail { animation: dog-wag 0.24s ease-in-out 10 alternate; }
+.living-dogs[data-play] .living-dog-2 .living-tail { animation-delay: 0.9s; animation-iteration-count: 6; }
+.living-dogs[data-play] .living-ball { animation: ball-roll 2.6s cubic-bezier(0.4, 0, 0.3, 1) both; }
+.living-rocker[data-rock] { animation: rock 3s ease-in-out both; }
+@keyframes dog-chase {
+  0% { transform: none; }
+  10% { transform: translate(6%, -7%); }
+  20% { transform: translate(13%, 0); }
+  30% { transform: translate(19%, -6%); }
+  40% { transform: translate(24%, 0); }
+  55% { transform: translate(22%, -3%); }
+  70% { transform: translate(13%, 0); }
+  85% { transform: translate(5%, -2%); }
+  100% { transform: none; }
+}
+@keyframes dog-bow {
+  0%, 18% { transform: none; }
+  26% { transform: translate(-4%, -13%) rotate(-3deg); }
+  34% { transform: translate(-6%, 0); }
+  46% { transform: translate(-6%, -9%) rotate(-2deg); }
+  54% { transform: translate(-6%, 0); }
+  75% { transform: translate(-2%, 0); }
+  100% { transform: none; }
+}
+@keyframes dog-sit {
+  0%, 36% { transform: none; }
+  44% { transform: translateY(-8%); }
+  52% { transform: none; }
+  60% { transform: translateY(-5%); }
+  68%, 100% { transform: none; }
+}
+@keyframes dog-wag {
+  from { transform: rotate(-14deg); }
+  to { transform: rotate(16deg); }
+}
+@keyframes ball-roll {
+  0% { transform: none; }
+  22% { transform: translate(-12%, -110%) rotate(-120deg); }
+  40% { transform: translate(-45%, 0) rotate(-240deg); }
+  55% { transform: translate(-30%, -55%) rotate(-300deg); }
+  72% { transform: translate(8%, 0) rotate(-380deg); }
+  100% { transform: none; }
+}
+@keyframes rock {
+  0% { transform: rotate(0); }
+  14% { transform: rotate(-4.5deg); }
+  32% { transform: rotate(3.2deg); }
+  50% { transform: rotate(-2deg); }
+  66% { transform: rotate(1.1deg); }
+  82% { transform: rotate(-0.45deg); }
+  100% { transform: rotate(0); }
+}
+
 /* The wooden "Explore My Work" sign: sways on its ropes, warms, and its flower nods. */
 .garden-sign__board {
   transform-origin: 50% 0;
@@ -155,7 +212,7 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .sway, .drift, .blades, .bubble, .bloom, .garden-sign__board { animation: none !important; }
+  .sway, .drift, .blades, .bubble, .bloom, .garden-sign__board, .living-dog, .living-tail, .living-ball, .living-rocker { animation: none !important; }
   .journey-move { transform: none !important; }
   .journey-text { transform: none !important; }
   *, *::before, *::after { transition-duration: 0.01ms !important; }

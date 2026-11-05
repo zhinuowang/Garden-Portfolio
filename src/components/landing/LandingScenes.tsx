@@ -3,7 +3,9 @@ import { landingScenes as copy } from "@/data/site";
 import { landingArt as art } from "@/data/landingArt";
 import anchors from "@/data/landing-anchors.json";
 import CurvedNotes from "./CurvedNotes";
+import LivingLayer, { type Sprite } from "./LivingLayer";
 import Reveal from "./Reveal";
+import SceneSettle from "./SceneSettle";
 
 // The Landing is one tall garden painting in three scenes, stacked edge to edge
 // in normal document flow: scrolling simply moves down the painting. Each scene
@@ -47,14 +49,23 @@ const glow = "[text-shadow:0_1px_18px_rgb(251_247_238/0.9),0_0_2px_rgb(251_247_2
 /** Handwriting laid on the grass: dark ink with a soft halo of light. */
 const note = "[text-shadow:0_0_14px_rgb(246_242_214/0.85),0_1px_2px_rgb(246_242_214/0.9)]";
 
+const layers = (scene: number) => (
+  <LivingLayer
+    desktop={(anchors.desktop.sprites as Sprite[]).filter((s) => s.scene === scene)}
+    mobile={(anchors.mobile.sprites as Sprite[]).filter((s) => s.scene === scene)}
+  />
+);
+
 export default function LandingScenes() {
   const sd = anchors.desktop.sign;
   const sm = anchors.mobile.sign;
   return (
-    <div className="relative overflow-hidden bg-[#9fb574]">
+    <div className="landing-scenes relative overflow-clip bg-[#9fb574]">
+      <SceneSettle />
       {/* ---- Scene 1 · A living garden: the title alone, centred in the first view ---- */}
       <section aria-labelledby="landing-title" className="relative">
         <SceneArt scene={1} />
+        {layers(1)}
         <h1
           id="landing-title"
           className={`absolute inset-x-0 top-[min(50svh,50%)] -translate-y-1/2 px-6 text-center font-serif text-[clamp(3rem,7.6vw,8rem)] leading-[0.95] font-medium tracking-[-0.01em] text-[#33402f] portrait-art:text-[clamp(2.9rem,14vw,5rem)] ${glow}`}
@@ -74,12 +85,14 @@ export default function LandingScenes() {
       {/* ---- Scene 2 · Thoughts on the hills: notes that curve with the slopes and appear as you scroll ---- */}
       <section aria-label="Thoughts" className="relative">
         <SceneArt scene={2} />
+        {layers(2)}
         <CurvedNotes texts={copy.thoughts} desktop={anchors.desktop} mobile={anchors.mobile} />
       </section>
 
       {/* ---- Scene 3 · Afternoon tea in the garden ---- */}
       <section aria-labelledby="landing-invitation" className="relative">
         <SceneArt scene={3} />
+        {layers(3)}
         <Reveal className="absolute top-[11%] left-[74%] w-max max-w-[44vw] -translate-x-1/2 -translate-y-1/2 -rotate-2 portrait-art:top-[13%] portrait-art:left-1/2 portrait-art:max-w-[88vw]">
           <h2
             id="landing-invitation"

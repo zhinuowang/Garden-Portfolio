@@ -294,7 +294,7 @@ function paint(F) {
   const { W, S, k } = F; // width, scene height, brush scale
   const H = S * 3;
   const cv = createCanvas(W, H);
-  const ctx = cv.getContext("2d");
+  let ctx = cv.getContext("2d");
   const hcv = createCanvas(W, H);
   const hx = hcv.getContext("2d");
   primeCanvas(hx, W, H);
@@ -302,6 +302,29 @@ function paint(F) {
   const X = (f) => f * W;
   const Y = (f) => f * S;
   const L = F.layout;
+
+  // ---- separate, animatable layers --------------------------------------
+  // Dogs, grass tufts and the rocking chair are painted onto their own
+  // transparent canvases (same brushes, same relief lighting) and are NOT
+  // painted into the scene, so they can move without leaving a copy behind.
+  const sprites = [];
+  function sprite(name, scene, bx, by, bw, bh, pivot, fn, meta = {}) {
+    const w = Math.ceil(bw), h = Math.ceil(bh);
+    const scv = createCanvas(w, h), shcv = createCanvas(w, h);
+    const sctx = scv.getContext("2d"), shx = shcv.getContext("2d");
+    sctx.translate(-bx, -by);
+    shx.translate(-bx, -by);
+    const prev = ctx, prevH = PAINT.hx;
+    ctx = sctx;
+    PAINT.hx = shx;
+    try { fn(); } finally { ctx = prev; PAINT.hx = prevH; }
+    lightRelief(scv, shcv, w, h, 1);
+    sprites.push({
+      name, scene, ...meta,
+      x: +(bx / W).toFixed(5), y: +(by / S - (scene - 1)).toFixed(5), w: +(bw / W).toFixed(5), h: +(bh / S).toFixed(5),
+      pivot: pivot.map((v) => +v.toFixed(4)), canvas: scv,
+    });
+  }
 
   // ---- shapes known before painting (text placement depends on them)
   const ridgeFn = (pts, amp, freq, seed) => (x) => {
@@ -328,35 +351,34 @@ function paint(F) {
 
   // scene 2 notes: laid along chosen hill slopes, just below the crest
   const anchors = { phrases: [], sign: null };
-  // Each note is written along a gentle curve that follows its hill: the chord's
-  // tilt is limited, and the contour's bend is softened, so the words drift with
-  // the grass without warping. Paths are in scene-2 pixels of this composition.
+  // Each line of each note rests just above a real, visible hill edge: its
+  // baseline is that hill's crest line (lightly smoothed), raised by a small gap
+  // (plus a line height for an upper row), so the words sit in the shaded hollow
+  // behind the crest and follow its exact curve. Paths are in scene-2 pixels.
+  const NF = L.noteFont;
   for (const ph of L.phrases) {
-    const top = moundTops[ph.mound];
-    const xs0 = X(ph.x - ph.span / 2), xs1 = X(ph.x + ph.span / 2), xc = X(ph.x);
-    const cy = (x) => top(x) + Y(ph.dy);
-    const chord = (x) => cy(xs0) + ((cy(xs1) - cy(xs0)) * (x - xs0)) / (xs1 - xs0);
-    const maxM = Math.tan((ph.maxTilt * Math.PI) / 180);
-    const m = clamp((cy(xs1) - cy(xs0)) / (xs1 - xs0), -maxM, maxM);
-    const ymid = (cy(xs0) + cy(xs1)) / 2;
-    const lines = [];
-    for (let l = 0; l < ph.lines; l++) {
-      const pts = [];
-      for (let i = 0; i <= 28; i++) {
-        const x = lerp(xs0, xs1, i / 28);
-        const dev = clamp(cy(x) - chord(x), -Y(0.022), Y(0.022)) * ph.bend;
-        pts.push(`${x.toFixed(1)} ${(ymid + m * (x - xc) + dev + l * Y(ph.gap) - S).toFixed(1)}`);
+    const lines = ph.lines.map(({ mound, x0, x1, row }) => {
+      const top = moundTops[mound];
+      const n = 64, raw = [];
+      for (let i = 0; i <= n; i++) {
+        const x = lerp(X(x0), X(x1), i / n);
+        raw.push([x, top(x) - NF * 0.2 - row * NF * 1.08]);
       }
-      lines.push(`M${pts.join(" L")}`);
-    }
-    anchors.phrases.push({ x: ph.x, y: +(ymid / S - 1 + (ph.gap * (ph.lines - 1)) / 2).toFixed(4), lines });
+      const pts = raw.map(([x], i) => {
+        let sum = 0, c = 0;
+        for (let j = Math.max(0, i - 3); j <= Math.min(n, i + 3); j++) { sum += raw[j][1]; c++; }
+        return `${x.toFixed(1)} ${(sum / c - S).toFixed(1)}`;
+      });
+      return `M${pts.join(" L")}`;
+    });
+    anchors.phrases.push({ lines });
   }
+  anchors.noteFont = NF;
   anchors.viewBox = [W, S];
 
   // calm zones: thinner, lighter paint where words sit
   const zones = [
     ...L.zones.map((z) => ({ cx: X(z.x), cy: Y(z.y), rx: X(z.rx), ry: Y(z.ry), light: z.light && hex(z.light), amt: z.amt })),
-    ...anchors.phrases.map((a) => ({ cx: X(a.x), cy: Y(a.y + 1), rx: X(L.phraseZone[0]), ry: Y(L.phraseZone[1]), light: hex("#cfd9a6"), amt: 0.5 })),
   ];
   const calm = (x, y) => {
     let c = 0, light = null;
@@ -703,7 +725,7 @@ function paint(F) {
    * Built as a clear silhouette (body, chest, head, muzzle, legs, tail) and then
    * painted inside it with short fur strokes, lit from the upper left.
    */
-  function dog(x, y, s, pose, coat, dir, seed) {
+  function dog(x, y, s, pose, coat, dir, seed, parts = "all") {
     const r = rng(seed);
     const [base, darkC, lightC] = coat.map(hex);
     const px = (u) => x + dir * u * s, py = (v) => y + v * s;
@@ -720,11 +742,12 @@ function paint(F) {
     const ell = (pth, [cx, cy, rx, ry, rot = 0]) => pth.ellipse(px(cx), py(cy), rx * s, ry * s, dir * rot, 0, Math.PI * 2);
     const sil = new Path2D();
     for (const part of [P.body, P.chest, P.head, P.muzzle]) { sil.moveTo(px(part[0] + part[2]), py(part[1])); ell(sil, part); }
-    glaze(ctx, x, y + s * 0.02, s * 0.5, s * 0.07, SHADOW, 0.3);
+    if (parts === "all" || parts === "shadow") glaze(ctx, x, y + s * 0.02, s * 0.5, s * 0.07, SHADOW, 0.3);
+    if (parts === "shadow") return;
     withThickness(0.95, () => {
       // legs (far ones a little darker), then the tail
       ctx.lineCap = "round";
-      P.legs.forEach(([ax, ay, bx, by], i) => {
+      if (parts !== "tail") P.legs.forEach(([ax, ay, bx, by], i) => {
         ctx.beginPath();
         ctx.moveTo(px(ax), py(ay));
         ctx.lineTo(px(bx), py(by));
@@ -734,12 +757,23 @@ function paint(F) {
         dab(ctx, px(bx + 0.02), py(by - 0.01), s * 0.045, s * 0.025, 0, mix(base, lightC, 0.3), 1);
       });
       const [t0, t1, t2] = P.tail;
+      if (parts !== "body") {
       ctx.beginPath();
       ctx.moveTo(px(t0[0]), py(t0[1]));
       ctx.quadraticCurveTo(px(t1[0]), py(t1[1]), px(t2[0]), py(t2[1]));
       ctx.strokeStyle = rgba(mix(base, darkC, 0.15));
       ctx.lineWidth = s * 0.055;
       ctx.stroke();
+      if (PAINT.hx) {
+        PAINT.hx.beginPath();
+        PAINT.hx.moveTo(px(t0[0]), py(t0[1]));
+        PAINT.hx.quadraticCurveTo(px(t1[0]), py(t1[1]), px(t2[0]), py(t2[1]));
+        PAINT.hx.strokeStyle = grey(150);
+        PAINT.hx.lineWidth = s * 0.05;
+        PAINT.hx.stroke();
+      }
+      }
+      if (parts === "tail") return;
       // body silhouette, then fur inside it
       ctx.fillStyle = rgba(base);
       ctx.fill(sil);
@@ -769,9 +803,13 @@ function paint(F) {
     });
   }
 
+  /** Where each pose's tail joins the body, in units of the dog's length. */
+  const DOG_TAIL = { trot: [-0.28, -0.48], bow: [-0.28, -0.56], sit: [-0.24, -0.06] };
+
   /** A small red ball for the dogs. */
-  const ball = (x, y, s) => withThickness(0.9, () => {
-    glaze(ctx, x + s * 0.3, y + s * 0.6, s * 1.1, s * 0.3, SHADOW, 0.3);
+  const ball = (x, y, s, parts = "all") => withThickness(0.9, () => {
+    if (parts !== "body") glaze(ctx, x + s * 0.3, y + s * 0.6, s * 1.1, s * 0.3, SHADOW, 0.3);
+    if (parts === "shadow") return;
     dab(ctx, x, y, s, s, 0, hex("#c95a4e"), 1);
     dab(ctx, x - s * 0.3, y - s * 0.3, s * 0.35, s * 0.3, 0, hex("#f2a68f"), 0.9);
   });
@@ -941,56 +979,67 @@ function paint(F) {
   }
 
   /**
-   * A painted wooden garden chair: cream paint over wood, a slatted back and a
-   * small gingham cushion, built from the same knife slabs and bristle strokes
-   * as the table and gate. (x, y) is the ground under it; s is its height.
+   * A painted wooden rocking chair: cream paint over wood, a slatted back, arms,
+   * a small gingham cushion and two curved runners, built from the same knife
+   * slabs and bristle strokes as the table and gate. (x, y) is where the
+   * runners touch the ground; s is the chair's height. The runners are arcs of
+   * radius R centred at (x, y - R): rocking is a rotation about that centre.
    */
-  function gardenChair(x, y, s, dir, seed) {
+  const ROCKER_R = 1.15;
+  function rockingChair(x, y, s, dir, seed, parts = "chair") {
     const r = rng(seed);
+    const R = ROCKER_R * s;
+    if (parts === "shadow") {
+      ctx.save();
+      ctx.filter = `blur(${10 * k}px)`;
+      glaze(ctx, x + s * 0.1, y + s * 0.01, s * 0.55, s * 0.06, SHADOW, 0.45);
+      ctx.restore();
+      return;
+    }
     const px = (u) => x + dir * u * s;
+    const runnerY = (u, lift = 0) => y - lift * s - (R - Math.sqrt(Math.max(0, R * R - (u * s) ** 2)));
     const paint = (lit) => mix(ramp([[0, "#a99c86"], [0.5, "#e6dcc8"], [1, "#fbf4e6"]], lit), WARM, lit * 0.1);
-    ctx.save();
-    ctx.filter = `blur(${10 * k}px)`;
-    glaze(ctx, x + s * 0.12, y + s * 0.02, s * 0.5, s * 0.07, SHADOW, 0.45);
-    ctx.restore();
     withThickness(1, () => {
-      const leg = (u0, v0, u1, v1, lit, w = 0.06) => {
-        const ax = px(u0), ay = y - v0 * s, bx = px(u1), by = y - v1 * s;
-        knife(ctx, r, ax - (w * s) / 2, ay, Math.atan2(by - ay, bx - ax), Math.hypot(bx - ax, by - ay), w * s, paint(lit));
-        stroke(ctx, r, ax - (w * s) * 0.35, ay, Math.atan2(by - ay, bx - ax), Math.hypot(bx - ax, by - ay), w * s * 0.25, paint(Math.min(1, lit + 0.3)), 0.7, 1);
+      const slab = (ax, ay, bx, by, lit, w = 0.06) => {
+        const ang = Math.atan2(by - ay, bx - ax), len = Math.hypot(bx - ax, by - ay);
+        knife(ctx, r, ax, ay, ang, len, w * s, paint(lit));
+        stroke(ctx, r, ax, ay, ang, len, w * s * 0.25, paint(Math.min(1, lit + 0.3)), 0.7, 1);
       };
-      // back legs and posts (further away, a little greyer)
-      leg(-0.2, 1.0, -0.2, 0.04, 0.45);
-      leg(0.32, 0.98, 0.32, 0.06, 0.3);
+      const runner = (lift, shift, lit) => {
+        for (let i = 0; i < 9; i++) {
+          const u0 = -0.5 + (i / 9) * 1.0 + shift, u1 = u0 + 1.0 / 9 + 0.035;
+          slab(px(u0), runnerY(u0 - shift, lift), px(u1), runnerY(u1 - shift, lift), lit - Math.abs(u0) * 0.2, 0.05);
+        }
+      };
+      // far runner and back legs (further away, greyer)
+      runner(0.05, 0.08, 0.35);
+      slab(px(-0.14), y - 1.0 * s, px(-0.14), runnerY(-0.22, 0.05), 0.45);
+      slab(px(0.38), y - 0.98 * s, px(0.36), runnerY(0.28, 0.05), 0.3);
       // back slats and a gently arched top rail
-      for (let i = 0; i < 4; i++) {
-        const u = -0.12 + i * 0.12;
-        knife(ctx, r, px(u) - 0.03 * s, y - 0.93 * s, Math.PI / 2, 0.44 * s, 0.065 * s, paint(0.75 - i * 0.1));
-      }
-      for (let i = 0; i < 4; i++) {
-        stroke(ctx, r, px(-0.23), y - (0.98 - i * 0.012) * s + Math.sin(i) * 2, dir > 0 ? -0.04 : Math.PI + 0.04, 0.58 * s, 0.07 * s, paint(0.85 - i * 0.1), 0.95, 3);
-      }
-      // seat in perspective, lit on its top, darker front edge
+      for (let i = 0; i < 4; i++) knife(ctx, r, px(-0.06 + i * 0.12) - 0.03 * s, y - 0.93 * s, Math.PI / 2, 0.42 * s, 0.065 * s, paint(0.75 - i * 0.1));
+      for (let i = 0; i < 4; i++) stroke(ctx, r, px(-0.17), y - (0.99 - i * 0.012) * s, dir > 0 ? -0.04 : Math.PI + 0.04, 0.6 * s, 0.07 * s, paint(0.85 - i * 0.1), 0.95, 3);
+      // seat in perspective
       const seat = new Path2D();
-      seat.moveTo(px(-0.22), y - 0.5 * s);
-      seat.lineTo(px(0.34), y - 0.5 * s);
-      seat.lineTo(px(0.26), y - 0.41 * s);
-      seat.lineTo(px(-0.32), y - 0.41 * s);
+      seat.moveTo(px(-0.18), y - 0.52 * s);
+      seat.lineTo(px(0.38), y - 0.52 * s);
+      seat.lineTo(px(0.3), y - 0.43 * s);
+      seat.lineTo(px(-0.28), y - 0.43 * s);
       seat.closePath();
       clipBoth(ctx, seat);
-      for (let i = 0; i < 18; i++) knife(ctx, r, px(-0.36 + r() * 0.7), y - (0.41 + r() * 0.09) * s, (r() - 0.5) * 0.08, 0.22 * s, 0.05 * s, paint(0.7 + r() * 0.3));
+      for (let i = 0; i < 18; i++) knife(ctx, r, px(-0.32 + r() * 0.7), y - (0.43 + r() * 0.09) * s, (r() - 0.5) * 0.08, 0.22 * s, 0.05 * s, paint(0.7 + r() * 0.3));
       unclipBoth(ctx);
-      knife(ctx, r, px(-0.32), y - 0.41 * s, dir > 0 ? 0 : Math.PI, 0.58 * s, 0.035 * s, paint(0.25));
-      // a little gingham cushion, to belong with the tablecloth
-      dab(ctx, px(0.02), y - 0.5 * s, 0.24 * s, 0.06 * s, 0, hex("#f5dcdc"), 1);
-      for (let i = -2; i <= 2; i++) stroke(ctx, r, px(0.02 + i * 0.08), y - 0.55 * s, Math.PI / 2, 0.09 * s, 0.035 * s, hex("#e59a9f"), 0.6, 0);
-      stroke(ctx, r, px(-0.2), y - 0.5 * s, dir > 0 ? 0 : Math.PI, 0.44 * s, 0.03 * s, hex("#e59a9f"), 0.5, 0);
-      glaze(ctx, px(0.1), y - 0.47 * s, 0.16 * s, 0.025 * s, hex("#b68a8a"), 0.35);
-      // front legs, nearest and brightest
-      leg(-0.3, 0.41, -0.31, 0, 0.85, 0.065);
-      leg(0.24, 0.41, 0.25, 0.01, 0.55, 0.065);
-      // a stretcher between the front legs
-      stroke(ctx, r, px(-0.3), y - 0.16 * s, dir > 0 ? 0 : Math.PI, 0.54 * s, 0.03 * s, paint(0.5), 0.9, 1);
+      knife(ctx, r, px(-0.28), y - 0.43 * s, dir > 0 ? 0 : Math.PI, 0.58 * s, 0.035 * s, paint(0.25));
+      // gingham cushion, to belong with the tablecloth
+      dab(ctx, px(0.06), y - 0.52 * s, 0.24 * s, 0.06 * s, 0, hex("#f5dcdc"), 1);
+      for (let i = -2; i <= 2; i++) stroke(ctx, r, px(0.06 + i * 0.08), y - 0.57 * s, Math.PI / 2, 0.09 * s, 0.035 * s, hex("#e59a9f"), 0.6, 0);
+      stroke(ctx, r, px(-0.16), y - 0.52 * s, dir > 0 ? 0 : Math.PI, 0.44 * s, 0.03 * s, hex("#e59a9f"), 0.5, 0);
+      // arms
+      slab(px(-0.14), y - 0.76 * s, px(-0.34), y - 0.64 * s, 0.8, 0.05);
+      slab(px(-0.32), y - 0.66 * s, px(-0.29), y - 0.44 * s, 0.85, 0.045);
+      // front legs down to the near runner, then the runner itself
+      slab(px(-0.27), y - 0.43 * s, px(-0.3), runnerY(-0.3), 0.85, 0.065);
+      slab(px(0.28), y - 0.43 * s, px(0.26), runnerY(0.26), 0.55, 0.065);
+      runner(0, 0, 0.8);
     });
   }
 
@@ -1252,6 +1301,31 @@ function paint(F) {
     ctx.restore();
   }
 
+  /** A tuft of grass (and maybe a flower or two), anchored at (x, y), h tall. */
+  function tuft(x, y, h, seed, flowers = 0) {
+    const r = rng(seed);
+    withThickness(0.9, () => {
+      for (let j = 0; j < 20; j++) {
+        const bx = x + (r() - 0.5) * h * 0.35;
+        const col = mix(ramp([[0, "#4d6a44"], [0.6, "#6f8f5a"], [1, "#a7bd78"]], r()), WARM, r() * 0.12);
+        stroke(ctx, r, bx, y, -Math.PI / 2 + (r() - 0.5) * 0.9, h * (0.45 + r() * 0.55), h * (0.05 + r() * 0.04), col, 0.9, 2);
+      }
+      for (let f = 0; f < flowers; f++) {
+        const a = -Math.PI / 2 + (r() - 0.5) * 0.5, len = h * (0.85 + r() * 0.2);
+        stroke(ctx, r, x, y, a, len, h * 0.025, hex("#6f8a5a"), 0.95, 0);
+        (r() < 0.5 ? daisy : cosmos)(x + Math.cos(a) * len, y + Math.sin(a) * len, h * 0.09, r);
+      }
+    });
+  }
+  function tufts(list, scene, seed0) {
+    for (const [i, [xf, yf, hf, flowers]] of list.entries()) {
+      const x = X(xf), y = Y(yf), h = hf * W;
+      glaze(ctx, x + h * 0.08, y + h * 0.02, h * 0.3, h * 0.05, SHADOW, 0.3);
+      const bx = x - 0.62 * h, by = y - 1.22 * h, bw = 1.24 * h, bh = 1.28 * h;
+      sprite(`tuft-${scene}-${i}`, scene, bx, by, bw, bh, [0.5, (y - by) / bh], () => tuft(x, y, h, seed0 + i, flowers), { kind: "tuft" });
+    }
+  }
+
   /** A short white picket fence. h is its height in px. */
   function fence(x0, x1, base, h, seed) {
     const r = rng(seed);
@@ -1303,14 +1377,27 @@ function paint(F) {
   for (const [i, f] of (L.fences ?? []).entries()) fence(X(f[0]), X(f[1]), Y(f[2]), Y(f[3]), 445 + i);
   for (const b of L.borders ?? []) pathBorder(b[0], b[1], b[2]);
   for (const cl of L.clusters1) cluster(cl);
-  for (const [i, d] of L.dogs.entries()) dog(X(d.x), Y(d.y), d.s * W, d.pose, d.coat, d.dir, 450 + i);
-  if (L.ball) ball(X(L.ball[0]), Y(L.ball[1]), L.ball[2] * W);
+  for (const [i, d] of L.dogs.entries()) {
+    const x = X(d.x), y = Y(d.y), s = d.s * W;
+    dog(x, y, s, d.pose, d.coat, d.dir, 450 + i, "shadow");
+    const bx = x - 0.75 * s, by = y - 1.05 * s, bw = 1.5 * s, bh = 1.13 * s;
+    const [tu, tv] = DOG_TAIL[d.pose];
+    const tx = x + d.dir * tu * s, ty = y + tv * s;
+    sprite(`dog-${i}-tail`, 1, bx, by, bw, bh, [(tx - bx) / bw, (ty - by) / bh], () => dog(x, y, s, d.pose, d.coat, d.dir, 450 + i, "tail"), { kind: "tail", dog: i });
+    sprite(`dog-${i}`, 1, bx, by, bw, bh, [0.5, (y - by) / bh], () => dog(x, y, s, d.pose, d.coat, d.dir, 450 + i, "body"), { kind: "dog", dog: i, pose: d.pose });
+  }
+  if (L.ball) {
+    const x = X(L.ball[0]), y = Y(L.ball[1]), bs = L.ball[2] * W;
+    ball(x, y, bs, "shadow");
+    sprite("ball", 1, x - 1.5 * bs, y - 1.5 * bs, 3 * bs, 3 * bs, [0.5, 0.5], () => ball(x, y, bs, "body"), { kind: "ball" });
+  }
   for (const fl of L.leaves1) fallenLeaves(X(fl[0]), Y(fl[1]), X(fl[2]), Y(fl[3]), fl[4], 460 + fl[4]);
-  for (const g of L.grass1 ?? []) grassClump(X(g[0]), X(g[1]), Y(g[2]), Y(g[2] + 0.08), g[3], g[4], [60, 170]);
+  tufts(L.tufts1 ?? [], 1, 820);
 
   // ---- scene 2: the shrub and flowers (landscape unchanged)
   shrub(X(L.shrub[0]), tops.shrubHill(X(L.shrub[0])) + Y(0.03), L.shrub[1] * W, 501);
   for (const cl of L.clusters2) cluster(cl);
+  tufts(L.tufts2 ?? [], 2, 860);
 
   // ================================================== SCENE 3 — afternoon tea
   {
@@ -1330,9 +1417,14 @@ function paint(F) {
     hedgeWithGate(X(T.hedge[0]), X(T.hedge[1]), Y(T.hedge[2]), Y(T.hedge[3]), X(T.gate[0]), X(T.gate[1]), 620);
     signPost(X(T.post[0]), Y(T.post[1]), Y(T.sign.y), X(T.post[2]), 630);
     anchors.sign = { x: T.sign.x, y: +(T.sign.y - 2).toFixed(4), w: T.sign.w };
-    if (T.chairBack) gardenChair(X(T.chairBack[0]), Y(T.chairBack[1]), T.chairBack[2] * W, -1, 640);
+    if (T.chairBack) {
+      const [cxf, cyf, csf] = T.chairBack;
+      const x = X(cxf), y = Y(cyf), cs = csf * W;
+      rockingChair(x, y, cs, -1, 640, "shadow");
+      const bx = x - 0.72 * cs, by = y - 1.2 * cs, bw = 1.44 * cs, bh = 1.28 * cs;
+      sprite("chair", 3, bx, by, bw, bh, [0.5, (y - ROCKER_R * cs - by) / bh], () => rockingChair(x, y, cs, -1, 640), { kind: "chair" });
+    }
     teaTable(X(T.table[0]), Y(T.table[1]), T.table[2] * W, 650);
-    if (T.chairFront) gardenChair(X(T.chairFront[0]), Y(T.chairFront[1]), T.chairFront[2] * W, 1, 641);
     for (const fg of L.foreground) grassClump(X(fg[0]), X(fg[1]), Y(fg[2]), Y(3.02), fg[3], fg[4]);
     for (const cl of L.clustersFront) cluster(cl);
   }
@@ -1354,8 +1446,27 @@ function paint(F) {
   ctx.fillStyle = sg;
   ctx.fillRect(0, 0, W, H);
   ctx.restore();
+  if (process.argv.includes("--debug")) {
+    // scene 2 with every hill's crest line drawn and numbered, to choose where the notes go
+    const dbg = createCanvas(W / 2, S / 2);
+    const dc = dbg.getContext("2d");
+    dc.drawImage(cv, 0, S, W, S, 0, 0, W / 2, S / 2);
+    dc.lineWidth = 3;
+    dc.font = "bold 28px sans-serif";
+    L.mounds.forEach((m, i) => {
+      dc.strokeStyle = `hsl(${i * 47} 90% 50%)`;
+      dc.fillStyle = dc.strokeStyle;
+      dc.beginPath();
+      for (let x = 0; x <= W; x += 8) dc.lineTo(x / 2, (moundTops[i](x) - S) / 2);
+      dc.stroke();
+      dc.fillText(String(i), X(m[0]) / 2, (Y(m[1]) - S) / 2 - 6);
+    });
+    for (let g = 0; g <= 10; g++) { dc.fillStyle = "#000"; dc.fillText((g / 10).toFixed(1), g * W / 20, 24); dc.fillText((g / 10).toFixed(1), 4, g * S / 20); }
+    fs.writeFileSync(path.join(PREVIEW_DIR, `debug-scene2-${F.name}.jpg`), dbg.toBuffer("image/jpeg", 85));
+  }
   PAINT.hx = null;
-  return { cv, anchors };
+  anchors.sprites = sprites.map((sp) => Object.fromEntries(Object.entries(sp).filter(([key]) => key !== "canvas")));
+  return { cv, anchors, sprites };
 }
 
 // ---------------------------------------------------------------- the wooden sign (separate, interactive)
@@ -1517,7 +1628,9 @@ const DESKTOP = {
       { seed: 706, x: 0.3, y: 0.8, rx: 0.1, ry: 0.03, n: 45, size: [6, 11], kinds: ["cosmos", "daisy", "tiny"], foliage: true },
     ],
     borders: [[0.6, 0.95, 607]],
-    grass1: [[-0.02, 0.2, 0.92, 120, 811], [0.8, 1.02, 0.93, 110, 812]],
+    // [x, ground y, height (fraction of width), flowers]
+    tufts1: [[0.03, 0.992, 0.07, 1], [0.085, 0.985, 0.058, 0], [0.135, 0.996, 0.075, 1], [0.19, 0.99, 0.052, 0], [0.84, 0.996, 0.06, 0], [0.89, 0.99, 0.075, 1], [0.95, 0.996, 0.064, 1], [0.27, 0.705, 0.03, 1], [0.5, 0.735, 0.028, 0], [0.82, 0.725, 0.034, 1]],
+    tufts2: [[0.44, 1.47, 0.035, 0], [0.97, 1.52, 0.05, 1], [0.4, 1.975, 0.06, 1], [0.7, 1.99, 0.065, 0], [0.95, 1.975, 0.05, 1], [0.04, 1.975, 0.055, 0]],
     shrub: [0.84, 0.075],
     clusters2: [
       { seed: 711, x: 0.66, y: 1.6, rx: 0.06, ry: 0.035, n: 40, size: [6, 11], kinds: ["cosmos", "cosmos", "daisy", "tiny"], foliage: true },
@@ -1527,12 +1640,13 @@ const DESKTOP = {
       { seed: 715, x: 0.75, y: 1.82, rx: 0.1, ry: 0.03, n: 70, size: [3, 6], kinds: ["tiny", "daisy"] },
     ],
     // scene 2 notes: on which hill, where along it, how far below the crest
+    // scene 2 notes: each line rests on a real hill edge (mound index, x range, row above the edge)
+    noteFont: 72,
     phrases: [
-      { mound: 3, x: 0.78, dy: 0.065, span: 0.4, lines: 2, gap: 0.042, bend: 0.7, maxTilt: 8 },
-      { mound: 4, x: 0.24, dy: 0.06, span: 0.4, lines: 2, gap: 0.042, bend: 0.7, maxTilt: 8 },
-      { mound: 7, x: 0.79, dy: 0.06, span: 0.4, lines: 2, gap: 0.042, bend: 0.7, maxTilt: 8 },
+      { lines: [{ mound: 4, x0: 0.07, x1: 0.57, row: 0 }] },
+      { lines: [{ mound: 6, x0: 0.01, x1: 0.38, row: 1 }, { mound: 6, x0: 0.01, x1: 0.38, row: 0 }] },
+      { lines: [{ mound: 7, x0: 0.26, x1: 0.53, row: 0 }, { mound: 7, x0: 0.6, x1: 0.94, row: 0 }] },
     ],
-    phraseZone: [0.22, 0.07],
     tea: {
       tree: [0.11, 2.6, 0.17],
       table: [0.37, 2.57, 0.16],
@@ -1612,18 +1726,19 @@ const MOBILE = {
       { seed: 706, x: 0.7, y: 0.76, rx: 0.12, ry: 0.015, n: 30, size: [3, 6], kinds: ["tiny"] },
     ],
     borders: [[0.73, 0.95, 607]],
-    grass1: [[-0.05, 0.25, 0.93, 70, 811], [0.75, 1.05, 0.95, 60, 812]],
+    tufts1: [[0.05, 0.992, 0.14, 1], [0.16, 0.99, 0.12, 0], [0.85, 0.994, 0.13, 1], [0.95, 0.99, 0.12, 0], [0.7, 0.78, 0.07, 1]],
+    tufts2: [[0.95, 1.52, 0.1, 1], [0.06, 1.985, 0.12, 0], [0.9, 1.985, 0.12, 1]],
     shrub: [0.86, 0.15],
     clusters2: [
       { seed: 711, x: 0.74, y: 1.62, rx: 0.12, ry: 0.03, n: 30, size: [8, 13], kinds: ["cosmos", "cosmos", "daisy", "tiny"], foliage: true },
       { seed: 712, x: 0.2, y: 1.84, rx: 0.2, ry: 0.05, n: 45, size: [10, 17], kinds: ["daisy", "daisy", "tiny"], foliage: true },
     ],
+    noteFont: 70,
     phrases: [
-      { mound: 3, x: 0.52, dy: 0.1, span: 0.86, lines: 2, gap: 0.038, bend: 0.6, maxTilt: 5 },
-      { mound: 4, x: 0.5, dy: 0.05, span: 0.86, lines: 2, gap: 0.038, bend: 0.6, maxTilt: 5 },
-      { mound: 7, x: 0.5, dy: 0.055, span: 0.86, lines: 2, gap: 0.038, bend: 0.6, maxTilt: 5 },
+      { lines: [{ mound: 4, x0: 0.02, x1: 0.62, row: 1 }, { mound: 4, x0: 0.02, x1: 0.62, row: 0 }] },
+      { lines: [{ mound: 6, x0: 0.0, x1: 0.43, row: 1 }, { mound: 6, x0: 0.0, x1: 0.43, row: 0 }] },
+      { lines: [{ mound: 7, x0: 0.47, x1: 0.99, row: 1 }, { mound: 7, x0: 0.28, x1: 0.99, row: 0 }] },
     ],
-    phraseZone: [0.5, 0.06],
     tea: {
       tree: [0.14, 2.44, 0.24],
       table: [0.36, 2.52, 0.27],
@@ -1655,7 +1770,7 @@ const allAnchors = fs.existsSync(ANCHORS) ? JSON.parse(fs.readFileSync(ANCHORS, 
 for (const F of [DESKTOP, MOBILE]) {
   if (ONLY && ONLY !== F.name) continue;
   const t0 = Date.now();
-  const { cv, anchors } = paint(F);
+  const { cv, anchors, sprites } = paint(F);
   allAnchors[F.name] = anchors;
   if (PREVIEW) {
     const w = Math.round(F.W / 3), h = F.S;
@@ -1663,6 +1778,17 @@ for (const F of [DESKTOP, MOBILE]) {
     pv.getContext("2d").drawImage(cv, 0, 0, w, h);
     fs.writeFileSync(path.join(PREVIEW_DIR, `preview-${F.name}.jpg`), pv.toBuffer("image/jpeg", 85));
   } else {
+    fs.mkdirSync(path.join(OUT, "sprites"), { recursive: true });
+    for (const sp of sprites) {
+      // layers are stored at the 1600 / 1080 working width to stay light
+      const scale = F.name === "desktop" ? 1600 / 2400 : 1;
+      const w = Math.max(2, Math.round(sp.canvas.width * scale)), h = Math.max(2, Math.round(sp.canvas.height * scale));
+      const out = createCanvas(w, h);
+      const oc = out.getContext("2d");
+      oc.imageSmoothingQuality = "high";
+      oc.drawImage(sp.canvas, 0, 0, w, h);
+      fs.writeFileSync(path.join(OUT, "sprites", `${F.name}-${sp.name}.webp`), out.toBuffer("image/webp", 90));
+    }
     const widths = F.name === "desktop" ? [2400, 1600] : [1080, 720];
     for (const s of [1, 2, 3]) {
       for (const w of widths) {
