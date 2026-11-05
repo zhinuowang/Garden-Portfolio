@@ -167,11 +167,12 @@ body {
   72% { transform: translate(8%, 0) rotate(-380deg); }
   100% { transform: none; }
 }
+/* Rocking forward and back about the runners' ground contact (the layer's pivot). */
 @keyframes rock {
   0% { transform: rotate(0); }
-  14% { transform: rotate(-4.5deg); }
-  32% { transform: rotate(3.2deg); }
-  50% { transform: rotate(-2deg); }
+  14% { transform: rotate(-4deg); }
+  32% { transform: rotate(3deg); }
+  50% { transform: rotate(-1.9deg); }
   66% { transform: rotate(1.1deg); }
   82% { transform: rotate(-0.45deg); }
   100% { transform: rotate(0); }

@@ -9,7 +9,9 @@ import { useEffect } from "react";
  * - a small nudge (< 8% of the way, less than one wheel notch) settles back:
  *   a gentle resistance;
  * - anything more carries on to the next scene in the direction of travel.
- * Past the last scene's start the page is free, so the footer is reachable.
+ * Within a scene taller than the screen the visitor can look freely from its
+ * top to its bottom; past the last scene's start the page is free, so the
+ * footer is reachable.
  * Native CSS snapping was tried first: proximity left the page resting between
  * scenes, and mandatory trapped or skipped scenes because each painting is a
  * little taller than the screen. Off for reduced motion.
@@ -32,8 +34,10 @@ export default function SceneSettle() {
       if (!dir || y >= starts[starts.length - 1] - 2) return; // no movement, or free past the last scene's start
       let k = 0;
       while (k < starts.length - 2 && y >= starts[k + 1]) k++;
-      const a = starts[k], b = starts[k + 1];
-      if (y <= a + 2 || y >= b - 2) return; // already resting at a scene
+      const b = starts[k + 1];
+      // a scene taller than the screen can be looked at freely, top to bottom
+      const a = Math.max(starts[k], b - window.innerHeight);
+      if (y <= a + 2 || y >= b - 2) return; // resting within a scene
       const frac = (y - a) / (b - a);
       const to = dir > 0 ? (frac > 0.08 ? b : a) : frac < 0.92 ? a : b;
       target = to;

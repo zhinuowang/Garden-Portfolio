@@ -1,7 +1,7 @@
 # Landing: three scenes of one tall painting
 
-Checkpoints of earlier Landing versions: `landing-v1-checkpoint` … `landing-v6-checkpoint` (v6 is the version before
-the chapter pacing, the living layers and the edge-following notes).
+Checkpoints of earlier Landing versions: `landing-v1-checkpoint` … `landing-v7-checkpoint` (v7 is the version before the
+first-view recomposition, the side-view rocking chair and the stronger plant response).
 
 ## Structure
 
@@ -11,7 +11,7 @@ crossfade. Because the files are slices of one picture, the joins are seamless.
 
 | Scene | Character | Text (real HTML, `src/data/site.ts` → `landingScenes`) | What the painting holds |
 | --- | --- | --- | --- |
-| 1 · A living garden | Peaceful, lived-in, early autumn | **A Garden of Ideas** only, centred in the first view | A smaller pink sky (the horizon is at about 45% of the scene) and lavender hills behind the title. Below: a cream cottage with a white picket fence, four autumn trees, three small dogs with a ball, shrubs, the path edged with flowers, meadow flowers, fallen leaves, and grass and flowers in both bottom corners |
+| 1 · A living garden | Peaceful, lived-in, early autumn | **A Garden of Ideas** only, centred in the first view | Composed for the first view on real screens, which shows only the top ~72% of the scene (1280×690, 1440×790 with browser toolbars): sky behind the title to ~0.42, then the cottage, trees, path and all three dogs above ~0.68, and meadow and flowers below. Below: a cream cottage with a white picket fence, four autumn trees, three small dogs with a ball, shrubs, the path edged with flowers, meadow flowers, fallen leaves, and grass and flowers in both bottom corners |
 | 2 · Thoughts on the hills | Reflective | The three thoughts as cream handwritten SVG text resting on real hill edges: each baseline is a painted hill's crest line, so the words sit in the shaded hollow just above it, with a soft dark halo. The words appear one after another as the scene arrives and are complete when it settles | Overlapping rounded hills, the winding path, the pink flowering shrub, the daisy and cosmos clusters (unchanged from the previous version) |
 | 3 · Afternoon tea | Cosy destination | "Come see what I've been growing." at the top right; the hanging wooden sign **Explore My Work** (→ `/work`) | A shade tree turning gold; a round table with a pink gingham cloth, teapot, cups, a cake stand, fruit and a small vase; a cream-painted wooden rocking chair with a gingham cushion; flowers around the table; the path ending at a little garden gate in a hedge, with warm light beyond; the sign's post and arm above the gate |
 
@@ -68,7 +68,8 @@ The painting script writes this file, so the text always matches the painted hil
 
 Scrolling is native. Only after the visitor stops between two scenes does the page glide to one of them
 (`SceneSettle`):
-- A nudge under about 8% of the way settles back, which gives a gentle resistance.
+- A scene taller than the screen can be looked at freely from its top to its bottom.
+- Past that, a nudge under about 8% of the way settles back, which gives a gentle resistance.
 - More than that carries on to the next scene, so one wheel notch moves one scene and never two.
 - Past the last scene's start the page is free, so the footer can be reached.
 - It's off with reduced motion.
@@ -86,8 +87,8 @@ painted into the scene images, so they can move without leaving a copy behind. T
 | Layer | Behaviour |
 | --- | --- |
 | Three dogs (body + tail each) and the ball | Hovering over the group (or tapping it) plays one 2.6 s sequence: the tan dog trots toward the white one, the white dog bows and hops, the dark dog hops twice, the tails wag and the ball pops up. It won't restart until the pointer has left |
-| Grass tufts (10 in scene 1, 6 in scene 2) | Bend toward the cursor's direction of travel, more strongly when closer and faster, then spring back to rest. Each tuft has its own stiffness and is anchored at its base |
-| Rocking chair (scene 3, desktop) | Hover or tap: it rocks about the centre of its runners' curve (−4.5°, +3.2°, −2°, +1.1°, −0.5°) and settles in 3 s |
+| Grass clumps and leafy sprigs (14 in scene 1, 11 in scene 2, most of them within the first view) | Each is anchored at its root. A passing cursor bends nearby plants the way it travels and pushes them slightly away, by about 9° at a slow 400 px/s and up to 16° fast, fading with distance (a reach of about 170 px). They spring back to rest. Sprigs are softer than grass, so their leaves follow a beat later |
+| Rocking chair (scene 3, desktop) | Seen from the side. Hover or tap: it tilts forward and back about the point where its runners touch the ground (−4°, +3°, −1.9°, +1.1°, −0.45°) and settles in 3 s, without sliding |
 
 With reduced motion, none of these move. Touch: tapping starts the dogs or the chair and stirs nearby grass.
 
