@@ -2565,32 +2565,9 @@ function paintJournal(W, H, portrait) {
   return cv;
 }
 
-/** Alpha mask for a sheet of paper with a soft, uneven, hand-torn edge (stretched to any mat). */
-function paintMatMask(N = 640) {
-  const cv = createCanvas(N, N);
-  const ctx = cv.getContext("2d");
-  const inset = N * 0.035, amp = N * 0.012;
-  const p = new Path2D();
-  const steps = 240;
-  for (let i = 0; i <= steps; i++) {
-    const t = i / steps, side = Math.floor(t * 4), u = t * 4 - side;
-    const lo = inset, hi = N - inset;
-    let [x, y] = side === 0 ? [lerp(lo, hi, u), lo] : side === 1 ? [hi, lerp(lo, hi, u)] : side === 2 ? [lerp(hi, lo, u), hi] : [lo, lerp(hi, lo, u)];
-    const n = fbm(t * 24, 0.5, 1221, 3) * amp + fbm(t * 90, 2.5, 1222, 2) * amp * 0.35;
-    if (side === 0) y += n; else if (side === 1) x += n; else if (side === 2) y += n; else x += n;
-    if (i === 0) p.moveTo(x, y); else p.lineTo(x, y);
-  }
-  p.closePath();
-  ctx.filter = `blur(${N * 0.004}px)`;
-  ctx.fillStyle = "#000";
-  ctx.fill(p);
-  return cv;
-}
-
 if (process.argv.includes("--journal")) {
   const dir = path.resolve("public/assets/garden/journal");
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, "mat-mask.png"), paintMatMask().toBuffer("image/png"));
   for (const [name, W, H, portrait] of [["desktop", 2000, 1250, false], ["mobile", 900, 1600, true]]) {
     fs.writeFileSync(path.join(dir, `journal-${name}.webp`), paintJournal(W, H, portrait).toBuffer("image/webp", 84));
     console.log(`journal-${name}`);

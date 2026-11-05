@@ -8,7 +8,7 @@ export type CsImage = {
   height: number;
   alt: string;
   source: string;
-  /** The image's own background is transparent, so it needs no mat behind it. */
+  /** The image's own background is transparent, so it sits on the page with no shadow. */
   bare?: boolean;
 };
 

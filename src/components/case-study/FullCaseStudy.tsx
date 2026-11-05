@@ -31,21 +31,16 @@ function Picture({ image, sizes, priority, className = "" }: { image: CsImage; s
 }
 
 /**
- * A project image laid into the page. One with a transparent background sits
- * straight on the painted paper, with only a soft shadow on the ground. One
- * with its own background rests on a mat of warm paper with a soft, uneven
- * painted edge; the mat's tint varies (cream, sage, blush) so no two
- * images look stamped from the same card. The image itself is untouched.
+ * A project image placed straight on the page, exactly as supplied: no card,
+ * mat, border or rounding. Only an image with its own opaque background gets
+ * a barely-there, diffused neutral shadow so its edge settles into the paper;
+ * one with a transparent background needs nothing.
  */
-const TINTS = ["cream", "sage", "blush"];
-const tintOf = (src: string) => TINTS[[...src].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % TINTS.length];
-
 function Plate({ image, caption, sizes, priority, className = "", imgClass = "" }: { image: CsImage; caption?: string; sizes: string; priority?: boolean; className?: string; imgClass?: string }) {
-  const tint = tintOf(image.src);
   return (
-    <figure className={`${image.bare ? "journal-bare" : `journal-mat journal-mat--${tint}`} relative ${className}`}>
-      <Picture image={image} sizes={sizes} priority={priority} className={`relative ${image.bare ? "" : "rounded-[3px]"} ${imgClass}`} />
-      {caption && <figcaption className="relative mt-2 text-center font-hand text-2xl leading-none text-forest">{caption}</figcaption>}
+    <figure className={className}>
+      <Picture image={image} sizes={sizes} priority={priority} className={`${image.bare ? "" : "journal-settle"} ${imgClass}`} />
+      {caption && <figcaption className="mt-2 text-center font-hand text-2xl leading-none text-forest">{caption}</figcaption>}
     </figure>
   );
 }

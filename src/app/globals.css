@@ -262,28 +262,8 @@ body {
 @media (max-aspect-ratio: 3/4) {
   .journal-backdrop { background-image: url("/assets/garden/journal/journal-mobile.webp"); }
 }
-/* an image with a transparent background rests straight on the page, with a soft ground shadow */
-.journal-bare { filter: drop-shadow(0 14px 14px rgb(84 96 66 / 0.14)); }
-/* an image with its own background lies on warm paper with a soft, uneven painted edge */
-.journal-mat {
-  --mat: #fcf8ef;
-  --edge: rgb(214 196 160 / 0.5);
-  padding: clamp(0.9rem, 2.6vw, 1.75rem);
-}
-.journal-mat--sage { --mat: #f6f7ec; --edge: rgb(164 182 140 / 0.45); }
-.journal-mat--blush { --mat: #fcf3ee; --edge: rgb(226 178 166 / 0.42); }
-.journal-mat::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  /* light in the middle, pigment pooling toward the edge, like a watercolour wash on paper */
-  background:
-    radial-gradient(closest-side, transparent 78%, var(--edge) 100%),
-    radial-gradient(120% 90% at 30% 20%, rgb(255 255 255 / 0.6), transparent 60%),
-    var(--mat);
-  -webkit-mask: url("/assets/garden/journal/mat-mask.png") center / 100% 100% no-repeat;
-  mask: url("/assets/garden/journal/mat-mask.png") center / 100% 100% no-repeat;
-}
+/* an opaque project image settles into the paper with a faint, diffused neutral shadow (no card, no border) */
+.journal-settle { box-shadow: 0 12px 32px -22px rgb(120 128 104 / 0.35); }
 /* bullets as small sage leaves */
 .journal-leaves > li { position: relative; padding-left: 1.6rem; }
 .journal-leaves > li::before {
@@ -314,7 +294,8 @@ body {
   opacity: 0.55;
 }
 .work-stage {
-  width: min(100%, calc((100svh - 5rem) * var(--ratio)));
+  /* fit the screen below the site header and the one-line heading */
+  width: min(100%, calc((100svh - 11rem) * var(--ratio)));
   border-radius: 1.25rem;
   box-shadow: 0 30px 60px -40px rgb(40 50 35 / 0.6);
   transition: transform 0.8s ease-in, filter 0.8s ease-in;

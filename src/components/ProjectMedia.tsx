@@ -34,7 +34,7 @@ export default function ProjectMedia({
       height={image.height}
       sizes={sizes}
       priority={priority}
-      className={`h-auto w-full rounded-xl bg-[#efe9dc] ${className}`}
+      className={`h-auto w-full ${className}`}
     />
   );
 }

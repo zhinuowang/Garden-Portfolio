@@ -117,17 +117,6 @@ function Stage({ fmt, c, ratio, className }: { fmt: "desktop" | "mobile"; c: Com
           />
         </picture>
 
-        {/* the guide's invitation, in the sky */}
-        <div className="work-intro pointer-events-none absolute inset-x-0 top-[4%] px-4 text-center">
-          <p className="font-hand text-[clamp(1.2rem,2vw,1.8rem)] leading-none text-rose">three little projects grow here</p>
-          <p aria-hidden="true" className="mt-1 font-serif text-[clamp(1.5rem,3.6vw,3.2rem)] leading-tight font-medium text-ink">Choose a place in the garden</p>
-          <p className="mt-1 text-[clamp(0.9rem,1.2vw,1.1rem)] text-ink-soft">Click a landmark and I&rsquo;ll walk you there.</p>
-          <p className="mt-2 flex flex-wrap justify-center gap-2 text-[0.7rem] portrait-art:hidden font-semibold tracking-[0.12em] uppercase">
-            <span className="work-label__badge work-label__badge--academic">Academic projects · fountain &amp; dog house</span>
-            <span className="work-label__badge work-label__badge--personal">Personal project · windmill</span>
-          </p>
-        </div>
-
         {/* landmarks: their layers, a soft discoverability glow, the label, and the link over them */}
         {c.landmarks.map((m, i) => {
           const p = getProject(m.slug)!;
