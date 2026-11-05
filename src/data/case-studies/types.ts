@@ -2,7 +2,15 @@
 // Text is the source's own words; images are original files from
 // Desktop/Portofolio matched against the PDF (see docs/CASE-STUDY-SOURCE-MAP.md).
 
-export type CsImage = { src: string; width: number; height: number; alt: string; source: string };
+export type CsImage = {
+  src: string;
+  width: number;
+  height: number;
+  alt: string;
+  source: string;
+  /** The image's own background is transparent, so it needs no mat behind it. */
+  bare?: boolean;
+};
 
 export type CsBlock =
   | { type: "p"; text: string; lead?: string }

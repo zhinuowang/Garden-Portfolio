@@ -8,9 +8,10 @@ import { getProject } from "@/data/projects";
 
 // The Work page: one compact painted garden with three project landmarks and a
 // small guide. Hover (or focus) a landmark and it lifts, its label grows and the
-// girl turns to look; click it and she walks over, plays a short moment with it
-// (kneels to the puppy, wakes the fountain, sets the windmill turning), then a
-// soft paper wipe grows from the landmark into the project page. Landmarks are
+// girl turns to look; click it and she walks over and shares a short moment with
+// it — kneels to offer the puppy a treat and pat it, touches the fountain's water
+// so two koi leap, or turns to pose for a photo with the windmill — then a soft
+// paper wipe grows from the landmark into the project page. Landmarks are
 // real links: Enter works, and with reduced motion they open straight away.
 // All artwork is decorative (scripts/paint-landing.mjs --work); project content
 // lives only on the project pages.
@@ -19,7 +20,9 @@ type Sprite = { name: string; kind: string; x: number; y: number; w: number; h: 
 type Landmark = { slug: string; kind: "fountain" | "doghouse" | "windmill"; hit: number[]; label: number[]; stand: number[]; face: number; layers: string[] };
 type Composition = { start: number[]; girl: { w: number; h: number; feet: number[] }; landmarks: Landmark[]; sprites: Sprite[] };
 
-const POSES = ["idle", "walk-a", "walk-b", "reach", "kneel"] as const;
+const POSES = ["idle", "walk-a", "walk-b", "reach", "offer", "pet-a", "pet-b", "photo"] as const;
+/** How long each moment plays before the page turns. */
+const MOMENT_MS = { doghouse: 2100, fountain: 1900, windmill: 2300 } as const;
 type Pose = (typeof POSES)[number];
 const src = (fmt: string, name: string) => `/assets/garden/work/sprites/${fmt}-${name.replace("work-", "")}.webp`;
 const pct = (v: number) => `${v * 100}%`;
@@ -66,16 +69,33 @@ function Stage({ fmt, c, ratio, className }: { fmt: "desktop" | "mobile"; c: Com
     const stride = window.setInterval(() => setPose(step++ % 2 ? "walk-b" : "walk-a"), 160);
     later(() => {
       clearInterval(stride);
-      setFace(m.face);
-      setPose(m.kind === "doghouse" ? "kneel" : "reach");
       stageRef.current?.setAttribute("data-moment", m.kind);
+      if (m.kind === "doghouse") {
+        // kneel and hold out a treat, then pat the puppy a few times
+        setFace(m.face);
+        setPose("offer");
+        let pat = 0;
+        later(() => {
+          const patting = window.setInterval(() => setPose(pat++ % 2 ? "pet-b" : "pet-a"), 260);
+          timers.current.push(patting);
+          later(() => clearInterval(patting), 1300);
+        }, 700);
+      } else if (m.kind === "fountain") {
+        setFace(m.face);
+        setPose("reach");
+      } else {
+        // turn to the viewer for a photo with the windmill
+        setFace(1);
+        setPose("photo");
+      }
     }, ms);
     // then a soft paper wipe from the landmark into the project
+    const hold = MOMENT_MS[m.kind];
     later(() => {
       const r = stageRef.current!.getBoundingClientRect();
       setWipe({ x: r.left + (m.hit[0] + m.hit[2] / 2) * r.width, y: r.top + (m.hit[1] + m.hit[3] / 2) * r.height });
-    }, ms + 1300);
-    later(() => router.push(`/work/${m.slug}`), ms + 1300 + 750);
+    }, ms + hold);
+    later(() => router.push(`/work/${m.slug}`), ms + hold + 750);
     timers.current.push(stride);
   };
 
@@ -130,17 +150,30 @@ function Stage({ fmt, c, ratio, className }: { fmt: "desktop" | "mobile"; c: Com
                 );
               })}
               {m.kind === "fountain" && (
-                <span aria-hidden="true" className="absolute" style={{ left: pct(m.hit[0]), top: pct(m.hit[1]), width: pct(m.hit[2]), height: pct(m.hit[3]) }}>
-                  {[[30, 62, 0], [44, 58, 0.3], [58, 64, 0.15], [70, 60, 0.45], [50, 40, 0.6]].map(([l, t, d], j) => (
-                    <span key={j} className="work-bubble absolute" style={{ left: `${l}%`, top: `${t}%`, animationDelay: `${d}s` }} />
-                  ))}
-                </span>
+                <>
+                  <span aria-hidden="true" className="absolute" style={{ left: pct(m.hit[0]), top: pct(m.hit[1]), width: pct(m.hit[2]), height: pct(m.hit[3]) }}>
+                    {[[30, 62, 0], [44, 58, 0.3], [58, 64, 0.15], [70, 60, 0.45], [50, 40, 0.6]].map(([l, t, d], j) => (
+                      <span key={j} className="work-bubble absolute" style={{ left: `${l}%`, top: `${t}%`, animationDelay: `${d}s` }} />
+                    ))}
+                  </span>
+                  {/* rings on the water: where she touches it, and where each koi leaps out and dives back in */}
+                  {(() => {
+                    const a = sprite("work-fish-a"), b = sprite("work-fish-b");
+                    const ay = a.y + a.h / 2, step = (b.x - a.x) * 0.8;
+                    return [[b.x + b.w * 0.9, ay, 0], [a.x + a.w / 2, ay, 0.25], [a.x + a.w / 2 + step, ay, 0.8], [b.x + b.w / 2, ay, 0.6], [b.x + b.w / 2 - step, ay, 1.15]].map(([x, y, d], j) => (
+                      <span key={j} aria-hidden="true" className="work-ripple absolute" style={{ left: pct(x), top: pct(y), width: pct(a.w * 0.9), animationDelay: `${d}s` }} />
+                    ));
+                  })()}
+                </>
               )}
-              {m.kind === "doghouse" && (
-                <span aria-hidden="true" className="work-heart absolute" style={{ left: pct(m.hit[0] + m.hit[2] * 0.72), top: pct(m.hit[1] + m.hit[3] * 0.25) }}>
-                  ♥
-                </span>
-              )}
+              {m.kind === "doghouse" && (() => {
+                const pup = sprite("work-puppy");
+                return [[0.35, 0.05, 0.75], [0.6, -0.05, 1.2], [0.2, -0.12, 1.6]].map(([u, v, d], j) => (
+                  <span key={j} aria-hidden="true" className="work-heart absolute" style={{ left: pct(pup.x + pup.w * u), top: pct(pup.y + pup.h * v), animationDelay: `${d}s` }}>
+                    ♥
+                  </span>
+                ));
+              })()}
               <span aria-hidden="true" className="work-cue absolute" style={{ left: pct(m.hit[0] + m.hit[2] / 2), top: pct(m.hit[1] - 0.02) }}>
                 <svg viewBox="0 0 20 14" className="h-full w-full">
                   <path d="M2 2 L10 11 L18 2" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
@@ -188,6 +221,21 @@ function Stage({ fmt, c, ratio, className }: { fmt: "desktop" | "mobile"; c: Com
             ))}
           </div>
         </div>
+        {/* the windmill photo: a viewfinder frames her and the windmill, a flash, and the shot settles as a polaroid */}
+        {(() => {
+          const mill = c.landmarks.find((l) => l.kind === "windmill")!;
+          const x0 = Math.min(mill.hit[0], mill.stand[0] - girl.w * 0.6), x1 = Math.max(mill.hit[0] + mill.hit[2], mill.stand[0] + girl.w * 0.6);
+          const y0 = mill.hit[1] - 0.02, y1 = mill.stand[1] + 0.03;
+          return (
+            <span aria-hidden="true" className="work-photo pointer-events-none absolute" style={{ left: pct(x0 - 0.01), top: pct(y0), width: pct(x1 - x0 + 0.02), height: pct(y1 - y0) }}>
+              <span className="work-photo__finder" />
+              <span className="work-photo__flash" />
+              <span className="work-photo__print">
+                <span className="work-photo__caption">a little moment</span>
+              </span>
+            </span>
+          );
+        })()}
       </div>
       {wipe && <span aria-hidden="true" className="work-wipe" style={{ ["--wx" as string]: `${wipe.x}px`, ["--wy" as string]: `${wipe.y}px` } as React.CSSProperties} />}
     </div>

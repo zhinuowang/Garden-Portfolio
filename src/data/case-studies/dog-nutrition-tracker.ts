@@ -7,7 +7,9 @@ import type { CsImage, FullCaseStudy } from "./types";
 // the PDF's (blank) image slots by position and exact proportions.
 
 const DIR = "/assets/projects/dog-nutrition";
-const img = (file: string, width: number, height: number, alt: string, source: string): CsImage => ({ src: `${DIR}/${file}`, width, height, alt, source: `Desktop/Portofolio/${source}` });
+// images whose own background is transparent: they sit straight on the page
+const BARE = new Set(["hero.png"]);
+const img = (file: string, width: number, height: number, alt: string, source: string): CsImage => ({ src: `${DIR}/${file}`, width, height, alt, source: `Desktop/Portofolio/${source}`, bare: BARE.has(file) });
 
 export const dogNutritionTracker: FullCaseStudy = {
   source: "Desktop/Wang Nora - Dog Nutrition Tracking App.pdf",

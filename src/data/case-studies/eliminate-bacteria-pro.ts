@@ -7,7 +7,9 @@ import type { CsImage, FullCaseStudy } from "./types";
 // slots blank, except the hero, matched pixel for pixel).
 
 const DIR = "/assets/projects/eliminate-bacteria-pro";
-const img = (file: string, width: number, height: number, alt: string, source: string): CsImage => ({ src: `${DIR}/${file}`, width, height, alt, source: `Desktop/Portofolio/${source}` });
+// images whose own background is transparent: they sit straight on the page
+const BARE = new Set(["detail-anti-dropout-bumps.png", "detail-camera.png", "detail-inductive-charging.png", "detail-speakers.png", "experiential-marketing.png", "user-flow-5.png", "user-flow-6.png"]);
+const img = (file: string, width: number, height: number, alt: string, source: string): CsImage => ({ src: `${DIR}/${file}`, width, height, alt, source: `Desktop/Portofolio/${source}`, bare: BARE.has(file) });
 
 export const eliminateBacteriaPro: FullCaseStudy = {
   source: "Desktop/Wang Nora - Eliminate Bacteria Pro.pdf",

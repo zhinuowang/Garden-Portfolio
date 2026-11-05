@@ -251,12 +251,38 @@ body {
 }
 
 /* ---------- Full case studies: a botanical field journal ---------- */
-/* a figure taped into the journal; the project image inside is shown as supplied */
-.journal-plate {
-  background: #fffdf8;
-  border-radius: 0.5rem;
-  padding: clamp(0.6rem, 1.6vw, 1rem);
-  box-shadow: 0 1px 0 rgb(64 88 60 / 0.06), 0 18px 34px -24px rgb(47 58 44 / 0.45);
+/* the painted backdrop: fixed behind the page, art-directed for wide and tall screens */
+.journal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: var(--color-cream) url("/assets/garden/journal/journal-desktop.webp") center / cover no-repeat;
+  pointer-events: none;
+}
+@media (max-aspect-ratio: 3/4) {
+  .journal-backdrop { background-image: url("/assets/garden/journal/journal-mobile.webp"); }
+}
+/* an image with a transparent background rests straight on the page, with a soft ground shadow */
+.journal-bare { filter: drop-shadow(0 14px 14px rgb(84 96 66 / 0.14)); }
+/* an image with its own background lies on warm paper with a soft, uneven painted edge */
+.journal-mat {
+  --mat: #fcf8ef;
+  --edge: rgb(214 196 160 / 0.5);
+  padding: clamp(0.9rem, 2.6vw, 1.75rem);
+}
+.journal-mat--sage { --mat: #f6f7ec; --edge: rgb(164 182 140 / 0.45); }
+.journal-mat--blush { --mat: #fcf3ee; --edge: rgb(226 178 166 / 0.42); }
+.journal-mat::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* light in the middle, pigment pooling toward the edge, like a watercolour wash on paper */
+  background:
+    radial-gradient(closest-side, transparent 78%, var(--edge) 100%),
+    radial-gradient(120% 90% at 30% 20%, rgb(255 255 255 / 0.6), transparent 60%),
+    var(--mat);
+  -webkit-mask: url("/assets/garden/journal/mat-mask.png") center / 100% 100% no-repeat;
+  mask: url("/assets/garden/journal/mat-mask.png") center / 100% 100% no-repeat;
 }
 /* bullets as small sage leaves */
 .journal-leaves > li { position: relative; padding-left: 1.6rem; }
@@ -373,7 +399,10 @@ body {
 .work-girl[data-pose="walk-a"] img[data-for="walk-a"],
 .work-girl[data-pose="walk-b"] img[data-for="walk-b"],
 .work-girl[data-pose="reach"] img[data-for="reach"],
-.work-girl[data-pose="kneel"] img[data-for="kneel"] { opacity: 1; }
+.work-girl[data-pose="offer"] img[data-for="offer"],
+.work-girl[data-pose="pet-a"] img[data-for="pet-a"],
+.work-girl[data-pose="pet-b"] img[data-for="pet-b"],
+.work-girl[data-pose="photo"] img[data-for="photo"] { opacity: 1; }
 .work-girl--walking .work-girl__body { animation: work-bob 0.32s ease-in-out infinite alternate; }
 @keyframes work-bob { from { translate: 0 0; } to { translate: 0 -3%; } }
 /* the moments when she arrives */
@@ -396,16 +425,22 @@ body {
   100% { transform: translateY(-260%) scale(1.15); opacity: 0; }
 }
 .work-landmark[data-state="hover"] .work-layer--sails { animation: work-spin 7s linear infinite; }
-.work-stage[data-moment="windmill"] .work-layer--sails { animation: work-spin 1.4s cubic-bezier(0.45, 0.05, 0.3, 1) both; animation-iteration-count: 1; }
+.work-stage[data-moment="windmill"] .work-layer--sails { animation: work-spin 2.6s cubic-bezier(0.35, 0.1, 0.3, 1) both; animation-iteration-count: 1; }
 @keyframes work-spin { to { transform: rotate(540deg); } }
-.work-stage[data-moment="doghouse"] .work-layer--puppy { animation: work-puppy 1.3s ease-in-out both; }
-.work-stage[data-moment="doghouse"] .work-layer--puppy-tail { animation: dog-wag 0.2s ease-in-out 6 alternate; }
+/* the puppy perks up at the treat, hops toward her and leans into the pats */
+.work-stage[data-moment="doghouse"] .work-layer--puppy,
+.work-stage[data-moment="doghouse"] .work-layer--puppy-tail { animation: work-puppy-hop 2s ease-in-out both; }
+.work-stage[data-moment="doghouse"] .work-layer--puppy { animation-name: work-puppy-hop, work-puppy; animation-duration: 2s, 0.52s; animation-delay: 0s, 0.75s; animation-iteration-count: 1, 3; }
+.work-stage[data-moment="doghouse"] .work-layer--puppy-tail { animation-name: work-puppy-hop, dog-wag; animation-duration: 2s, 0.16s; animation-iteration-count: 1, 12; animation-direction: normal, alternate; }
+@keyframes work-puppy-hop {
+  0% { translate: 0 0; }
+  18% { translate: -6% -10%; }
+  30%, 100% { translate: -9% 0; }
+}
 .work-landmark[data-kind="doghouse"][data-state="hover"] .work-layer--puppy-tail { animation: dog-wag 0.26s ease-in-out infinite alternate; }
 @keyframes work-puppy {
   0%, 100% { transform: rotate(0); }
-  20% { transform: rotate(-6deg); }
-  45% { transform: rotate(4deg); }
-  70% { transform: rotate(-3deg); }
+  50% { transform: rotate(-5deg); }
 }
 .work-heart {
   color: #e9868b;
@@ -414,12 +449,95 @@ body {
   text-shadow: 0 1px 4px rgb(251 247 238 / 0.8);
   pointer-events: none;
 }
-.work-stage[data-moment="doghouse"] .work-heart { animation: work-heart 1.3s ease-out forwards; }
+.work-stage[data-moment="doghouse"] .work-heart { animation: work-heart 1.3s ease-out both; }
 @keyframes work-heart {
   0% { transform: translateY(10px) scale(0.6); opacity: 0; }
   30% { opacity: 1; }
   100% { transform: translateY(-40px) scale(1.15); opacity: 0; }
 }
+/* the fountain: two koi leap across the basin when she touches the water, with rings on the surface */
+.work-layer--fish-a, .work-layer--fish-b { opacity: 0; }
+.work-stage[data-moment="fountain"] .work-layer--fish-a { animation: work-koi-a 1.1s cubic-bezier(0.3, 0, 0.7, 1) 0.25s both; }
+.work-stage[data-moment="fountain"] .work-layer--fish-b { animation: work-koi-b 1.1s cubic-bezier(0.3, 0, 0.7, 1) 0.6s both; }
+@keyframes work-koi-a {
+  0% { opacity: 0; transform: translate(0, 20%) rotate(-50deg); }
+  12% { opacity: 1; }
+  50% { transform: translate(85%, -330%) rotate(0deg); }
+  88% { opacity: 1; }
+  100% { opacity: 0; transform: translate(170%, 20%) rotate(55deg); }
+}
+@keyframes work-koi-b {
+  0% { opacity: 0; transform: translate(0, 20%) rotate(50deg); }
+  12% { opacity: 1; }
+  50% { transform: translate(-85%, -270%) rotate(0deg); }
+  88% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-170%, 20%) rotate(-55deg); }
+}
+.work-ripple {
+  aspect-ratio: 3 / 1;
+  border: 2px solid rgb(255 255 255 / 0.85);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0.2);
+  opacity: 0;
+  pointer-events: none;
+}
+.work-stage[data-moment="fountain"] .work-ripple { animation: work-ripple 0.9s ease-out both; }
+@keyframes work-ripple {
+  0% { opacity: 0.95; transform: translate(-50%, -50%) scale(0.2); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.6); }
+}
+/* the windmill: a viewfinder frames her and the windmill, a flash, then the shot settles as a polaroid */
+.work-photo { opacity: 0; }
+.work-stage[data-moment="windmill"] .work-photo { opacity: 1; }
+.work-photo__finder {
+  position: absolute;
+  inset: 0;
+  --c: rgb(251 247 238 / 0.95);
+  background:
+    linear-gradient(var(--c), var(--c)) top left / 14% 3px, linear-gradient(var(--c), var(--c)) top left / 3px 14%,
+    linear-gradient(var(--c), var(--c)) top right / 14% 3px, linear-gradient(var(--c), var(--c)) top right / 3px 14%,
+    linear-gradient(var(--c), var(--c)) bottom left / 14% 3px, linear-gradient(var(--c), var(--c)) bottom left / 3px 14%,
+    linear-gradient(var(--c), var(--c)) bottom right / 14% 3px, linear-gradient(var(--c), var(--c)) bottom right / 3px 14%;
+  background-repeat: no-repeat;
+  filter: drop-shadow(0 1px 2px rgb(40 50 35 / 0.5));
+  opacity: 0;
+}
+.work-stage[data-moment="windmill"] .work-photo__finder { animation: work-finder 1.15s ease-out 0.25s both; }
+@keyframes work-finder {
+  0% { opacity: 0; transform: scale(1.12); }
+  45%, 85% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1); }
+}
+.work-photo__flash { position: absolute; inset: 0; background: #fffdf6; opacity: 0; }
+.work-stage[data-moment="windmill"] .work-photo__flash { animation: work-flash 0.5s ease-out 1.15s both; }
+@keyframes work-flash { 0% { opacity: 0; } 15% { opacity: 0.9; } 100% { opacity: 0; } }
+/* the print: a cream border around the very same view, its caption in handwriting */
+.work-photo__print {
+  position: absolute;
+  inset: -2.5% -2.5% -14% -2.5%;
+  border: clamp(5px, 0.7vw, 11px) solid #fbf6ea;
+  border-bottom-width: 0;
+  box-shadow: 0 14px 28px -12px rgb(40 50 35 / 0.55);
+  opacity: 0;
+}
+.work-photo__caption {
+  position: absolute;
+  inset: auto -1px -1px -1px;
+  height: 14%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fbf6ea;
+  font-family: var(--font-caveat), "Segoe Print", cursive;
+  font-size: clamp(0.95rem, 1.5vw, 1.5rem);
+  color: var(--color-forest);
+}
+.work-stage[data-moment="windmill"] .work-photo__print { animation: work-print 0.6s cubic-bezier(0.2, 0.8, 0.3, 1.2) 1.3s both; }
+@keyframes work-print {
+  0% { opacity: 0; transform: scale(1.06) rotate(0deg); }
+  100% { opacity: 1; transform: scale(1) rotate(-2deg); }
+}
+
 /* the paper wipe that carries the visitor into the project */
 .work-wipe {
   position: fixed;
@@ -434,7 +552,8 @@ body {
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .sway, .drift, .blades, .bubble, .bloom, .garden-sign__board, .living-dog, .living-tail, .living-ball, .living-rocker, .living-water-a, .living-water-b, .living-drop,
-  .work-glow, .work-cue, .work-layer, .work-girl__body, .work-bubble, .work-heart { animation: none !important; }
+  .work-glow, .work-cue, .work-layer, .work-girl__body, .work-bubble, .work-heart, .work-ripple,
+  .work-photo__finder, .work-photo__flash, .work-photo__print { animation: none !important; }
   .journey-move { transform: none !important; }
   .journey-text { transform: none !important; }
   *, *::before, *::after { transition-duration: 0.01ms !important; }

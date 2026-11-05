@@ -2,15 +2,16 @@ import Image from "next/image";
 import Link from "next/link";
 import CategoryBadge from "@/components/CategoryBadge";
 import MarkVisited from "@/components/MarkVisited";
-import { PressedBlossom, PressedDaisy, PressedSprig, Tape } from "@/components/botanical/Pressed";
+import { PressedBlossom, PressedDaisy, PressedSprig } from "@/components/botanical/Pressed";
 import type { CsBlock, CsImage, FullCaseStudy as Data } from "@/data/case-studies/types";
 import type { Project } from "@/data/projects";
 import JournalContents from "./JournalContents";
 
-// A full case study as a botanical field journal: cream paper, sage and moss
-// accents, editorial type, pressed-flower ornaments and taped-in figures. The
-// garden is only the frame — the project's own words and images are shown as
-// supplied, in their original order, never recoloured or cropped.
+// A full case study as a page from the painted garden's field journal: an
+// oil-on-canvas backdrop (scripts/paint-landing.mjs --journal), sage and moss
+// accents, editorial type and a few pressed flowers. The garden is only the
+// frame — the project's own words and images are shown as supplied, in their
+// original order, never recoloured or cropped.
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -29,13 +30,22 @@ function Picture({ image, sizes, priority, className = "" }: { image: CsImage; s
   );
 }
 
-/** A figure taped into the journal: white paper, a strip of washi tape, an optional handwritten caption. */
-function Plate({ image, caption, sizes, priority, tilt = 0, className = "", imgClass = "" }: { image: CsImage; caption?: string; sizes: string; priority?: boolean; tilt?: number; className?: string; imgClass?: string }) {
+/**
+ * A project image laid into the page. One with a transparent background sits
+ * straight on the painted paper, with only a soft shadow on the ground. One
+ * with its own background rests on a mat of warm paper with a soft, uneven
+ * painted edge; the mat's tint varies (cream, sage, blush) so no two
+ * images look stamped from the same card. The image itself is untouched.
+ */
+const TINTS = ["cream", "sage", "blush"];
+const tintOf = (src: string) => TINTS[[...src].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7) % TINTS.length];
+
+function Plate({ image, caption, sizes, priority, className = "", imgClass = "" }: { image: CsImage; caption?: string; sizes: string; priority?: boolean; className?: string; imgClass?: string }) {
+  const tint = tintOf(image.src);
   return (
-    <figure className={`journal-plate relative ${className}`} style={{ rotate: `${tilt}deg` }}>
-      <Tape className="absolute -top-3 left-1/2 w-20 -translate-x-1/2 -rotate-2" color="#c9d6b4" />
-      <Picture image={image} sizes={sizes} priority={priority} className={imgClass} />
-      {caption && <figcaption className="mt-2 text-center font-hand text-2xl leading-none text-forest">{caption}</figcaption>}
+    <figure className={`${image.bare ? "journal-bare" : `journal-mat journal-mat--${tint}`} relative ${className}`}>
+      <Picture image={image} sizes={sizes} priority={priority} className={`relative ${image.bare ? "" : "rounded-[3px]"} ${imgClass}`} />
+      {caption && <figcaption className="relative mt-2 text-center font-hand text-2xl leading-none text-forest">{caption}</figcaption>}
     </figure>
   );
 }
@@ -124,7 +134,6 @@ function Block({ b }: { b: CsBlock }) {
             image={b.image}
             sizes={wide ? "(max-width: 1024px) 92vw, 420px" : "(max-width: 768px) 80vw, 304px"}
             priority={!wide}
-            tilt={wide ? 0 : 1.5}
             className={`mx-auto mt-4 w-full ${wide ? "" : "max-w-[19rem]"}`}
           />
         </div>
@@ -135,7 +144,8 @@ function Block({ b }: { b: CsBlock }) {
 
 export default function FullCaseStudy({ project, data, next }: { project: Project; data: Data; next: Project }) {
   return (
-    <article className="paper-grain relative overflow-x-clip px-4 pt-28 pb-24 sm:px-6">
+    <article className="relative isolate overflow-x-clip px-4 pt-28 pb-24 sm:px-6">
+      <div aria-hidden="true" className="journal-backdrop" />
       <MarkVisited slug={project.slug} />
       <PressedSprig className="pointer-events-none absolute top-24 -right-3 hidden w-20 rotate-12 opacity-70 md:block" />
       <PressedBlossom className="pointer-events-none absolute top-[46rem] -left-10 hidden w-24 -rotate-12 opacity-60 xl:block" />

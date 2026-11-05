@@ -14,6 +14,8 @@
 //                                                       + src/data/landing-anchors.json
 //   node scripts/paint-landing.mjs --preview         → small preview JPGs in $PREVIEW_DIR
 //   node scripts/paint-landing.mjs --only=desktop    → one composition only
+//   node scripts/paint-landing.mjs --work            → the Work page garden, sprites and anchors
+//   node scripts/paint-landing.mjs --journal         → the case-study page backdrop
 
 import { createCanvas, Path2D } from "@napi-rs/canvas";
 import fs from "node:fs";
@@ -1214,7 +1216,13 @@ function paint(F) {
         sprite(`work-fountain`, 1, bx, by, bw, bh, [0.5, 0.5], () => fountain(x, base, f, 480, "stone"), { kind: "landmark" });
         sprite(`work-fountain-water-a`, 1, bx, by, bw, bh, [0.5, 0.5], () => fountain(x, base, f, 481, "water-a"), { kind: "water-a" });
         sprite(`work-fountain-water-b`, 1, bx, by, bw, bh, [0.5, 0.5], () => fountain(x, base, f, 482, "water-b"), { kind: "water-b" });
-        names.push("work-fountain", "work-fountain-water-a", "work-fountain-water-b");
+        // two koi that leap from the basin when the girl touches the water (hidden until then)
+        const fl = 26 * f;
+        for (const [name, u, dir, sd] of [["work-fish-a", 78, 1, 483], ["work-fish-b", 144, -1, 484]]) {
+          const [fx, fy] = [x + (u - 110) * f, base + (150 - 184) * f];
+          sprite(name, 1, fx - fl * 0.6, fy - fl * 0.3, fl * 1.2, fl * 0.6, [0.5, 0.5], () => koi(fx, fy, fl, sd, dir), { kind: name.replace("work-", "") });
+        }
+        names.push("work-fountain", "work-fountain-water-a", "work-fountain-water-b", "work-fish-a", "work-fish-b");
         hit = box(bx + 20 * f, by + 40 * f, bw - 40 * f, bh - 30 * f);
       } else if (m.kind === "doghouse") {
         const w = m.w * W, bx = x - 0.75 * w, by = base - 1.0 * w, bw = 1.95 * w, bh = 1.08 * w;
@@ -1249,7 +1257,7 @@ function paint(F) {
     // ---- the guide girl: one layer per pose, all the same size, anchored at her feet
     const gh = L.girlH * S, gx = W * 0.5, gy = S * 0.5;
     const gbx = gx - 0.45 * gh, gby = gy - 1.02 * gh, gbw = 0.9 * gh, gbh = 1.08 * gh;
-    for (const pose of ["idle", "walk-a", "walk-b", "reach", "kneel"]) {
+    for (const pose of ["idle", "walk-a", "walk-b", "reach", "offer", "pet-a", "pet-b", "photo"]) {
       sprite(`work-girl-${pose}`, 1, gbx, gby, gbw, gbh, [0.5, 1.02 / 1.08], () => girl(gx, gy, gh, pose, 510), { kind: "girl" });
     }
     anchors.work = { start: L.start, girl: { w: +(gbw / W).toFixed(4), h: +(gbh / S).toFixed(4), feet: [0.5, +(1.02 / 1.08).toFixed(4)] }, landmarks: lm };
@@ -1339,16 +1347,23 @@ function paint(F) {
     });
   }
 
-  /** The guide: a small girl in a rose dress, painted in one of five poses, feet at (x, y), height h, facing right. */
+  /**
+   * The guide: a small girl in a rose dress with long, loose, wavy hair and a
+   * rose bow, feet at (x, y), height h, facing right (the page mirrors her).
+   * Poses: idle, walk-a / walk-b, reach (to the fountain's water), offer (kneels
+   * holding out a treat), pet-a / pet-b (kneels, patting the puppy), and photo
+   * (turned to the viewer with a V sign, for a picture with the windmill).
+   */
   function girl(x, y, h, pose, seed) {
+    if (pose === "photo") return girlFront(x, y, h, seed);
     const r = rng(seed);
     const P = (u, v) => [x + u * h, y - v * h];
-    const skin = hex("#f1d3c0"), dress = hex("#d4837f"), hair = hex("#5b3a2e");
+    const skin = hex("#f1d3c0"), hair = hex("#5b3a2e"), bow = hex("#d9787e");
     ctx.save();
     ctx.filter = `blur(${4 * k}px)`;
     glaze(ctx, ...P(0.02, -0.005), 0.2 * h, 0.035 * h, SHADOW, 0.35);
     ctx.restore();
-    const kneel = pose === "kneel";
+    const kneel = pose === "offer" || pose === "pet-a" || pose === "pet-b";
     const hipV = kneel ? 0.25 : 0.38, shoulderV = kneel ? 0.58 : 0.72, headV = kneel ? 0.7 : 0.85, hemV = kneel ? 0.13 : 0.31;
     withThickness(0.95, () => {
       const limb = (a, b, wf, col) => {
@@ -1356,6 +1371,26 @@ function paint(F) {
         stroke(ctx, r, ax, ay, Math.atan2(by - ay, bx - ax), Math.hypot(bx - ax, by - ay), wf * h, col, 1, 1);
       };
       const shoe = (u, v) => dab(ctx, ...P(u + 0.02, v + 0.01), 0.045 * h, 0.022 * h, 0, hex("#4a3a33"), 1);
+      // long hair falling down her back, behind everything else: wavy, with lighter strands
+      const hairEnd = shoulderV - 0.36, sway = pose === "walk-a" ? -0.025 : pose === "walk-b" ? 0.025 : 0;
+      const mane = new Path2D();
+      mane.moveTo(...P(0.02, headV + 0.1));
+      mane.bezierCurveTo(...P(-0.13, headV + 0.13), ...P(-0.18, headV - 0.02), ...P(-0.16 + sway, shoulderV - 0.02));
+      // the back edge falls in soft waves
+      mane.bezierCurveTo(...P(-0.21 + sway, shoulderV - 0.1), ...P(-0.14 + sway, shoulderV - 0.16), ...P(-0.19 + sway, shoulderV - 0.24));
+      mane.bezierCurveTo(...P(-0.23 + sway, hairEnd + 0.07), ...P(-0.15 + sway, hairEnd + 0.03), ...P(-0.19 + sway * 1.6, hairEnd));
+      mane.quadraticCurveTo(...P(-0.13 + sway, hairEnd - 0.035), ...P(-0.1 + sway, hairEnd + 0.015));
+      mane.quadraticCurveTo(...P(-0.07 + sway, hairEnd - 0.02), ...P(-0.04 + sway, hairEnd + 0.04));
+      mane.bezierCurveTo(...P(-0.08, shoulderV - 0.16), ...P(-0.02, shoulderV - 0.04), ...P(-0.02, headV - 0.04));
+      mane.closePath();
+      ctx.fillStyle = rgba(hair);
+      ctx.fill(mane);
+      clipBoth(ctx, mane);
+      for (let i = 0; i < 34; i++) {
+        const u = -0.2 + r() * 0.19, v = hairEnd + r() * (headV - hairEnd);
+        stroke(ctx, r, ...P(u, v + 0.08), Math.PI / 2 + Math.sin(v * 30) * 0.25 + (r() - 0.5) * 0.2, 0.16 * h, 0.03 * h, mix(hair, r() < 0.45 ? hex("#93613f") : SHADOW, r() * 0.4), 0.9, 1);
+      }
+      unclipBoth(ctx);
       // legs and shoes
       if (kneel) {
         limb([0.02, hipV], [0.13, 0.08], 0.06, skin); limb([0.13, 0.08], [0.14, 0.01], 0.055, skin); shoe(0.14, 0);
@@ -1366,42 +1401,169 @@ function paint(F) {
         limb([0.03, hipV], [0.03 + sw, 0.02], 0.058, skin); shoe(0.03 + sw, 0);
       }
       // back arm, behind the dress
-      const back = pose === "walk-a" ? [0.1, hipV + 0.04] : pose === "walk-b" ? [-0.1, hipV + 0.04] : [-0.07, hipV + 0.05];
-      limb([-0.05, shoulderV - 0.03], back, 0.045, mix(skin, SHADOW, 0.12));
-      // dress: a little trapeze with a scalloped hem
-      const d = new Path2D();
-      d.moveTo(...P(-0.085, shoulderV)); d.lineTo(...P(0.085, shoulderV));
-      d.quadraticCurveTo(...P(0.14, (shoulderV + hemV) / 2), ...P(0.18, hemV));
-      for (let i = 0; i <= 6; i++) { const u = 0.18 - (i / 6) * 0.36; d.lineTo(...P(u, hemV - (i % 2 ? 0.015 : 0))); }
-      d.quadraticCurveTo(...P(-0.14, (shoulderV + hemV) / 2), ...P(-0.085, shoulderV));
-      d.closePath();
-      ctx.fillStyle = rgba(dress);
-      ctx.fill(d);
-      clipBoth(ctx, d);
-      for (let i = 0; i < 28; i++) {
-        const u = -0.2 + r() * 0.4, v = hemV + r() * (shoulderV - hemV);
-        knife(ctx, r, ...P(u, v + 0.04), Math.PI / 2 + (r() - 0.5) * 0.2, 0.12 * h, 0.05 * h, mix(hex("#b8615e"), hex("#f2b5ac"), clamp(0.75 - u * 2)));
-      }
-      unclipBoth(ctx);
-      dab(ctx, ...P(0.005, shoulderV - 0.015), 0.07 * h, 0.022 * h, 0, hex("#fbf3e4"), 1); // collar
-      // front arm: down, swinging, reaching up, or reaching low (kneeling)
-      const front = pose === "reach" ? [[0.06, shoulderV - 0.03], [0.27, shoulderV + 0.06]]
-        : kneel ? [[0.06, shoulderV - 0.03], [0.25, 0.24]]
+      const back = pose === "walk-a" ? [0.1, hipV + 0.04] : pose === "walk-b" ? [-0.1, hipV + 0.04] : kneel ? [0.04, hipV + 0.02] : [-0.07, hipV + 0.05];
+      limb([-0.05, shoulderV - 0.03], back, 0.055, mix(skin, SHADOW, 0.12));
+      dress(P, shoulderV, hemV, r);
+      // front arm: down, swinging, reaching to the water, holding out a treat, or patting
+      const front = pose === "reach" ? [[0.06, shoulderV - 0.03], [0.33, 0.45]]
+        : pose === "offer" ? [[0.06, shoulderV - 0.03], [0.3, 0.5]]
+        : pose === "pet-a" ? [[0.06, shoulderV - 0.03], [0.28, 0.66]]
+        : pose === "pet-b" ? [[0.06, shoulderV - 0.03], [0.3, 0.6]]
         : pose === "walk-a" ? [[0.06, shoulderV - 0.03], [-0.04, hipV + 0.03]]
         : pose === "walk-b" ? [[0.06, shoulderV - 0.03], [0.16, hipV + 0.04]]
         : [[0.07, shoulderV - 0.03], [0.09, hipV + 0.02]];
-      limb(front[0], front[1], 0.045, skin);
-      dab(ctx, ...P(front[1][0] + 0.005, front[1][1]), 0.025 * h, 0.025 * h, 0, skin, 1);
-      // head, hair with a bun and a pink bow, face
+      limb(front[0], front[1], 0.055, skin);
+      const [hu, hv] = front[1];
+      if (pose === "pet-a" || pose === "pet-b") dab(ctx, ...P(hu + 0.01, hv), 0.035 * h, 0.02 * h, -0.2, skin, 1); // an open, flat hand
+      else dab(ctx, ...P(hu + 0.005, hv), 0.025 * h, 0.025 * h, 0, skin, 1);
+      if (pose === "offer") {
+        // a little bone-shaped treat between her fingers
+        const [bx, by] = P(hu + 0.05, hv + 0.01);
+        stroke(ctx, r, bx - 0.035 * h, by, 0, 0.07 * h, 0.018 * h, hex("#f3e4c8"), 1, 0);
+        for (const [dx, dy] of [[-0.04, -0.012], [-0.04, 0.012], [0.04, -0.012], [0.04, 0.012]]) dab(ctx, bx + dx * h, by + dy * h, 0.013 * h, 0.013 * h, 0, hex("#f3e4c8"), 1);
+      }
+      // head, then the bangs and the hair over her ear, then the bow
       dab(ctx, ...P(0.015, headV), 0.1 * h, 0.105 * h, 0, skin, 1);
-      dab(ctx, ...P(-0.02, headV + 0.035), 0.105 * h, 0.085 * h, 0, hair, 1);
-      dab(ctx, ...P(-0.09, headV - 0.01), 0.04 * h, 0.075 * h, 0.3, hair, 1);
-      dab(ctx, ...P(-0.08, headV + 0.09), 0.045 * h, 0.04 * h, 0, hair, 1);
-      for (let i = 0; i < 8; i++) stroke(ctx, r, ...P(-0.08 + r() * 0.16, headV + 0.08), 0.6 + r() * 0.4, 0.06 * h, 0.02 * h, mix(hair, WARM, r() * 0.2), 0.9, 0);
-      dab(ctx, ...P(-0.05, headV + 0.11), 0.03 * h, 0.018 * h, 0.4, hex("#e59a9f"), 1);
-      dab(ctx, ...P(-0.01, headV + 0.11), 0.03 * h, 0.018 * h, -0.4, hex("#e59a9f"), 1);
-      dab(ctx, ...P(0.07, headV), 0.011 * h, 0.014 * h, 0, hex("#2b2420"), 1);
-      dab(ctx, ...P(0.065, headV - 0.035), 0.022 * h, 0.014 * h, 0, hex("#eba3a0"), 0.6);
+      dab(ctx, ...P(-0.025, headV + 0.04), 0.1 * h, 0.08 * h, 0, hair, 1);
+      dab(ctx, ...P(-0.06, headV - 0.02), 0.06 * h, 0.09 * h, 0.15, hair, 1);
+      const bang = new Path2D();
+      bang.moveTo(...P(-0.03, headV + 0.11));
+      bang.quadraticCurveTo(...P(0.09, headV + 0.12), ...P(0.115, headV + 0.02));
+      bang.quadraticCurveTo(...P(0.08, headV + 0.06), ...P(0.05, headV + 0.035));
+      bang.quadraticCurveTo(...P(0.02, headV + 0.07), ...P(-0.03, headV + 0.06));
+      bang.closePath();
+      ctx.fillStyle = rgba(hair);
+      ctx.fill(bang);
+      clipBoth(ctx, bang);
+      for (let i = 0; i < 9; i++) stroke(ctx, r, ...P(-0.04 + r() * 0.1, headV + 0.105), 0.6 + r() * 0.5, 0.07 * h, 0.018 * h, mix(hair, r() < 0.5 ? hex("#8a5a40") : SHADOW, r() * 0.3), 0.9, 0);
+      unclipBoth(ctx);
+      for (let i = 0; i < 4; i++) stroke(ctx, r, ...P(-0.09 + i * 0.03, headV + 0.09 - i * 0.004), 0.25, 0.05 * h, 0.012 * h, hex("#a87452"), 0.7, 0); // sheen
+      bowAt(P(-0.075, headV + 0.085), 0.068 * h, -0.35, bow, r);
+      // face: eye, lash, rosy cheek, a small smile
+      dab(ctx, ...P(0.07, headV), 0.011 * h, 0.015 * h, 0, hex("#2b2420"), 1);
+      stroke(ctx, r, ...P(0.06, headV + 0.02), -0.3, 0.025 * h, 0.005 * h, hex("#2b2420"), 0.9, 0);
+      dab(ctx, ...P(0.065, headV - 0.035), 0.022 * h, 0.014 * h, 0, hex("#eba3a0"), 0.65);
+      stroke(ctx, r, ...P(0.085, headV - 0.055), 0.4, 0.02 * h, 0.006 * h, hex("#b8615e"), 0.8, 0);
+    });
+  }
+
+  /** The rose dress: a little trapeze with a scalloped hem and a cream collar. */
+  function dress(P, shoulderV, hemV, r) {
+    const d = new Path2D();
+    d.moveTo(...P(-0.085, shoulderV)); d.lineTo(...P(0.085, shoulderV));
+    d.quadraticCurveTo(...P(0.14, (shoulderV + hemV) / 2), ...P(0.18, hemV));
+    for (let i = 0; i <= 6; i++) { const u = 0.18 - (i / 6) * 0.36; d.lineTo(...P(u, hemV - (i % 2 ? 0.015 : 0))); }
+    d.quadraticCurveTo(...P(-0.14, (shoulderV + hemV) / 2), ...P(-0.085, shoulderV));
+    d.closePath();
+    ctx.fillStyle = rgba(hex("#d4837f"));
+    ctx.fill(d);
+    clipBoth(ctx, d);
+    const [ox] = P(0, 0), h = P(1, 0)[0] - ox;
+    for (let i = 0; i < 28; i++) {
+      const u = -0.2 + r() * 0.4, v = hemV + r() * (shoulderV - hemV);
+      knife(ctx, r, ...P(u, v + 0.04), Math.PI / 2 + (r() - 0.5) * 0.2, 0.12 * h, 0.05 * h, mix(hex("#b8615e"), hex("#f2b5ac"), clamp(0.75 - u * 2)));
+    }
+    unclipBoth(ctx);
+    dab(ctx, ...P(0.005, shoulderV - 0.015), 0.07 * h, 0.022 * h, 0, hex("#fbf3e4"), 1);
+  }
+
+  /** A satin bow: two loops, two tails and a knot, centred at c, size s, turned by rot. */
+  function bowAt([cx, cy], s, rot, col, r) {
+    const pt = (u, v) => [cx + (u * Math.cos(rot) - v * Math.sin(rot)) * s, cy + (u * Math.sin(rot) + v * Math.cos(rot)) * s];
+    for (const side of [-1, 1]) {
+      const loop = new Path2D();
+      loop.moveTo(...pt(0, 0));
+      loop.bezierCurveTo(...pt(side * 0.9, -1.0), ...pt(side * 1.5, -0.2), ...pt(side * 1.3, 0.45));
+      loop.bezierCurveTo(...pt(side * 1.0, 0.75), ...pt(side * 0.4, 0.35), ...pt(0, 0));
+      ctx.fillStyle = rgba(col);
+      ctx.fill(loop);
+      stroke(ctx, r, ...pt(side * 0.35, -0.2), (side < 0 ? Math.PI : 0) + rot + 0.2 * side, s * 0.8, s * 0.35, mix(col, hex("#f6c2c0"), 0.55), 0.85, 0);
+      stroke(ctx, r, ...pt(side * 0.15, 0.2), Math.PI / 2 + rot - side * 0.45, s * 1.05, s * 0.32, mix(col, SHADOW, 0.15), 1, 0);
+    }
+    dab(ctx, ...pt(0, 0.02), s * 0.3, s * 0.3, 0, mix(col, SHADOW, 0.12), 1);
+  }
+
+  /** The photo pose: turned to the viewer, hair over both shoulders, one hand up in a V. */
+  function girlFront(x, y, h, seed) {
+    const r = rng(seed + 7);
+    const P = (u, v) => [x + u * h, y - v * h];
+    const skin = hex("#f1d3c0"), hair = hex("#5b3a2e");
+    ctx.save();
+    ctx.filter = `blur(${4 * k}px)`;
+    glaze(ctx, ...P(0, -0.005), 0.18 * h, 0.035 * h, SHADOW, 0.35);
+    ctx.restore();
+    const hipV = 0.38, shoulderV = 0.72, headV = 0.86, hemV = 0.31;
+    withThickness(0.95, () => {
+      const limb = (a, b, wf, col) => {
+        const [ax, ay] = P(...a), [bx, by] = P(...b);
+        stroke(ctx, r, ax, ay, Math.atan2(by - ay, bx - ax), Math.hypot(bx - ax, by - ay), wf * h, col, 1, 1);
+      };
+      // long hair behind her, framing both sides down past her shoulders
+      const mane = new Path2D();
+      mane.moveTo(...P(-0.11, headV + 0.06));
+      mane.bezierCurveTo(...P(-0.17, headV - 0.05), ...P(-0.2, shoulderV - 0.12), ...P(-0.17, shoulderV - 0.36));
+      mane.quadraticCurveTo(...P(0, shoulderV - 0.26), ...P(0.17, shoulderV - 0.36));
+      mane.bezierCurveTo(...P(0.2, shoulderV - 0.12), ...P(0.17, headV - 0.05), ...P(0.11, headV + 0.06));
+      mane.closePath();
+      ctx.fillStyle = rgba(hair);
+      ctx.fill(mane);
+      clipBoth(ctx, mane);
+      for (let i = 0; i < 26; i++) stroke(ctx, r, ...P(-0.16 + r() * 0.32, shoulderV - 0.28 + r() * 0.3), -Math.PI / 2 + (r() - 0.5) * 0.3, 0.16 * h, 0.03 * h, mix(hair, r() < 0.4 ? hex("#8a5a40") : SHADOW, r() * 0.35), 0.9, 1);
+      unclipBoth(ctx);
+      for (const side of [-1, 1]) { limb([side * 0.035, hipV], [side * 0.045, 0.02], 0.058, mix(skin, SHADOW, side < 0 ? 0.1 : 0)); dab(ctx, ...P(side * 0.05, 0.01), 0.04 * h, 0.022 * h, 0, hex("#4a3a33"), 1); }
+      // left arm relaxed, right arm raised beside her face with a V sign
+      limb([-0.08, shoulderV - 0.03], [-0.12, hipV + 0.02], 0.055, mix(skin, SHADOW, 0.08));
+      dress(P, shoulderV, hemV, r);
+      limb([0.08, shoulderV - 0.03], [0.18, shoulderV + 0.05], 0.055, skin);
+      limb([0.18, shoulderV + 0.05], [0.15, headV + 0.02], 0.05, skin);
+      dab(ctx, ...P(0.15, headV + 0.03), 0.024 * h, 0.022 * h, 0, skin, 1);
+      stroke(ctx, r, ...P(0.14, headV + 0.045), -Math.PI / 2 - 0.25, 0.06 * h, 0.014 * h, skin, 1, 0);
+      stroke(ctx, r, ...P(0.16, headV + 0.045), -Math.PI / 2 + 0.2, 0.06 * h, 0.014 * h, skin, 1, 0);
+      dab(ctx, ...P(-0.12, hipV + 0.02), 0.024 * h, 0.024 * h, 0, skin, 1);
+      // face, hair on top with a centre-swept fringe, the bow on one side
+      dab(ctx, ...P(0, headV), 0.1 * h, 0.105 * h, 0, skin, 1);
+      const top = new Path2D();
+      top.moveTo(...P(-0.11, headV - 0.01));
+      top.bezierCurveTo(...P(-0.12, headV + 0.13), ...P(0.12, headV + 0.13), ...P(0.11, headV - 0.01));
+      top.quadraticCurveTo(...P(0.07, headV + 0.06), ...P(0.01, headV + 0.045));
+      top.quadraticCurveTo(...P(-0.06, headV + 0.07), ...P(-0.11, headV - 0.01));
+      top.closePath();
+      ctx.fillStyle = rgba(hair);
+      ctx.fill(top);
+      for (let i = 0; i < 10; i++) stroke(ctx, r, ...P(-0.09 + r() * 0.18, headV + 0.1), Math.PI / 2 + (r() - 0.5) * 0.9, 0.06 * h, 0.016 * h, mix(hair, r() < 0.5 ? hex("#8a5a40") : SHADOW, r() * 0.3), 0.9, 0);
+      bowAt(P(-0.08, headV + 0.1), 0.068 * h, -0.5, hex("#d9787e"), r);
+      for (const side of [-1, 1]) {
+        dab(ctx, ...P(side * 0.04, headV - 0.005), 0.011 * h, 0.016 * h, 0, hex("#2b2420"), 1);
+        dab(ctx, ...P(side * 0.06, headV - 0.04), 0.022 * h, 0.013 * h, 0, hex("#eba3a0"), 0.65);
+      }
+      // a happy, open smile
+      dab(ctx, ...P(0, headV - 0.055), 0.022 * h, 0.012 * h, 0, hex("#b8615e"), 0.9);
+    });
+  }
+
+  /** A little koi, side view, facing right (dir 1) or left (dir -1), centred at (x, y), length len. */
+  function koi(x, y, len, seed, dir = 1) {
+    const r = rng(seed);
+    withThickness(0.8, () => {
+      const body = new Path2D();
+      body.moveTo(x + dir * len * 0.42, y);
+      body.bezierCurveTo(x + dir * len * 0.3, y - len * 0.2, x - dir * len * 0.2, y - len * 0.18, x - dir * len * 0.3, y);
+      body.bezierCurveTo(x - dir * len * 0.2, y + len * 0.16, x + dir * len * 0.3, y + len * 0.18, x + dir * len * 0.42, y);
+      ctx.fillStyle = rgba(hex("#f3ead9"));
+      ctx.fill(body);
+      clipBoth(ctx, body);
+      for (const [u, v, rx] of [[0.18, -0.04, 0.16], [-0.08, 0.02, 0.13]]) dab(ctx, x + dir * u * len, y + v * len, rx * len, rx * len * 0.7, 0.2 * dir, hex("#e9773f"), 1);
+      stroke(ctx, r, x - dir * 0.25 * len, y - 0.02 * len, dir < 0 ? Math.PI : 0, 0.6 * len, 0.05 * len, hex("#fff8ec"), 0.6, 0);
+      unclipBoth(ctx);
+      const tail = new Path2D();
+      tail.moveTo(x - dir * len * 0.28, y);
+      tail.quadraticCurveTo(x - dir * len * 0.48, y - len * 0.22, x - dir * len * 0.56, y - len * 0.16);
+      tail.quadraticCurveTo(x - dir * len * 0.46, y, x - dir * len * 0.56, y + len * 0.16);
+      tail.quadraticCurveTo(x - dir * len * 0.48, y + len * 0.22, x - dir * len * 0.28, y);
+      ctx.fillStyle = rgba(hex("#ef8a52"), 0.9);
+      ctx.fill(tail);
+      stroke(ctx, r, x + dir * len * 0.05, y + len * 0.1, dir < 0 ? Math.PI - 0.9 : 0.9, len * 0.14, len * 0.07, hex("#f2a06c"), 0.85, 0);
+      dab(ctx, x + dir * len * 0.32, y - len * 0.03, len * 0.025, len * 0.025, 0, hex("#2b2420"), 1);
     });
   }
 
@@ -2270,7 +2432,7 @@ const WORK_DESKTOP = {
     // paths from the girl's spot to each landmark: [from, control, to, width at start, width at end]
     trails: [
       [[0.6, 0.9], [0.42, 0.88], [0.3, 0.8], 0.05, 0.032],
-      [[0.6, 0.9], [0.55, 0.78], [0.55, 0.69], 0.05, 0.03],
+      [[0.6, 0.9], [0.55, 0.78], [0.5, 0.67], 0.05, 0.03],
       [[0.6, 0.9], [0.72, 0.84], [0.72, 0.7], 0.05, 0.032],
     ],
     trees: [[0.05, 0.64, 0.075, "autumn"], [0.965, 0.7, 0.07, "turning"], [0.34, 0.48, 0.02, "green"], [0.64, 0.475, 0.016, "green"]],
@@ -2282,8 +2444,8 @@ const WORK_DESKTOP = {
     start: [0.6, 0.9],
     girlH: 0.16,
     landmarks: [
-      { slug: "eliminate-bacteria-pro", kind: "fountain", x: 0.2, base: 0.78, w: 0.2, stand: [0.32, 0.8], face: -1, label: [0.2, 0.82] },
-      { slug: "dog-nutrition-tracker", kind: "doghouse", x: 0.43, base: 0.62, w: 0.15, puppy: [0.54, 0.655, 0.06], stand: [0.585, 0.7], face: -1, label: [0.46, 0.66] },
+      { slug: "eliminate-bacteria-pro", kind: "fountain", x: 0.2, base: 0.78, w: 0.2, stand: [0.295, 0.8], face: -1, label: [0.2, 0.82] },
+      { slug: "dog-nutrition-tracker", kind: "doghouse", x: 0.43, base: 0.62, w: 0.15, puppy: [0.54, 0.655, 0.06], stand: [0.49, 0.662], face: 1, label: [0.46, 0.66] },
       { slug: "little-moments", kind: "windmill", x: 0.8, base: 0.65, h: 0.26, stand: [0.71, 0.705], face: 1, label: [0.8, 0.68] },
     ],
   },
@@ -2299,7 +2461,7 @@ const WORK_MOBILE = {
     hills: [[0.2, 0.27, 0.6, 0.03, "sage"], [0.85, 0.29, 0.5, 0.03, "moss"], [0.5, 0.34, 1.2, 0.02, "sage"]],
     trails: [
       [[0.4, 0.94], [0.44, 0.8], [0.5, 0.69], 0.12, 0.07],
-      [[0.4, 0.94], [0.3, 0.92], [0.24, 0.88], 0.12, 0.08],
+      [[0.4, 0.94], [0.3, 0.9], [0.26, 0.83], 0.12, 0.08],
       [[0.4, 0.94], [0.6, 0.62], [0.55, 0.5], 0.12, 0.06],
     ],
     trees: [[0.08, 0.4, 0.11, "autumn"]],
@@ -2310,12 +2472,131 @@ const WORK_MOBILE = {
     start: [0.4, 0.94],
     girlH: 0.1,
     landmarks: [
-      { slug: "eliminate-bacteria-pro", kind: "fountain", x: 0.28, base: 0.64, w: 0.44, stand: [0.5, 0.69], face: -1, label: [0.28, 0.66] },
-      { slug: "dog-nutrition-tracker", kind: "doghouse", x: 0.62, base: 0.8, w: 0.3, puppy: [0.34, 0.815, 0.13], stand: [0.24, 0.875], face: 1, label: [0.62, 0.82] },
+      { slug: "eliminate-bacteria-pro", kind: "fountain", x: 0.28, base: 0.64, w: 0.44, stand: [0.47, 0.65], face: -1, label: [0.28, 0.66] },
+      { slug: "dog-nutrition-tracker", kind: "doghouse", x: 0.62, base: 0.8, w: 0.3, puppy: [0.34, 0.815, 0.13], stand: [0.26, 0.82], face: 1, label: [0.62, 0.82] },
       { slug: "little-moments", kind: "windmill", x: 0.7, base: 0.44, h: 0.44, stand: [0.55, 0.5], face: 1, label: [0.7, 0.465] },
     ],
   },
 };
+
+/**
+ * The case-study backdrop: a quiet oil-on-canvas page from the same garden.
+ * Cream ground and canvas weave, broad low-contrast brushwork, sage and blush
+ * washes pooling at the edges, and a few painted stems in two corners — all
+ * kept light and away from the middle, where the project content sits.
+ */
+function paintJournal(W, H, portrait) {
+  const cv = createCanvas(W, H);
+  const ctx = cv.getContext("2d");
+  const hcv = createCanvas(W, H);
+  const hx = hcv.getContext("2d");
+  primeCanvas(hx, W, H);
+  PAINT.hx = hx;
+  const r = rng(1201);
+  const k = W / 1600;
+  // ground: warm cream, a touch lighter in the middle
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, "#f6f0e2");
+  g.addColorStop(1, "#f3ecdc");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+  // edge distance, 0 in the reading column, 1 at the outer edge
+  const edge = (x, y) => portrait
+    ? clamp(Math.max(Math.abs(y / H - 0.5) * 2 - 0.55, Math.abs(x / W - 0.5) * 2 - 0.8) / 0.45)
+    : clamp((Math.abs(x / W - 0.5) * 2 - 0.42) / 0.58);
+  // broad, thin brushwork everywhere: the paint barely changes colour, so it reads as texture
+  withThickness(0.18, () => {
+    for (let i = 0; i < (W * H) / 2600; i++) {
+      const x = r() * W, y = r() * H, e = edge(x, y);
+      const col = mix(hex("#f7f1e4"), r() < 0.5 ? hex("#ece2cd") : hex("#fbf7ee"), 0.35 + r() * 0.4);
+      stroke(ctx, r, x, y, (r() - 0.5) * 0.5 + (r() < 0.5 ? 0 : Math.PI), (60 + r() * 120) * k, (14 + r() * 22) * k, col, 0.22 + e * 0.2, 3);
+    }
+  });
+  // sage and blush washes pooling at the edges
+  ctx.save();
+  ctx.filter = `blur(${60 * k}px)`;
+  const washes = portrait
+    ? [[0.0, 0.0, "#c9d4ae"], [1.0, 0.08, "#efcfc4"], [0.0, 0.95, "#efd2c6"], [1.0, 1.0, "#c3cfa6"], [0.5, -0.04, "#dfe3c8"], [0.5, 1.04, "#d8dfbf"]]
+    : [[0.0, 0.12, "#c9d4ae"], [0.02, 0.7, "#e9cfc4"], [0.0, 1.0, "#c3cfa6"], [1.0, 0.0, "#efcfc4"], [0.99, 0.45, "#cdd6b2"], [1.0, 0.95, "#e8d3c4"]];
+  for (const [u, v, c] of washes) for (let j = 0; j < 5; j++) glaze(ctx, (u + (r() - 0.5) * 0.08) * W, (v + (r() - 0.5) * 0.18) * H, (0.12 + r() * 0.1) * W, (0.14 + r() * 0.12) * H, hex(c), 0.17);
+  ctx.restore();
+  // stronger brushwork inside the washes, following them
+  withThickness(0.35, () => {
+    // strokes follow a gentle flow field, so they read as one passage of paint, not loose dashes
+    for (let i = 0; i < (W * H) / 1400; i++) {
+      const x = r() * W, y = r() * H, e = edge(x, y);
+      if (e < 0.2 || r() > e) continue;
+      const flow = -Math.PI / 2 + fbm(x / (500 * k), y / (500 * k), 1207, 3) * 1.6;
+      const tone = fbm(x / (700 * k), y / (700 * k), 1208, 2) > 0 ? mix(hex("#c4d0a6"), hex("#e6e8d2"), r()) : mix(hex("#ecd0c5"), hex("#f6e6dd"), r());
+      stroke(ctx, r, x, y, flow, (50 + r() * 90) * k, (16 + r() * 18) * k, tone, 0.1 + e * 0.16, 3);
+    }
+  });
+  // a few painted stems: grasses, a cosmos and small blossoms, in two corners
+  const stems = (x0, y0, dir, n, seed) => {
+    const rr = rng(seed);
+    withThickness(0.6, () => {
+      for (let i = 0; i < n; i++) {
+        const x = x0 + dir * rr() * 140 * k, h = (120 + rr() * 260) * k, lean = dir * (0.08 + rr() * 0.25);
+        const ang = -Math.PI / 2 + lean;
+        stroke(ctx, rr, x, y0, ang, h, (3 + rr() * 3) * k, mix(hex("#8ea476"), hex("#b9c79a"), rr()), 0.55, 1);
+        const tx = x + Math.cos(ang) * h, ty = y0 + Math.sin(ang) * h;
+        if (rr() < 0.35) {
+          for (let p = 0; p < 7; p++) { const a = (p / 7) * Math.PI * 2; dab(ctx, tx + Math.cos(a) * 9 * k, ty + Math.sin(a) * 9 * k, 8 * k, 4.5 * k, a, mix(hex("#eab3ad"), hex("#f6d9d2"), rr()), 0.75); }
+          dab(ctx, tx, ty, 4 * k, 4 * k, 0, hex("#e3bf73"), 0.85);
+        } else if (rr() < 0.5) {
+          for (let p = 0; p < 4; p++) dab(ctx, tx + (rr() - 0.5) * 12 * k, ty + p * 9 * k, 4 * k, 3 * k, 0, mix(hex("#d9e1c2"), hex("#fbf4ea"), rr()), 0.8);
+        }
+        for (let l = 0; l < 2; l++) {
+          const t = 0.3 + rr() * 0.4, lx = x + Math.cos(ang) * h * t, ly = y0 + Math.sin(ang) * h * t, side = rr() < 0.5 ? -1 : 1;
+          stroke(ctx, rr, lx, ly, ang + side * (0.7 + rr() * 0.4), (26 + rr() * 26) * k, (8 + rr() * 6) * k, mix(hex("#9fb385"), hex("#c6d1a8"), rr()), 0.5, 1);
+        }
+      }
+    });
+  };
+  if (portrait) {
+    stems(-20 * k, H + 10 * k, 1, 12, 1211);
+    stems(W + 20 * k, H * 0.14, -1, 7, 1212);
+  } else {
+    stems(-10 * k, H + 10 * k, 1, 16, 1211);
+    stems(W + 10 * k, H * 0.36, -1, 9, 1212);
+  }
+  lightRelief(cv, hcv, W, H, 0.7);
+  PAINT.hx = null;
+  return cv;
+}
+
+/** Alpha mask for a sheet of paper with a soft, uneven, hand-torn edge (stretched to any mat). */
+function paintMatMask(N = 640) {
+  const cv = createCanvas(N, N);
+  const ctx = cv.getContext("2d");
+  const inset = N * 0.035, amp = N * 0.012;
+  const p = new Path2D();
+  const steps = 240;
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps, side = Math.floor(t * 4), u = t * 4 - side;
+    const lo = inset, hi = N - inset;
+    let [x, y] = side === 0 ? [lerp(lo, hi, u), lo] : side === 1 ? [hi, lerp(lo, hi, u)] : side === 2 ? [lerp(hi, lo, u), hi] : [lo, lerp(hi, lo, u)];
+    const n = fbm(t * 24, 0.5, 1221, 3) * amp + fbm(t * 90, 2.5, 1222, 2) * amp * 0.35;
+    if (side === 0) y += n; else if (side === 1) x += n; else if (side === 2) y += n; else x += n;
+    if (i === 0) p.moveTo(x, y); else p.lineTo(x, y);
+  }
+  p.closePath();
+  ctx.filter = `blur(${N * 0.004}px)`;
+  ctx.fillStyle = "#000";
+  ctx.fill(p);
+  return cv;
+}
+
+if (process.argv.includes("--journal")) {
+  const dir = path.resolve("public/assets/garden/journal");
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, "mat-mask.png"), paintMatMask().toBuffer("image/png"));
+  for (const [name, W, H, portrait] of [["desktop", 2000, 1250, false], ["mobile", 900, 1600, true]]) {
+    fs.writeFileSync(path.join(dir, `journal-${name}.webp`), paintJournal(W, H, portrait).toBuffer("image/webp", 84));
+    console.log(`journal-${name}`);
+  }
+  process.exit(0);
+}
 
 if (process.argv.includes("--work")) {
   const WORK_ANCHORS = path.resolve("src/data/work-anchors.json");

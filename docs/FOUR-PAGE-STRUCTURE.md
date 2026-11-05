@@ -37,8 +37,12 @@ Removed (all recoverable from the tag): the homepage sections `GardenGate`, `Gar
   projects: Eliminate Bacteria Pro at the fountain and Dog Nutrition Tracker at the dog house (both labelled
   Academic), and Little Moments at the windmill (Personal). An intro in the sky says "Click a landmark and I'll walk
   you there." Landmarks glow in turn, and lift with a bobbing cue on hover or focus. On click, a small painted girl
-  walks over, then kneels to the puppy (it wiggles, a heart floats up), touches the fountain (water and bubbles),
-  or touches the windmill (the sails spin). A paper wipe then grows from that landmark into the project page.
+  walks over and shares a short moment with it. At the dog house she kneels face to face with the puppy, holds
+  out a little bone treat and pats it while it hops toward her, wags and sends up hearts. At the fountain she
+  touches the water: rings spread and two koi leap across the basin. At the windmill she turns to the viewer with
+  a V sign; a viewfinder frames her with the windmill, a flash, and the shot settles into a polaroid captioned
+  "a little moment" while the sails spin. A paper wipe then grows from that landmark into the project page.
+  The guide has long, loose, wavy hair and a rose bow (eight painted poses).
   Landmarks are real links: Enter works, and with reduced motion they open at once. Next Project cycles through the
   three. Nomi & Pudding and the Dyson brochure keep their case-study pages but are no longer linked from Work.
   Code: `src/components/work/WorkGarden.tsx`; art: `node scripts/paint-landing.mjs --work`.
@@ -48,3 +52,8 @@ Removed (all recoverable from the tag): the homepage sections `GardenGate`, `Gar
 ## Copy to edit
 
 The Landing statements live in `src/data/site.ts` → `landingScenes`. Edit them there.
+- **Case studies (Dog Nutrition Tracker, Eliminate Bacteria Pro).** Each is a page from the garden's field
+  journal: a fixed oil-on-canvas backdrop (cream ground, canvas weave, sage and blush washes and painted stems at
+  the edges; `node scripts/paint-landing.mjs --journal`), contents in the margin, sage vines under headings and
+  leaf bullets. Project images with transparent backgrounds sit straight on the page; the others rest on a
+  warm-paper mat with a soft torn edge whose tint (cream, sage, blush) varies. The images themselves are untouched.
