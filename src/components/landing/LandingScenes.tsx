@@ -6,6 +6,8 @@ import CurvedNotes from "./CurvedNotes";
 import LivingLayer, { type Sprite } from "./LivingLayer";
 import Reveal from "./Reveal";
 import SceneSettle from "./SceneSettle";
+import PaintedTitle from "./PaintedTitle";
+import ButterflyCursor from "./ButterflyCursor";
 
 // The Landing is one tall garden painting in three scenes, stacked edge to edge
 // in normal document flow: scrolling simply moves down the painting. Each scene
@@ -45,7 +47,6 @@ function SceneArt({ scene }: { scene: 1 | 2 | 3 }) {
   );
 }
 
-const glow = "[text-shadow:0_1px_18px_rgb(251_247_238/0.9),0_0_2px_rgb(251_247_238/0.7)]";
 /** Handwriting laid on the grass: dark ink with a soft halo of light. */
 const note = "[text-shadow:0_0_14px_rgb(246_242_214/0.85),0_1px_2px_rgb(246_242_214/0.9)]";
 
@@ -63,16 +64,12 @@ export default function LandingScenes() {
   return (
     <div className="landing-scenes relative overflow-clip bg-[#9fb574]">
       <SceneSettle />
+      <ButterflyCursor />
       {/* ---- Scene 1 · A living garden: the title alone, centred in the first view ---- */}
       <section aria-labelledby="landing-title" className="relative">
         <SceneArt scene={1} />
         {layers(1)}
-        <h1
-          id="landing-title"
-          className={`pointer-events-none absolute inset-x-0 top-[min(50svh,50%)] -translate-y-1/2 px-6 text-center font-serif text-[clamp(3rem,7.6vw,8rem)] leading-[0.95] font-medium tracking-[-0.01em] text-[#33402f] portrait-art:text-[clamp(2.9rem,14vw,5rem)] ${glow}`}
-        >
-          {copy.title}
-        </h1>
+        <PaintedTitle id="landing-title" className="pointer-events-none absolute inset-x-0 top-[min(44svh,44%)] -translate-y-1/2 px-6 portrait-art:top-[min(40svh,40%)]" />
         {/* a quiet, wordless cue at the foot of the first view */}
         <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-[min(calc(100svh-4.5rem),92%)] flex justify-center text-[#33402f]/70">
           <svg viewBox="0 0 24 40" className="h-10 w-6 motion-safe:animate-[cue_2.6s_ease-in-out_infinite]">

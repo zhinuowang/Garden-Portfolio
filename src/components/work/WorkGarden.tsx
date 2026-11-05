@@ -10,7 +10,7 @@ import { getProject } from "@/data/projects";
 // small guide. Hover (or focus) a landmark and it lifts, its label grows and the
 // girl turns to look; click it and she walks over and shares a short moment with
 // it — kneels to offer the puppy a treat and pat it, touches the fountain's water
-// so two koi leap, or turns to pose for a photo with the windmill — then a soft
+// so two koi leap, or takes out her phone for a selfie with the windmill — then a soft
 // paper wipe grows from the landmark into the project page. Landmarks are
 // real links: Enter works, and with reduced motion they open straight away.
 // All artwork is decorative (scripts/paint-landing.mjs --work); project content
@@ -18,11 +18,13 @@ import { getProject } from "@/data/projects";
 
 type Sprite = { name: string; kind: string; x: number; y: number; w: number; h: number; pivot: number[] };
 type Landmark = { slug: string; kind: "fountain" | "doghouse" | "windmill"; hit: number[]; label: number[]; stand: number[]; face: number; layers: string[] };
-type Composition = { start: number[]; girl: { w: number; h: number; feet: number[] }; landmarks: Landmark[]; sprites: Sprite[] };
+type Composition = { start: number[]; girl: { w: number; h: number; feet: number[]; phone: number[] }; landmarks: Landmark[]; sprites: Sprite[] };
 
-const POSES = ["idle", "walk-a", "walk-b", "reach", "offer", "pet-a", "pet-b", "photo"] as const;
+const POSES = ["idle", "walk-a", "walk-b", "reach", "offer", "pet-a", "pet-b", "turn", "phone", "phone-up", "selfie"] as const;
+/** The landmarks rise into the garden in this order when the page opens. */
+const ENTER_ORDER = { doghouse: 0, fountain: 1, windmill: 2 } as const;
 /** How long each moment plays before the page turns. */
-const MOMENT_MS = { doghouse: 2100, fountain: 1900, windmill: 2300 } as const;
+const MOMENT_MS = { doghouse: 2100, fountain: 1900, windmill: 2400 } as const;
 type Pose = (typeof POSES)[number];
 const src = (fmt: string, name: string) => `/assets/garden/work/sprites/${fmt}-${name.replace("work-", "")}.webp`;
 const pct = (v: number) => `${v * 100}%`;
@@ -84,9 +86,12 @@ function Stage({ fmt, c, ratio, className }: { fmt: "desktop" | "mobile"; c: Com
         setFace(m.face);
         setPose("reach");
       } else {
-        // turn to the viewer for a photo with the windmill
+        // the selfie: turn to the viewer, take the phone out, lift it, hold it up beside her
         setFace(1);
-        setPose("photo");
+        setPose("turn");
+        later(() => setPose("phone"), 260);
+        later(() => setPose("phone-up"), 560);
+        later(() => setPose("selfie"), 860);
       }
     }, ms);
     // then a soft paper wipe from the landmark into the project
@@ -122,7 +127,7 @@ function Stage({ fmt, c, ratio, className }: { fmt: "desktop" | "mobile"; c: Com
           const p = getProject(m.slug)!;
           const state = active === m.slug ? "active" : hover === m.slug ? "hover" : "idle";
           return (
-            <div key={m.slug} className="work-landmark" data-kind={m.kind} data-state={state} style={{ ["--i" as string]: i } as React.CSSProperties}>
+            <div key={m.slug} className="work-landmark" data-kind={m.kind} data-state={state} style={{ ["--i" as string]: i, ["--enter" as string]: ENTER_ORDER[m.kind] } as React.CSSProperties}>
               <span aria-hidden="true" className="work-glow absolute" style={{ left: pct(m.hit[0] + m.hit[2] / 2), top: pct(m.hit[1] + m.hit[3] * 0.92), width: pct(m.hit[2] * 0.9) }} />
               {m.layers.map((name) => {
                 const s = sprite(name);
@@ -208,23 +213,10 @@ function Stage({ fmt, c, ratio, className }: { fmt: "desktop" | "mobile"; c: Com
               // eslint-disable-next-line @next/next/no-img-element -- painted guide, one layer per pose
               <img key={p} src={src(fmt, `work-girl-${p}`)} alt="" draggable={false} data-for={p} className="absolute inset-0 h-full w-full select-none" />
             ))}
+            {/* the phone's flash: a small burst and a sparkle at the phone, never the whole screen */}
+            <span aria-hidden="true" className="work-flash absolute" style={{ left: pct(c.girl.phone[0]), top: pct(c.girl.phone[1]) }} />
           </div>
         </div>
-        {/* the windmill photo: a viewfinder frames her and the windmill, a flash, and the shot settles as a polaroid */}
-        {(() => {
-          const mill = c.landmarks.find((l) => l.kind === "windmill")!;
-          const x0 = Math.min(mill.hit[0], mill.stand[0] - girl.w * 0.6), x1 = Math.max(mill.hit[0] + mill.hit[2], mill.stand[0] + girl.w * 0.6);
-          const y0 = mill.hit[1] - 0.02, y1 = mill.stand[1] + 0.03;
-          return (
-            <span aria-hidden="true" className="work-photo pointer-events-none absolute" style={{ left: pct(x0 - 0.01), top: pct(y0), width: pct(x1 - x0 + 0.02), height: pct(y1 - y0) }}>
-              <span className="work-photo__finder" />
-              <span className="work-photo__flash" />
-              <span className="work-photo__print">
-                <span className="work-photo__caption">a little moment</span>
-              </span>
-            </span>
-          );
-        })()}
       </div>
       {wipe && <span aria-hidden="true" className="work-wipe" style={{ ["--wx" as string]: `${wipe.x}px`, ["--wy" as string]: `${wipe.y}px` } as React.CSSProperties} />}
     </div>

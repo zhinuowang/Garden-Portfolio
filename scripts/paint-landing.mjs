@@ -16,6 +16,8 @@
 //   node scripts/paint-landing.mjs --only=desktop    → one composition only
 //   node scripts/paint-landing.mjs --work            → the Work page garden, sprites and anchors
 //   node scripts/paint-landing.mjs --journal         → the case-study page backdrop
+//   node scripts/paint-landing.mjs --title           → the Landing title, one painted layer per letter
+//   node scripts/paint-landing.mjs --butterfly       → the Landing butterfly cursor (wings and body layers)
 
 import { createCanvas, Path2D } from "@napi-rs/canvas";
 import fs from "node:fs";
@@ -304,6 +306,8 @@ function paint(F) {
   const X = (f) => f * W;
   const Y = (f) => f * S;
   const L = F.layout;
+  const FRONT_POSES = ["turn", "phone", "phone-up", "selfie"]; // the girl turned to the viewer
+  const PHONE_TIPS = {}; // where her phone's top ends up, per pose (for the selfie flash)
 
   // ---- separate, animatable layers --------------------------------------
   // Dogs, grass tufts and the rocking chair are painted onto their own
@@ -1257,10 +1261,15 @@ function paint(F) {
     // ---- the guide girl: one layer per pose, all the same size, anchored at her feet
     const gh = L.girlH * S, gx = W * 0.5, gy = S * 0.5;
     const gbx = gx - 0.45 * gh, gby = gy - 1.02 * gh, gbw = 0.9 * gh, gbh = 1.08 * gh;
-    for (const pose of ["idle", "walk-a", "walk-b", "reach", "offer", "pet-a", "pet-b", "photo"]) {
+    for (const pose of ["idle", "walk-a", "walk-b", "reach", "offer", "pet-a", "pet-b", "turn", "phone", "phone-up", "selfie"]) {
       sprite(`work-girl-${pose}`, 1, gbx, gby, gbw, gbh, [0.5, 1.02 / 1.08], () => girl(gx, gy, gh, pose, 510), { kind: "girl" });
     }
-    anchors.work = { start: L.start, girl: { w: +(gbw / W).toFixed(4), h: +(gbh / S).toFixed(4), feet: [0.5, +(1.02 / 1.08).toFixed(4)] }, landmarks: lm };
+    const tip = PHONE_TIPS.selfie;
+    anchors.work = {
+      start: L.start,
+      girl: { w: +(gbw / W).toFixed(4), h: +(gbh / S).toFixed(4), feet: [0.5, +(1.02 / 1.08).toFixed(4)], phone: [+((tip[0] - gbx) / gbw).toFixed(4), +((tip[1] - gby) / gbh).toFixed(4)] },
+      landmarks: lm,
+    };
 
     lightRelief(cv, hcv, W, H, 1);
     ctx.save();
@@ -1355,7 +1364,7 @@ function paint(F) {
    * (turned to the viewer with a V sign, for a picture with the windmill).
    */
   function girl(x, y, h, pose, seed) {
-    if (pose === "photo") return girlFront(x, y, h, seed);
+    if (FRONT_POSES.includes(pose)) return girlFront(x, y, h, seed, pose);
     const r = rng(seed);
     const P = (u, v) => [x + u * h, y - v * h];
     const skin = hex("#f1d3c0"), hair = hex("#5b3a2e"), bow = hex("#d9787e");
@@ -1404,6 +1413,17 @@ function paint(F) {
       const back = pose === "walk-a" ? [0.1, hipV + 0.04] : pose === "walk-b" ? [-0.1, hipV + 0.04] : kneel ? [0.04, hipV + 0.02] : [-0.07, hipV + 0.05];
       limb([-0.05, shoulderV - 0.03], back, 0.055, mix(skin, SHADOW, 0.12));
       dress(P, shoulderV, hemV, r);
+      // a lock of loose hair falling over the front shoulder
+      {
+        const lock = new Path2D();
+        lock.moveTo(...P(-0.03, headV - 0.02));
+        lock.bezierCurveTo(...P(0.02, shoulderV + 0.02), ...P(0.05, shoulderV - 0.06), ...P(0.035, shoulderV - 0.15));
+        lock.quadraticCurveTo(...P(0.005, shoulderV - 0.1), ...P(-0.02, shoulderV - 0.02));
+        lock.closePath();
+        ctx.fillStyle = rgba(mix(hair, hex("#93613f"), 0.15));
+        ctx.fill(lock);
+        for (let i = 0; i < 4; i++) stroke(ctx, r, ...P(-0.015 + i * 0.012, shoulderV + 0.02), Math.PI / 2 + 0.15, 0.13 * h, 0.012 * h, mix(hair, hex("#a87452"), r() * 0.5), 0.8, 0);
+      }
       // front arm: down, swinging, reaching to the water, holding out a treat, or patting
       const front = pose === "reach" ? [[0.06, shoulderV - 0.03], [0.33, 0.45]]
         : pose === "offer" ? [[0.06, shoulderV - 0.03], [0.3, 0.5]]
@@ -1438,7 +1458,7 @@ function paint(F) {
       for (let i = 0; i < 9; i++) stroke(ctx, r, ...P(-0.04 + r() * 0.1, headV + 0.105), 0.6 + r() * 0.5, 0.07 * h, 0.018 * h, mix(hair, r() < 0.5 ? hex("#8a5a40") : SHADOW, r() * 0.3), 0.9, 0);
       unclipBoth(ctx);
       for (let i = 0; i < 4; i++) stroke(ctx, r, ...P(-0.09 + i * 0.03, headV + 0.09 - i * 0.004), 0.25, 0.05 * h, 0.012 * h, hex("#a87452"), 0.7, 0); // sheen
-      bowAt(P(-0.075, headV + 0.085), 0.068 * h, -0.35, bow, r);
+      bowAt(P(-0.075, headV + 0.085), 0.08 * h, -0.35, bow, r);
       // face: eye, lash, rosy cheek, a small smile
       dab(ctx, ...P(0.07, headV), 0.011 * h, 0.015 * h, 0, hex("#2b2420"), 1);
       stroke(ctx, r, ...P(0.06, headV + 0.02), -0.3, 0.025 * h, 0.005 * h, hex("#2b2420"), 0.9, 0);
@@ -1483,8 +1503,14 @@ function paint(F) {
     dab(ctx, ...pt(0, 0.02), s * 0.3, s * 0.3, 0, mix(col, SHADOW, 0.12), 1);
   }
 
-  /** The photo pose: turned to the viewer, hair over both shoulders, one hand up in a V. */
-  function girlFront(x, y, h, seed) {
+  /**
+   * The girl turned to the viewer, for the windmill selfie: "turn" (arms down),
+   * "phone" (a small phone in her hand at her hip, just taken from her pocket),
+   * "phone-up" (lifting it to her chest) and "selfie" (holding it up and out to
+   * her side, head tilted toward it, eyes on its screen). The phone's top is
+   * returned for the camera flash.
+   */
+  function girlFront(x, y, h, seed, pose) {
     const r = rng(seed + 7);
     const P = (u, v) => [x + u * h, y - v * h];
     const skin = hex("#f1d3c0"), hair = hex("#5b3a2e");
@@ -1492,18 +1518,21 @@ function paint(F) {
     ctx.filter = `blur(${4 * k}px)`;
     glaze(ctx, ...P(0, -0.005), 0.18 * h, 0.035 * h, SHADOW, 0.35);
     ctx.restore();
-    const hipV = 0.38, shoulderV = 0.72, headV = 0.86, hemV = 0.31;
+    const hipV = 0.38, shoulderV = 0.72, hemV = 0.31;
+    const selfie = pose === "selfie";
+    const headV = 0.86, headU = selfie ? 0.012 : 0, tilt = selfie ? 0.12 : 0;
+    let phoneTip = null;
     withThickness(0.95, () => {
       const limb = (a, b, wf, col) => {
         const [ax, ay] = P(...a), [bx, by] = P(...b);
         stroke(ctx, r, ax, ay, Math.atan2(by - ay, bx - ax), Math.hypot(bx - ax, by - ay), wf * h, col, 1, 1);
       };
-      // long hair behind her, framing both sides down past her shoulders
+      // long hair behind her, falling past her shoulders on both sides
       const mane = new Path2D();
-      mane.moveTo(...P(-0.11, headV + 0.06));
+      mane.moveTo(...P(-0.11 + headU, headV + 0.06));
       mane.bezierCurveTo(...P(-0.17, headV - 0.05), ...P(-0.2, shoulderV - 0.12), ...P(-0.17, shoulderV - 0.36));
       mane.quadraticCurveTo(...P(0, shoulderV - 0.26), ...P(0.17, shoulderV - 0.36));
-      mane.bezierCurveTo(...P(0.2, shoulderV - 0.12), ...P(0.17, headV - 0.05), ...P(0.11, headV + 0.06));
+      mane.bezierCurveTo(...P(0.2, shoulderV - 0.12), ...P(0.17 + headU, headV - 0.05), ...P(0.11 + headU, headV + 0.06));
       mane.closePath();
       ctx.fillStyle = rgba(hair);
       ctx.fill(mane);
@@ -1511,34 +1540,87 @@ function paint(F) {
       for (let i = 0; i < 26; i++) stroke(ctx, r, ...P(-0.16 + r() * 0.32, shoulderV - 0.28 + r() * 0.3), -Math.PI / 2 + (r() - 0.5) * 0.3, 0.16 * h, 0.03 * h, mix(hair, r() < 0.4 ? hex("#8a5a40") : SHADOW, r() * 0.35), 0.9, 1);
       unclipBoth(ctx);
       for (const side of [-1, 1]) { limb([side * 0.035, hipV], [side * 0.045, 0.02], 0.058, mix(skin, SHADOW, side < 0 ? 0.1 : 0)); dab(ctx, ...P(side * 0.05, 0.01), 0.04 * h, 0.022 * h, 0, hex("#4a3a33"), 1); }
-      // left arm relaxed, right arm raised beside her face with a V sign
+      // her left arm (viewer's left) relaxed at her side
       limb([-0.08, shoulderV - 0.03], [-0.12, hipV + 0.02], 0.055, mix(skin, SHADOW, 0.08));
       dress(P, shoulderV, hemV, r);
-      limb([0.08, shoulderV - 0.03], [0.18, shoulderV + 0.05], 0.055, skin);
-      limb([0.18, shoulderV + 0.05], [0.15, headV + 0.02], 0.05, skin);
-      dab(ctx, ...P(0.15, headV + 0.03), 0.024 * h, 0.022 * h, 0, skin, 1);
-      stroke(ctx, r, ...P(0.14, headV + 0.045), -Math.PI / 2 - 0.25, 0.06 * h, 0.014 * h, skin, 1, 0);
-      stroke(ctx, r, ...P(0.16, headV + 0.045), -Math.PI / 2 + 0.2, 0.06 * h, 0.014 * h, skin, 1, 0);
+      // loose hair falling in front of both shoulders
+      for (const side of [-1, 1]) {
+        const lock = new Path2D();
+        lock.moveTo(...P(side * 0.085 + headU, headV - 0.01));
+        lock.bezierCurveTo(...P(side * 0.12, shoulderV - 0.02), ...P(side * 0.1, shoulderV - 0.12), ...P(side * 0.12, shoulderV - 0.2));
+        lock.quadraticCurveTo(...P(side * 0.08, shoulderV - 0.12), ...P(side * 0.065 + headU, headV - 0.04));
+        lock.closePath();
+        ctx.fillStyle = rgba(mix(hair, hex("#93613f"), 0.15));
+        ctx.fill(lock);
+      }
       dab(ctx, ...P(-0.12, hipV + 0.02), 0.024 * h, 0.024 * h, 0, skin, 1);
-      // face, hair on top with a centre-swept fringe, the bow on one side
-      dab(ctx, ...P(0, headV), 0.1 * h, 0.105 * h, 0, skin, 1);
+      // her right arm (viewer's right) and the phone, pose by pose
+      const shoulder = [0.08, shoulderV - 0.03];
+      const [elbow, hand] = pose === "phone" ? [[0.13, hipV + 0.17], [0.12, hipV + 0.04]]
+        : pose === "phone-up" ? [[0.15, hipV + 0.1], [0.07, shoulderV - 0.06]]
+        : selfie ? [[0.19, shoulderV + 0.03], [0.29, headV - 0.02]]
+        : [[0.11, hipV + 0.17], [0.12, hipV + 0.02]];
+      limb(shoulder, elbow, 0.055, skin);
+      limb(elbow, hand, 0.05, skin);
+      if (pose !== "turn") {
+        // the phone: a small rounded slab in a dusty-blue case, held in the hand
+        const [px, py] = P(hand[0], hand[1] + 0.035);
+        const pw = 0.045 * h, ph = 0.08 * h, rot = selfie ? -0.35 : pose === "phone-up" ? -0.1 : 0.1;
+        ctx.save();
+        ctx.translate(px, py);
+        ctx.rotate(rot);
+        const ph2 = new Path2D();
+        ph2.roundRect(-pw / 2, -ph / 2, pw, ph, pw * 0.22);
+        ctx.fillStyle = rgba(hex("#8fa9b8"));
+        ctx.fill(ph2);
+        ctx.fillStyle = rgba(hex("#c7d6dc"), 0.7);
+        ctx.fillRect(-pw * 0.32, -ph * 0.4, pw * 0.25, ph * 0.18); // a little highlight
+        ctx.beginPath();
+        ctx.arc(-pw * 0.18, -ph * 0.3, pw * 0.09, 0, Math.PI * 2); // camera lens
+        ctx.fillStyle = rgba(hex("#2b2420"));
+        ctx.fill();
+        ctx.restore();
+        phoneTip = [px + Math.sin(rot) * ph * 0.5, py - Math.cos(rot) * ph * 0.5];
+        // fingers wrapped round it
+        dab(ctx, ...P(hand[0], hand[1]), 0.026 * h, 0.024 * h, 0, skin, 1);
+        dab(ctx, px + 0.018 * h, py + 0.005 * h, 0.012 * h, 0.022 * h, 0, skin, 1);
+      } else dab(ctx, ...P(hand[0], hand[1]), 0.024 * h, 0.024 * h, 0, skin, 1);
+      // face, tilted toward the phone in the selfie, with the bow on top
+      const [hx0, hy0] = P(headU, headV);
+      ctx.save();
+      ctx.translate(hx0, hy0);
+      ctx.rotate(tilt);
+      ctx.translate(-hx0, -hy0);
+      const Q = (u, v) => P(u + headU, v);
+      dab(ctx, ...Q(0, headV), 0.1 * h, 0.105 * h, 0, skin, 1);
       const top = new Path2D();
-      top.moveTo(...P(-0.11, headV - 0.01));
-      top.bezierCurveTo(...P(-0.12, headV + 0.13), ...P(0.12, headV + 0.13), ...P(0.11, headV - 0.01));
-      top.quadraticCurveTo(...P(0.07, headV + 0.06), ...P(0.01, headV + 0.045));
-      top.quadraticCurveTo(...P(-0.06, headV + 0.07), ...P(-0.11, headV - 0.01));
+      top.moveTo(...Q(-0.11, headV - 0.01));
+      top.bezierCurveTo(...Q(-0.12, headV + 0.13), ...Q(0.12, headV + 0.13), ...Q(0.11, headV - 0.01));
+      top.quadraticCurveTo(...Q(0.07, headV + 0.06), ...Q(0.01, headV + 0.045));
+      top.quadraticCurveTo(...Q(-0.06, headV + 0.07), ...Q(-0.11, headV - 0.01));
       top.closePath();
       ctx.fillStyle = rgba(hair);
       ctx.fill(top);
-      for (let i = 0; i < 10; i++) stroke(ctx, r, ...P(-0.09 + r() * 0.18, headV + 0.1), Math.PI / 2 + (r() - 0.5) * 0.9, 0.06 * h, 0.016 * h, mix(hair, r() < 0.5 ? hex("#8a5a40") : SHADOW, r() * 0.3), 0.9, 0);
-      bowAt(P(-0.08, headV + 0.1), 0.068 * h, -0.5, hex("#d9787e"), r);
+      clipBoth(ctx, top);
+      for (let i = 0; i < 10; i++) stroke(ctx, r, ...Q(-0.09 + r() * 0.18, headV + 0.1), Math.PI / 2 + (r() - 0.5) * 0.9, 0.06 * h, 0.016 * h, mix(hair, r() < 0.5 ? hex("#8a5a40") : SHADOW, r() * 0.3), 0.9, 0);
+      unclipBoth(ctx);
+      bowAt(Q(-0.08, headV + 0.1), 0.08 * h, -0.5, hex("#d9787e"), r);
+      const look = selfie ? 0.012 : 0;
       for (const side of [-1, 1]) {
-        dab(ctx, ...P(side * 0.04, headV - 0.005), 0.011 * h, 0.016 * h, 0, hex("#2b2420"), 1);
-        dab(ctx, ...P(side * 0.06, headV - 0.04), 0.022 * h, 0.013 * h, 0, hex("#eba3a0"), 0.65);
+        dab(ctx, ...Q(side * 0.04 + look, headV - 0.005 + look * 0.5), 0.011 * h, 0.016 * h, 0, hex("#2b2420"), 1);
+        dab(ctx, ...Q(side * 0.06, headV - 0.04), 0.022 * h, 0.013 * h, 0, hex("#eba3a0"), 0.65);
       }
-      // a happy, open smile
-      dab(ctx, ...P(0, headV - 0.055), 0.022 * h, 0.012 * h, 0, hex("#b8615e"), 0.9);
+      // a smile: an upturned arc (wider and open for the selfie)
+      const [mx, my] = Q(0, headV - 0.045);
+      ctx.beginPath();
+      ctx.arc(mx, my, (selfie ? 0.03 : 0.02) * h, 0.15 * Math.PI, 0.85 * Math.PI);
+      ctx.strokeStyle = rgba(hex("#b8615e"), 0.95);
+      ctx.lineWidth = Math.max(1, 0.011 * h);
+      ctx.lineCap = "round";
+      ctx.stroke();
+      ctx.restore();
     });
+    if (phoneTip) PHONE_TIPS[pose] = phoneTip;
   }
 
   /** A little koi, side view, facing right (dir 1) or left (dir -1), centred at (x, y), length len. */
@@ -2478,6 +2560,203 @@ const WORK_MOBILE = {
     ],
   },
 };
+
+/**
+ * The Landing title, painted letter by letter: each glyph of a chunky editorial
+ * serif (Superclarendon Bold) is filled with short loaded-brush strokes in
+ * forest, olive, moss and sage greens, with a few deposits of blush, cream
+ * yellow and coral mixed in, then given an impasto relief (ridges catch the
+ * light, edges cast a little shadow). The glyph outline is roughened with
+ * noise so the contours are organic. Each letter is its own transparent layer,
+ * so the page can animate them one by one; two layouts are exported (one line,
+ * and two lines for tall screens).
+ */
+function paintTitle() {
+  const F = 240, PAD = Math.round(F * 0.08);
+  const FONT = `700 ${F}px Superclarendon`;
+  const measure = createCanvas(10, 10).getContext("2d");
+  measure.font = FONT;
+  const TEXT = "A Garden of Ideas";
+  const GREENS = ["#203a26", "#2b4c2f", "#3a5e34", "#4f6e38", "#66803c", "#4a7a62", "#789048"];
+  const ACCENTS = [["#eba3ad", 0.48], ["#ecd46a", 0.34], ["#e35f36", 0.18]];
+  const letters = [];
+  let idx = 0;
+  for (const [i, ch] of [...TEXT].entries()) {
+    if (ch === " ") continue;
+    const m = measure.measureText(ch);
+    const L = Math.ceil(m.actualBoundingBoxLeft), R = Math.ceil(m.actualBoundingBoxRight);
+    const A = Math.ceil(m.actualBoundingBoxAscent), D = Math.ceil(m.actualBoundingBoxDescent);
+    const w = L + R + PAD * 2, h = A + D + PAD * 2, ox = L + PAD, oy = A + PAD;
+    const seed = 1300 + idx * 7;
+    const r = rng(seed);
+    // 1 · an organic mask: the glyph, softened, then re-thresholded against noise
+    const mk = createCanvas(w, h), mc = mk.getContext("2d");
+    mc.font = FONT;
+    mc.filter = `blur(${F * 0.012}px)`;
+    mc.fillStyle = "#fff";
+    mc.fillText(ch, ox, oy);
+    const md = mc.getImageData(0, 0, w, h);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const k = (y * w + x) * 4;
+      const t = 128 + fbm(x / (F * 0.09), y / (F * 0.09), seed, 3) * 90 + fbm(x / (F * 0.025), y / (F * 0.025), seed + 1, 2) * 40;
+      const a = md.data[k + 3];
+      md.data[k + 3] = clamp((a - t) / 24 + 0.5) * 255;
+    }
+    mc.putImageData(md, 0, 0);
+    // 2 · the paint, with its own height map
+    const cv = createCanvas(w, h), ctx = cv.getContext("2d");
+    const hcv = createCanvas(w, h), hx = hcv.getContext("2d");
+    hx.fillStyle = grey(30);
+    hx.fillRect(0, 0, w, h);
+    PAINT.hx = hx;
+    // where the mixed-in colours sit: a few soft patches per letter
+    const patches = [];
+    const nP = 1 + Math.floor(r() * 2.4);
+    for (let p = 0; p < nP; p++) {
+      let pick = r(), col = ACCENTS[0][0];
+      for (const [c, wgt] of ACCENTS) { if (pick < wgt) { col = c; break; } pick -= wgt; }
+      patches.push({ x: ox - L + r() * (L + R), y: oy - A + r() * (A + D), rad: F * (0.08 + r() * 0.07) * (col === "#e35f36" ? 0.6 : 1), col: hex(col) });
+    }
+    const greenAt = (x, y) => {
+      const t = clamp(fbm(x / (F * 0.22), y / (F * 0.22), seed + 3, 3) * 0.9 + 0.5);
+      return hex(GREENS[Math.min(GREENS.length - 1, Math.floor(t * GREENS.length))]);
+    };
+    // a dark green underpaint, so no canvas shows between the strokes
+    ctx.fillStyle = rgba(hex("#2f4a2e"));
+    ctx.fillRect(0, 0, w, h);
+    withThickness(0.95, () => {
+      // short, loaded strokes over the whole letter, in slowly turning directions
+      const n = Math.round((w * h) / (F * F) * 1100);
+      for (let s2 = 0; s2 < n; s2++) {
+        const x = r() * w, y = r() * h;
+        const ang = fbm(x / (F * 0.3), y / (F * 0.3), seed + 5, 2) * 2.4 + (r() - 0.5) * 0.5;
+        let col = greenAt(x, y);
+        for (const p of patches) {
+          const d = Math.hypot(x - p.x, y - p.y) / p.rad;
+          if (d < 1 && r() < 1.35 - d) col = p.col;
+        }
+        col = mix(col, r() < 0.5 ? WARM : SHADOW, r() * 0.18);
+        stroke(ctx, r, x, y, ang, F * (0.08 + r() * 0.08), F * (0.036 + r() * 0.026), col, 1, 3);
+      }
+      // a few palette-knife marks and highlights on top
+      for (let s2 = 0; s2 < 6; s2++) knife(ctx, r, ox - L + r() * (L + R), oy - A + r() * (A + D), r() * Math.PI, F * 0.08, F * 0.035, mix(greenAt(0, 0), hex("#c9d39a"), 0.5), 0.55);
+    });
+    // 3 · keep paint and relief only inside the letter, then light the relief
+    for (const c of [ctx, hx]) { c.save(); c.globalCompositeOperation = "destination-in"; c.drawImage(mk, 0, 0); c.restore(); }
+    hx.save(); hx.globalCompositeOperation = "destination-over"; hx.fillStyle = grey(20); hx.fillRect(0, 0, w, h); hx.restore();
+    lightRelief(cv, hcv, w, h, 1.45);
+    ctx.save(); ctx.globalCompositeOperation = "destination-in"; ctx.drawImage(mk, 0, 0); ctx.restore();
+    PAINT.hx = null;
+    letters.push({ ch, i, idx, w, h, ox, oy, canvas: cv });
+    idx++;
+  }
+  // layouts in glyph pixels: one line, and two lines for tall screens
+  const place = (lines, lead) => {
+    const out = [];
+    const widths = lines.map((ln) => measure.measureText(ln).width);
+    const W = Math.max(...widths);
+    let start = 0;
+    lines.forEach((ln, li) => {
+      const x0 = (W - widths[li]) / 2, base = F * 0.82 + li * F * lead;
+      for (let c = 0; c < ln.length; c++) {
+        if (ln[c] === " ") continue;
+        const L = letters.find((q) => q.i === start + c);
+        out.push({ idx: L.idx, x: +(x0 + measure.measureText(ln.slice(0, c)).width - L.ox).toFixed(1), y: +(base - L.oy).toFixed(1), w: L.w, h: L.h });
+      }
+      start += ln.length + 1;
+    });
+    return { width: Math.ceil(W), height: Math.ceil(F * (1.08 + (lines.length - 1) * lead)), letters: out };
+  };
+  return {
+    letters,
+    meta: { text: TEXT, font: F, chars: letters.map((l) => l.ch), wide: place([TEXT], 1), tall: place(["A Garden", "of Ideas"], 1.02) },
+  };
+}
+
+/**
+ * The Landing cursor: a tiny painted butterfly seen from above, head at the
+ * top centre (the click point). Left wing, right wing and body are separate
+ * layers on the same canvas so the page can flutter the wings about the body.
+ */
+function paintButterfly() {
+  const W = 200, H = 180, cx = 100, top = 34;
+  const out = {};
+  for (const part of ["left", "right", "body"]) {
+    const cv = createCanvas(W, H), ctx = cv.getContext("2d");
+    const hcv = createCanvas(W, H), hx = hcv.getContext("2d");
+    hx.fillStyle = grey(20);
+    hx.fillRect(0, 0, W, H);
+    PAINT.hx = hx;
+    const r = rng(1400 + (part === "right" ? 1 : 0));
+    withThickness(0.8, () => {
+      if (part === "body") {
+        // a slim olive body, a round head, two fine antennae with knobs
+        for (let i = 0; i < 5; i++) stroke(ctx, r, cx + (r() - 0.5) * 2, top + 18, Math.PI / 2, 78, 9 - i, mix(hex("#5d6b3a"), hex("#8c9a5a"), i / 5), 1, 1);
+        dab(ctx, cx, top + 12, 8, 8, 0, hex("#4f5c33"), 1);
+        for (const side of [-1, 1]) {
+          stroke(ctx, r, cx + side * 2, top + 6, -Math.PI / 2 + side * 0.45, 26, 2.2, hex("#4f5c33"), 1, 0);
+          dab(ctx, cx + side * 13, top - 17, 3.4, 3.4, 0, hex("#4f5c33"), 1);
+        }
+        return;
+      }
+      const d = part === "left" ? -1 : 1;
+      const X = (u) => cx + d * u;
+      const wing = (pts, base, edge, spots) => {
+        const p = new Path2D();
+        p.moveTo(X(pts[0][0]), pts[0][1]);
+        for (let i = 1; i < pts.length; i += 3) p.bezierCurveTo(X(pts[i][0]), pts[i][1], X(pts[i + 1][0]), pts[i + 1][1], X(pts[i + 2][0]), pts[i + 2][1]);
+        p.closePath();
+        ctx.fillStyle = rgba(hex(base));
+        ctx.fill(p);
+        clipBoth(ctx, p);
+        // strokes radiating from the body, cream near the root, blush toward the edge
+        for (let i = 0; i < 150; i++) {
+          const ang = (d < 0 ? Math.PI : 0) + (r() - 0.5) * 2.2, len = 30 + r() * 70;
+          const t = r();
+          stroke(ctx, r, X(4) + Math.cos(ang) * 6, pts[0][1] + 6 + Math.sin(ang) * 6, ang, len, 7 + r() * 6, mix(hex("#fbeee0"), hex(base), 0.35 + t * 0.6), 0.7, 3);
+        }
+        // a painted rim and a few sage dots near the edge
+        for (let i = 0; i < pts.length - 1; i++) {
+          const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
+          stroke(ctx, r, X(ax), ay, Math.atan2(by - ay, X(bx) - X(ax)), Math.hypot(X(bx) - X(ax), by - ay) * 1.1, 6, hex(edge), 0.55, 1);
+        }
+        for (const [u, v, rr] of spots) dab(ctx, X(u), v, rr, rr * 0.85, 0, hex("#9aae7c"), 0.9);
+        unclipBoth(ctx);
+      };
+      // upper wing, then the smaller lower wing
+      wing([[4, top + 22], [30, top - 10], [80, top - 22], [92, top + 2], [98, top + 26], [70, top + 52], [6, top + 50]], "#f2b9b4", "#d98c8a", [[70, top - 6, 5], [80, top + 12, 3.5]]);
+      wing([[4, top + 52], [40, top + 54], [70, top + 70], [66, top + 98], [58, top + 122], [24, top + 118], [6, top + 76]], "#f6d6c4", "#d99f8e", [[48, top + 100, 4]]);
+    });
+    hx.save(); hx.globalCompositeOperation = "destination-in"; hx.drawImage(cv, 0, 0); hx.restore();
+    hx.save(); hx.globalCompositeOperation = "destination-over"; hx.fillStyle = grey(20); hx.fillRect(0, 0, W, H); hx.restore();
+    const alpha = createCanvas(W, H);
+    alpha.getContext("2d").drawImage(cv, 0, 0);
+    lightRelief(cv, hcv, W, H, 1.1);
+    ctx.save(); ctx.globalCompositeOperation = "destination-in"; ctx.drawImage(alpha, 0, 0); ctx.restore();
+    PAINT.hx = null;
+    out[part] = cv;
+  }
+  return { out, hotspot: [cx / W, (top - 2) / H] };
+}
+
+if (process.argv.includes("--butterfly")) {
+  const dir = path.resolve("public/assets/garden/butterfly");
+  fs.mkdirSync(dir, { recursive: true });
+  const { out, hotspot } = paintButterfly();
+  for (const [k, cv] of Object.entries(out)) fs.writeFileSync(path.join(dir, `butterfly-${k}.webp`), cv.toBuffer("image/webp", 92));
+  console.log("butterfly hotspot", hotspot.map((v) => v.toFixed(3)).join(", "));
+  process.exit(0);
+}
+
+if (process.argv.includes("--title")) {
+  const dir = path.resolve("public/assets/garden/title");
+  fs.mkdirSync(dir, { recursive: true });
+  const { letters, meta } = paintTitle();
+  for (const L of letters) fs.writeFileSync(path.join(dir, `letter-${String(L.idx).padStart(2, "0")}.webp`), L.canvas.toBuffer("image/webp", 92));
+  fs.writeFileSync(path.resolve("src/data/title-letters.json"), JSON.stringify(meta, null, 2) + "\n");
+  console.log(`title: ${letters.length} letters`);
+  process.exit(0);
+}
 
 /**
  * The case-study backdrop: a quiet oil-on-canvas page from the same garden.

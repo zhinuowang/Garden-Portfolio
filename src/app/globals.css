@@ -250,6 +250,47 @@ body {
   50% { transform: translateY(6px); opacity: 1; }
 }
 
+/* ---------- Landing: the painted title ---------- */
+/* each letter: fades upward as Scene 1 scrolls away (staggered a touch), rises in on arrival, lifts under the pointer */
+.painted-title { --out: 0; }
+.pt-letter {
+  --o: clamp(0, calc(var(--out) * 1.5 - var(--i) * 0.025), 1);
+  opacity: calc(1 - var(--o));
+  translate: 0 calc(var(--o) * -1.6rem);
+  pointer-events: auto;
+}
+.pt-rise { animation: pt-rise 0.72s cubic-bezier(0.22, 1.18, 0.36, 1) calc(0.25s + var(--i) * 55ms) both; }
+@keyframes pt-rise {
+  from { opacity: 0; transform: translateY(26%) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+.pt-paint { transition: transform 0.55s cubic-bezier(0.34, 1.5, 0.6, 1), filter 0.4s ease; will-change: transform; }
+.pt-letter:hover .pt-paint { transform: translateY(-6px) rotate(var(--tilt)); filter: saturate(1.12) brightness(1.06); }
+
+/* ---------- Landing: the butterfly cursor ---------- */
+html.butterfly-cursor, html.butterfly-cursor * { cursor: none; }
+html.butterfly-cursor :is(a, button, [role="button"], input, select, textarea, label, summary, [data-windmill-hit], [data-rocker-hit]) { cursor: pointer; }
+.butterfly {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 100;
+  aspect-ratio: 200 / 180;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  will-change: transform;
+  filter: drop-shadow(0 3px 3px rgb(84 70 60 / 0.18));
+}
+.butterfly__perch { position: relative; width: 100%; height: 100%; transition: transform 0.25s ease; }
+.butterfly img { position: absolute; inset: 0; width: 100%; height: 100%; transform-origin: 50% 50%; }
+/* wings flutter while it moves, and open slowly at rest */
+.butterfly[data-state="moving"] :is(.butterfly__left, .butterfly__right) { animation: bf-flap 0.16s ease-in-out infinite alternate; }
+.butterfly[data-state="resting"] :is(.butterfly__left, .butterfly__right) { animation: bf-rest 2.6s ease-in-out infinite alternate; }
+@keyframes bf-flap { from { transform: scaleX(1); } to { transform: scaleX(0.28); } }
+@keyframes bf-rest { from { transform: scaleX(1); } to { transform: scaleX(0.82); } }
+/* over a control the normal pointer returns and the butterfly perches beside it, wings half closed */
+.butterfly[data-over="control"] .butterfly__perch { transform: translate(55%, 55%) scale(0.8); }
+
 /* ---------- Full case studies: a botanical field journal ---------- */
 /* the painted backdrop: fixed behind the page, art-directed for wide and tall screens */
 .journal-backdrop {
@@ -375,7 +416,7 @@ body {
 .work-label__badge--academic { color: var(--color-moss); }
 .work-label__badge--personal { color: var(--color-rose); }
 /* the guide: one pose visible at a time, a little bob while she walks */
-.work-girl img { opacity: 0; }
+.work-girl img { opacity: 0; transition: opacity 0.12s linear; }
 .work-girl[data-pose="idle"] img[data-for="idle"],
 .work-girl[data-pose="walk-a"] img[data-for="walk-a"],
 .work-girl[data-pose="walk-b"] img[data-for="walk-b"],
@@ -383,12 +424,15 @@ body {
 .work-girl[data-pose="offer"] img[data-for="offer"],
 .work-girl[data-pose="pet-a"] img[data-for="pet-a"],
 .work-girl[data-pose="pet-b"] img[data-for="pet-b"],
-.work-girl[data-pose="photo"] img[data-for="photo"] { opacity: 1; }
+.work-girl[data-pose="turn"] img[data-for="turn"],
+.work-girl[data-pose="phone"] img[data-for="phone"],
+.work-girl[data-pose="phone-up"] img[data-for="phone-up"],
+.work-girl[data-pose="selfie"] img[data-for="selfie"] { opacity: 1; }
 .work-girl--walking .work-girl__body { animation: work-bob 0.32s ease-in-out infinite alternate; }
 @keyframes work-bob { from { translate: 0 0; } to { translate: 0 -3%; } }
 /* the moments when she arrives */
 .work-layer--water-a, .work-layer--water-b { opacity: 0; }
-.work-landmark[data-kind="fountain"][data-state="hover"] .work-layer--water-a { opacity: 0.45; }
+.work-landmark[data-kind="fountain"][data-state="hover"] :is(.work-layer--water-a, .work-layer--water-b) { animation-duration: 0.7s; }
 .work-stage[data-moment="fountain"] .work-layer--water-a { opacity: 0.95; animation: water-take 0.9s ease-in-out infinite alternate; }
 .work-stage[data-moment="fountain"] .work-layer--water-b { opacity: 0.9; animation: water-take 0.9s ease-in-out -0.45s infinite alternate-reverse; }
 .work-bubble {
@@ -405,8 +449,10 @@ body {
   25% { opacity: 0.95; }
   100% { transform: translateY(-260%) scale(1.15); opacity: 0; }
 }
-.work-landmark[data-state="hover"] .work-layer--sails { animation: work-spin 7s linear infinite; }
-.work-stage[data-moment="windmill"] .work-layer--sails { animation: work-spin 2.6s cubic-bezier(0.35, 0.1, 0.3, 1) both; animation-iteration-count: 1; }
+.work-layer--sails { animation: work-idle-spin 48s linear infinite; }
+.work-landmark[data-state="hover"] .work-layer--sails { animation: work-idle-spin 48s linear infinite, work-spin 7s linear infinite; }
+.work-stage[data-moment="windmill"] .work-layer--sails { animation: work-idle-spin 48s linear infinite, work-spin 2.8s cubic-bezier(0.35, 0.1, 0.3, 1) 0.8s 1 both; }
+@keyframes work-idle-spin { to { rotate: 360deg; } }
 @keyframes work-spin { to { transform: rotate(540deg); } }
 /* the puppy perks up at the treat, hops toward her and leans into the pats */
 .work-stage[data-moment="doghouse"] .work-layer--puppy,
@@ -436,6 +482,35 @@ body {
   30% { opacity: 1; }
   100% { transform: translateY(-40px) scale(1.15); opacity: 0; }
 }
+/* entrance: the garden is there first; then the dog house, the fountain and the windmill rise into place in turn */
+.work-landmark { position: absolute; inset: 0; pointer-events: none; animation: work-enter 0.8s cubic-bezier(0.2, 0.9, 0.3, 1.04) calc(0.25s + var(--enter) * 0.28s) both; }
+.work-landmark .work-hit { pointer-events: auto; }
+@keyframes work-enter {
+  from { opacity: 0; translate: 0 2.5%; }
+  to { opacity: 1; translate: 0 0; }
+}
+/* idle life in the details, never the structures: the puppy looks about and wags now and then, the water flows */
+.work-layer--puppy { animation: work-pup-look 5.5s ease-in-out 1.6s infinite; }
+.work-layer--puppy-tail { animation: work-tail-idle 3.4s ease-in-out 1.2s infinite; }
+@keyframes work-pup-look {
+  0%, 62%, 100% { rotate: 0deg; }
+  70% { rotate: -3deg; }
+  80% { rotate: 2deg; }
+  88% { rotate: 0deg; }
+}
+@keyframes work-tail-idle {
+  0%, 55%, 100% { rotate: 0deg; }
+  60% { rotate: -16deg; } 65% { rotate: 14deg; } 70% { rotate: -14deg; } 75% { rotate: 12deg; } 80% { rotate: 0deg; }
+}
+.work-layer--water-a { animation: work-water-idle 1.6s ease-in-out infinite alternate; }
+.work-layer--water-b { animation: work-water-idle 1.6s ease-in-out -0.8s infinite alternate-reverse; }
+@keyframes work-water-idle { from { opacity: 0.25; } to { opacity: 0.7; } }
+.work-ripple { animation: work-ripple-idle 3.6s ease-out infinite; }
+@keyframes work-ripple-idle {
+  0% { opacity: 0.5; transform: translate(-50%, -50%) scale(0.2); }
+  40%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.3); }
+}
+
 /* the fountain: two koi leap across the basin when she touches the water, with rings on the surface */
 .work-layer--fish-a, .work-layer--fish-b { opacity: 0; }
 .work-stage[data-moment="fountain"] .work-layer--fish-a { animation: work-koi-a 1.1s cubic-bezier(0.3, 0, 0.7, 1) 0.25s both; }
@@ -467,56 +542,37 @@ body {
   0% { opacity: 0.95; transform: translate(-50%, -50%) scale(0.2); }
   100% { opacity: 0; transform: translate(-50%, -50%) scale(1.6); }
 }
-/* the windmill: a viewfinder frames her and the windmill, a flash, then the shot settles as a polaroid */
-.work-photo { opacity: 0; }
-.work-stage[data-moment="windmill"] .work-photo { opacity: 1; }
-.work-photo__finder {
+/* the windmill selfie: a small flash and a sparkle at her phone */
+.work-flash {
+  width: 1.1em;
+  aspect-ratio: 1;
+  font-size: clamp(14px, 1.6vw, 26px);
+  transform: translate(-50%, -50%) scale(0);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, #fffdf4 30%, rgb(255 246 214 / 0.7) 55%, rgb(255 246 214 / 0));
+  pointer-events: none;
+}
+.work-flash::after {
+  content: "✦";
   position: absolute;
-  inset: 0;
-  --c: rgb(251 247 238 / 0.95);
-  background:
-    linear-gradient(var(--c), var(--c)) top left / 14% 3px, linear-gradient(var(--c), var(--c)) top left / 3px 14%,
-    linear-gradient(var(--c), var(--c)) top right / 14% 3px, linear-gradient(var(--c), var(--c)) top right / 3px 14%,
-    linear-gradient(var(--c), var(--c)) bottom left / 14% 3px, linear-gradient(var(--c), var(--c)) bottom left / 3px 14%,
-    linear-gradient(var(--c), var(--c)) bottom right / 14% 3px, linear-gradient(var(--c), var(--c)) bottom right / 3px 14%;
-  background-repeat: no-repeat;
-  filter: drop-shadow(0 1px 2px rgb(40 50 35 / 0.5));
+  left: 70%;
+  top: -60%;
+  font-size: 0.8em;
+  color: #fff6d6;
+  text-shadow: 0 0 6px rgb(255 240 200 / 0.9);
   opacity: 0;
 }
-.work-stage[data-moment="windmill"] .work-photo__finder { animation: work-finder 1.15s ease-out 0.25s both; }
-@keyframes work-finder {
-  0% { opacity: 0; transform: scale(1.12); }
-  45%, 85% { opacity: 1; transform: scale(1); }
-  100% { opacity: 0; transform: scale(1); }
+.work-girl[data-pose="selfie"] .work-flash { animation: work-flash 0.6s ease-out 0.45s both; }
+.work-girl[data-pose="selfie"] .work-flash::after { animation: work-sparkle 0.9s ease-out 0.5s both; }
+@keyframes work-flash {
+  0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+  25% { transform: translate(-50%, -50%) scale(2.2); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(2.8); opacity: 0; }
 }
-.work-photo__flash { position: absolute; inset: 0; background: #fffdf6; opacity: 0; }
-.work-stage[data-moment="windmill"] .work-photo__flash { animation: work-flash 0.5s ease-out 1.15s both; }
-@keyframes work-flash { 0% { opacity: 0; } 15% { opacity: 0.9; } 100% { opacity: 0; } }
-/* the print: a cream border around the very same view, its caption in handwriting */
-.work-photo__print {
-  position: absolute;
-  inset: -2.5% -2.5% -14% -2.5%;
-  border: clamp(5px, 0.7vw, 11px) solid #fbf6ea;
-  border-bottom-width: 0;
-  box-shadow: 0 14px 28px -12px rgb(40 50 35 / 0.55);
-  opacity: 0;
-}
-.work-photo__caption {
-  position: absolute;
-  inset: auto -1px -1px -1px;
-  height: 14%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fbf6ea;
-  font-family: var(--font-caveat), "Segoe Print", cursive;
-  font-size: clamp(0.95rem, 1.5vw, 1.5rem);
-  color: var(--color-forest);
-}
-.work-stage[data-moment="windmill"] .work-photo__print { animation: work-print 0.6s cubic-bezier(0.2, 0.8, 0.3, 1.2) 1.3s both; }
-@keyframes work-print {
-  0% { opacity: 0; transform: scale(1.06) rotate(0deg); }
-  100% { opacity: 1; transform: scale(1) rotate(-2deg); }
+@keyframes work-sparkle {
+  0% { opacity: 0; transform: scale(0.4) rotate(0deg); }
+  30% { opacity: 1; transform: scale(1.1) rotate(25deg); }
+  100% { opacity: 0; transform: translateY(-40%) scale(0.8) rotate(60deg); }
 }
 
 /* the paper wipe that carries the visitor into the project */
@@ -532,9 +588,11 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
+  .pt-letter { translate: none; }
+  .pt-paint { transition: none; }
   .sway, .drift, .blades, .bubble, .bloom, .garden-sign__board, .living-dog, .living-tail, .living-ball, .living-rocker, .living-water-a, .living-water-b, .living-drop,
-  .work-glow, .work-cue, .work-layer, .work-girl__body, .work-bubble, .work-heart, .work-ripple,
-  .work-photo__finder, .work-photo__flash, .work-photo__print { animation: none !important; }
+  .pt-rise, .work-glow, .work-cue, .work-layer, .work-girl__body, .work-bubble, .work-heart, .work-ripple,
+  .work-landmark, .work-flash, .work-flash::after { animation: none !important; }
   .journey-move { transform: none !important; }
   .journey-text { transform: none !important; }
   *, *::before, *::after { transition-duration: 0.01ms !important; }

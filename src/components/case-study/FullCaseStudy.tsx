@@ -172,10 +172,7 @@ export default function FullCaseStudy({ project, data, next }: { project: Projec
         </Link>
 
         <header className="mt-6 max-w-3xl">
-          <div className="flex flex-wrap items-center gap-3">
-            <CategoryBadge category={project.category} />
-            <span className="font-hand text-xl text-moss">field notes from {project.locationName.replace(/^The /, "the ")}</span>
-          </div>
+          <CategoryBadge category={project.category} />
           <h1 className="mt-4 font-serif text-[clamp(2.5rem,6vw,4.4rem)] leading-[1.02] font-medium text-ink">{project.title}</h1>
           {data.subtitle && <p className="mt-3 font-serif text-[clamp(1.2rem,2.2vw,1.55rem)] text-moss italic">{data.subtitle}</p>}
           <dl className="mt-8 flex flex-wrap gap-x-10 gap-y-4 border-y border-dashed border-moss/35 py-5">

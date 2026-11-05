@@ -38,10 +38,13 @@ Removed (all recoverable from the tag): the homepage sections `GardenGate`, `Gar
   Academic), and Little Moments at the windmill (Personal). A single heading above the scene reads "Choose a place to explore my work." Landmarks glow in turn, and lift with a bobbing cue on hover or focus. On click, a small painted girl
   walks over and shares a short moment with it. At the dog house she kneels face to face with the puppy, holds
   out a little bone treat and pats it while it hops toward her, wags and sends up hearts. At the fountain she
-  touches the water: rings spread and two koi leap across the basin. At the windmill she turns to the viewer with
-  a V sign; a viewfinder frames her with the windmill, a flash, and the shot settles into a polaroid captioned
-  "a little moment" while the sails spin. A paper wipe then grows from that landmark into the project page.
-  The guide has long, loose, wavy hair and a rose bow (eight painted poses).
+  touches the water: rings spread and two koi leap across the basin. At the windmill she turns to the viewer,
+  takes a small phone from her pocket, lifts it and holds it up beside her for a selfie with the windmill: a small
+  flash and sparkle at the phone while the sails turn. A paper wipe then grows from that landmark into the project page.
+  The guide has long, loose, wavy hair and a rose bow in every one of her eleven painted poses. When the page
+  opens the garden is already there, then the dog house, fountain and windmill rise into place in turn. Between
+  visits the details stay alive (water and ripples, the puppy's glances and tail, slowly turning sails); the
+  structures never float.
   Landmarks are real links: Enter works, and with reduced motion they open at once. Next Project cycles through the
   three. Nomi & Pudding and the Dyson brochure keep their case-study pages but are no longer linked from Work.
   Code: `src/components/work/WorkGarden.tsx`; art: `node scripts/paint-landing.mjs --work`.
@@ -56,3 +59,9 @@ The Landing statements live in `src/data/site.ts` → `landingScenes`. Edit them
   the edges; `node scripts/paint-landing.mjs --journal`), contents in the margin, sage vines under headings and
   leaf bullets. Project images sit straight on the page with no card, border or tape; only those with an opaque
   background get a faint, diffused neutral shadow. The images themselves are untouched.
+- **Landing title and cursor.** "A Garden of Ideas" is painted letter by letter in oil (Superclarendon Bold letterforms,
+  green brushwork with blush, cream-yellow and coral deposits, impasto relief; `node scripts/paint-landing.mjs
+  --title`). The letters rise in one by one, fade upward with the scroll into Scene 2 and back, and each lifts and
+  tilts a little under the pointer; the h1 keeps the text for screen readers. On devices with a mouse a small painted
+  butterfly (`--butterfly`) is the cursor on the Landing page only, with its head at the click point; over links the
+  normal pointer returns. Touch devices and reduced motion keep the normal cursor.

@@ -10,6 +10,10 @@
       "feet": [
         0.5,
         0.9444
+      ],
+      "phone": [
+        0.807,
+        0.0995
       ]
     },
     "landmarks": [
@@ -310,7 +314,46 @@
         ]
       },
       {
-        "name": "work-girl-photo",
+        "name": "work-girl-turn",
+        "scene": 1,
+        "kind": "girl",
+        "x": 0.4595,
+        "y": 0.3368,
+        "w": 0.081,
+        "h": 0.1728,
+        "pivot": [
+          0.5,
+          0.9444
+        ]
+      },
+      {
+        "name": "work-girl-phone",
+        "scene": 1,
+        "kind": "girl",
+        "x": 0.4595,
+        "y": 0.3368,
+        "w": 0.081,
+        "h": 0.1728,
+        "pivot": [
+          0.5,
+          0.9444
+        ]
+      },
+      {
+        "name": "work-girl-phone-up",
+        "scene": 1,
+        "kind": "girl",
+        "x": 0.4595,
+        "y": 0.3368,
+        "w": 0.081,
+        "h": 0.1728,
+        "pivot": [
+          0.5,
+          0.9444
+        ]
+      },
+      {
+        "name": "work-girl-selfie",
         "scene": 1,
         "kind": "girl",
         "x": 0.4595,
@@ -335,6 +378,10 @@
       "feet": [
         0.5,
         0.9444
+      ],
+      "phone": [
+        0.807,
+        0.0995
       ]
     },
     "landmarks": [
@@ -635,7 +682,46 @@
         ]
       },
       {
-        "name": "work-girl-photo",
+        "name": "work-girl-turn",
+        "scene": 1,
+        "kind": "girl",
+        "x": 0.42,
+        "y": 0.398,
+        "w": 0.16,
+        "h": 0.108,
+        "pivot": [
+          0.5,
+          0.9444
+        ]
+      },
+      {
+        "name": "work-girl-phone",
+        "scene": 1,
+        "kind": "girl",
+        "x": 0.42,
+        "y": 0.398,
+        "w": 0.16,
+        "h": 0.108,
+        "pivot": [
+          0.5,
+          0.9444
+        ]
+      },
+      {
+        "name": "work-girl-phone-up",
+        "scene": 1,
+        "kind": "girl",
+        "x": 0.42,
+        "y": 0.398,
+        "w": 0.16,
+        "h": 0.108,
+        "pivot": [
+          0.5,
+          0.9444
+        ]
+      },
+      {
+        "name": "work-girl-selfie",
         "scene": 1,
         "kind": "girl",
         "x": 0.42,
