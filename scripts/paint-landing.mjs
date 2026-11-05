@@ -815,15 +815,18 @@ function paint(F) {
   });
 
   // ---- the tea table and its things
-  function teaTable(cx, topY, R, seed) {
+  function teaTable(cx, topY, R, seed, parts = "all") {
     const r = rng(seed);
     const ry = R * 0.32; // the round top in perspective
     const drop = R * 0.62; // how far the cloth hangs
     // shadow under the table on the grass
-    ctx.save();
-    ctx.filter = `blur(${14 * k}px)`;
-    glaze(ctx, cx + R * 0.2, topY + drop + R * 0.12, R * 1.25, R * 0.22, SHADOW, 0.45);
-    ctx.restore();
+    if (parts !== "table") {
+      ctx.save();
+      ctx.filter = `blur(${14 * k}px)`;
+      glaze(ctx, cx + R * 0.2, topY + drop + R * 0.12, R * 1.25, R * 0.22, SHADOW, 0.45);
+      ctx.restore();
+    }
+    if (parts === "shadow") return;
     withThickness(0.95, () => {
       // legs (wrought iron) showing below the cloth
       for (const lx of [-0.55, 0.5, -0.1]) stroke(ctx, r, cx + lx * R, topY + drop * 0.9, Math.PI / 2 + lx * 0.15, drop * 0.45, R * 0.035, hex("#3f4d43"), 0.95, 1);
@@ -1378,6 +1381,124 @@ function paint(F) {
     }
   }
 
+  /**
+   * The Work page's windmill, repainted: a tapered cream tower with two bands, a
+   * door and a little window, a terracotta cap, and four lattice sails on a hub.
+   * Coordinates follow the Work drawing (200 × 290, ground at y 276), scaled by f.
+   * The tower is painted into the scene; the sails are a separate layer that turns.
+   */
+  function windmill(x, base, f, seed, parts = "tower") {
+    const r = rng(seed);
+    const P = (u, v) => [x + (u - 100) * f, base + (v - 276) * f];
+    withThickness(0.9, () => {
+      if (parts === "tower") {
+        glaze(ctx, ...P(104, 277), 70 * f, 9 * f, SHADOW, 0.35);
+        const tower = new Path2D();
+        tower.moveTo(...P(70, 274)); tower.lineTo(...P(80, 120)); tower.lineTo(...P(120, 120)); tower.lineTo(...P(130, 274)); tower.closePath();
+        ctx.fillStyle = rgba(hex("#efe3cf"));
+        ctx.fill(tower);
+        clipBoth(ctx, tower);
+        for (let i = 0; i < 40; i++) {
+          const [px, py] = P(70 + r() * 60, 120 + r() * 154);
+          const lit = clamp(0.85 - (px - P(70, 0)[0]) / (60 * f) * 0.6);
+          knife(ctx, r, px - 8 * f, py, Math.PI / 2 + (r() - 0.5) * 0.1, 18 * f, 9 * f, mix(hex("#cdbb9f"), hex("#fbf3e3"), lit));
+        }
+        for (const v of [200, 240]) stroke(ctx, r, ...P(70, v), 0, 60 * f, 2.2 * f, hex("#d4c1a4"), 0.9, 1);
+        unclipBoth(ctx);
+        knife(ctx, r, ...P(92, 274), -Math.PI / 2, 30 * f, 16 * f, hex("#7d6152"));
+        dab(ctx, ...P(100, 176), 6 * f, 8 * f, 0, hex("#b6d0d3"), 1);
+        const cap = new Path2D();
+        cap.moveTo(...P(72, 123)); cap.quadraticCurveTo(...P(100, 82), ...P(128, 123)); cap.closePath();
+        ctx.fillStyle = rgba(hex("#c5786f"));
+        ctx.fill(cap);
+        clipBoth(ctx, cap);
+        for (let i = 0; i < 16; i++) stroke(ctx, r, ...P(72 + r() * 50, 92 + r() * 30), 0.2, 16 * f, 5 * f, mix(hex("#a85f55"), hex("#dd9a8e"), r()), 0.95, 2);
+        unclipBoth(ctx);
+        return;
+      }
+      // sails, around the hub at (100, 104): a brown spar and a cream lattice panel each
+      const [hx, hy] = P(100, 104);
+      for (const a of [0, 90, 180, 270]) {
+        ctx.save();
+        ctx.translate(hx, hy);
+        ctx.rotate((a * Math.PI) / 180);
+        if (PAINT.hx) { PAINT.hx.save(); PAINT.hx.translate(hx, hy); PAINT.hx.rotate((a * Math.PI) / 180); }
+        knife(ctx, r, -3 * f, 0, -Math.PI / 2, 84 * f, 5 * f, hex("#8a6a52"));
+        for (let i = 0; i < 6; i++) knife(ctx, r, 3 * f, (-30 - i * 11) * f, 0, 25 * f, 11 * f, mix(hex("#efe6d6"), hex("#fffaf0"), r()), 0.95);
+        for (const v of [-52, -74]) stroke(ctx, r, 3 * f, v * f, 0, 25 * f, 1.6 * f, hex("#8a6a52"), 0.9, 0);
+        stroke(ctx, r, 28 * f, -30 * f, -Math.PI / 2, 66 * f, 1.6 * f, hex("#8a6a52"), 0.9, 0);
+        ctx.restore();
+        if (PAINT.hx) PAINT.hx.restore();
+      }
+      dab(ctx, hx, hy, 6 * f, 6 * f, 0, hex("#8a6a52"), 1);
+    });
+  }
+
+  /**
+   * The Work page's fountain, repainted: a stone lower basin, a stem, an upper
+   * bowl and a spout, with still water in both basins. Coordinates follow the
+   * Work drawing (220 × 200, ground at y 184), scaled by f. Falling water is a
+   * separate pair of layers (two brush takes) that appear when it flows.
+   */
+  function fountain(x, base, f, seed, parts = "stone") {
+    const r = rng(seed);
+    const P = (u, v) => [x + (u - 110) * f, base + (v - 184) * f];
+    const stone = (lit) => mix(hex("#c9bfae"), hex("#f2ece0"), lit);
+    withThickness(0.9, () => {
+      if (parts === "stone") {
+        ctx.save();
+        ctx.filter = `blur(${6 * k}px)`;
+        glaze(ctx, ...P(116, 184), 96 * f, 12 * f, SHADOW, 0.4);
+        ctx.restore();
+        const lower = new Path2D();
+        lower.moveTo(...P(30, 150)); lower.quadraticCurveTo(...P(110, 196), ...P(190, 150)); lower.lineTo(...P(190, 162)); lower.quadraticCurveTo(...P(110, 206), ...P(30, 162)); lower.closePath();
+        ctx.fillStyle = rgba(stone(0.5));
+        ctx.fill(lower);
+        clipBoth(ctx, lower);
+        for (let i = 0; i < 26; i++) { const [px, py] = P(30 + r() * 160, 150 + r() * 46); knife(ctx, r, px, py, (r() - 0.5) * 0.3, 18 * f, 8 * f, stone(clamp(0.9 - (px - P(30, 0)[0]) / (160 * f)))); }
+        unclipBoth(ctx);
+        dab(ctx, ...P(110, 150), 80 * f, 18 * f, 0, stone(0.85), 1);
+        dab(ctx, ...P(110, 151), 68 * f, 13 * f, 0, hex("#a9cfd3"), 1);
+        for (let i = 0; i < 8; i++) stroke(ctx, r, ...P(60 + r() * 90, 146 + r() * 9), (r() - 0.5) * 0.2, 18 * f, 2.5 * f, hex("#dcefee"), 0.7, 0);
+        knife(ctx, r, ...P(100, 150), -Math.PI / 2, 54 * f, 20 * f, stone(0.7));
+        const bowl = new Path2D();
+        bowl.moveTo(...P(66, 92)); bowl.quadraticCurveTo(...P(110, 120), ...P(154, 92)); bowl.closePath();
+        ctx.fillStyle = rgba(stone(0.55));
+        ctx.fill(bowl);
+        dab(ctx, ...P(110, 92), 44 * f, 9 * f, 0, stone(0.88), 1);
+        dab(ctx, ...P(110, 92), 36 * f, 6 * f, 0, hex("#a9cfd3"), 1);
+        knife(ctx, r, ...P(106, 92), -Math.PI / 2, 30 * f, 8 * f, stone(0.75));
+        dab(ctx, ...P(110, 62), 5 * f, 5 * f, 0, stone(0.8), 1);
+        for (const [u, v, c] of [[24, 180, "#6f8a5a"], [198, 178, "#6f8a5a"]]) for (let i = 0; i < 6; i++) stroke(ctx, r, ...P(u + (r() - 0.5) * 10, v), -Math.PI / 2 + (r() - 0.5) * 0.8, 16 * f, 3 * f, hex(c), 0.9, 1);
+        return;
+      }
+      // flowing water: arcs from the spout into the bowl, curtains from the bowl to the basin
+      const take = parts === "water-b" ? 1 : 0;
+      const arc = (pts, w, n) => {
+        for (let j = 0; j < n; j++) {
+          const o = (r() - 0.5) * 3 * f + take * 1.5 * f;
+          for (let i = 0; i < pts.length - 1; i++) {
+            const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
+            const t = (i + r()) / (pts.length - 1);
+            if (r() < 0.15 + take * 0.1) continue; // breaks in the stream
+            stroke(ctx, r, ax + o, ay, Math.atan2(by - ay, bx - ax), Math.hypot(bx - ax, by - ay) * 1.05, w * f * (0.6 + r() * 0.6), mix(hex("#bfe3e7"), hex("#ffffff"), 0.3 + r() * 0.6 * (1 - t * 0.3)), 0.55 + r() * 0.35, 1);
+          }
+        }
+      };
+      const curve = (p0, c, p1, n = 8) => Array.from({ length: n + 1 }, (_, i) => {
+        const t = i / n;
+        return [(1 - t) ** 2 * p0[0] + 2 * (1 - t) * t * c[0] + t * t * p1[0], (1 - t) ** 2 * p0[1] + 2 * (1 - t) * t * c[1] + t * t * p1[1]];
+      });
+      arc(curve(P(110, 58), P(82, 50), P(72, 90)), 3.2, 3);
+      arc(curve(P(110, 58), P(138, 50), P(148, 90)), 3.2, 3);
+      arc(curve(P(68, 94), P(60, 118), P(56, 148)), 2.8, 3);
+      arc(curve(P(152, 94), P(160, 118), P(164, 148)), 2.8, 3);
+      // splash and foam where the water lands
+      for (const [u, v] of [[72, 92], [148, 92], [56, 150], [164, 150]]) for (let i = 0; i < 5; i++) dab(ctx, ...P(u + (r() - 0.5) * 12, v + (r() - 0.5) * 4), (1.5 + r() * 2) * f, (1 + r()) * f, 0, hex("#f6fdfd"), 0.85);
+      for (let i = 0; i < 6; i++) stroke(ctx, r, ...P(60 + r() * 100, 147 + r() * 8), 0, (10 + r() * 14) * f, 1.6 * f, hex("#ffffff"), 0.6, 0);
+    });
+  }
+
   /** A short white picket fence. h is its height in px. */
   function fence(x0, x1, base, h, seed) {
     const r = rng(seed);
@@ -1425,10 +1546,25 @@ function paint(F) {
     if (t.leaves) fallenLeaves(X(t.x + 0.02), Y(t.leaves[0]), X(t.leaves[1]), Y(t.leaves[2]), t.leaves[3], 420 + i);
   }
   for (const [i, sb] of L.shrubs1.entries()) shrub(X(sb[0]), Y(sb[1]), sb[2] * W, 430 + i, sb[3] === "white" ? [[0, "#c9b9a6"], [0.5, "#efe6d8"], [1, "#fffaf0"]] : undefined, 90);
+  if (L.windmill) {
+    // the tower into the scene; the sails on their own layer, turning about the hub
+    const [wx, wb, wh] = L.windmill, x = X(wx), base = Y(wb), f = (wh * W) / 290;
+    windmill(x, base, f, 470, "tower");
+    const hx = x, hy = base + (104 - 276) * f, rad = 90 * f;
+    sprite("sails", 1, hx - rad, hy - rad, 2 * rad, 2 * rad, [0.5, 0.5], () => windmill(x, base, f, 471, "sails"), {
+      kind: "sails", hit: [+((x - 45 * f) / W).toFixed(4), +((hy - rad) / S).toFixed(4), +((90 * f) / W).toFixed(4), +((base - hy + rad) / S).toFixed(4)],
+    });
+  }
   cottage(X(L.cottage[0]), Y(L.cottage[1]), L.cottage[2] * W, 440);
   for (const [i, f] of (L.fences ?? []).entries()) fence(X(f[0]), X(f[1]), Y(f[2]), Y(f[3]), 445 + i);
   for (const b of L.borders ?? []) pathBorder(b[0], b[1], b[2]);
   for (const cl of L.clusters1) cluster(cl);
+  if (L.fountain) {
+    const [fxf, fb, fw] = L.fountain, x = X(fxf), base = Y(fb), f = (fw * W) / 220;
+    fountain(x, base, f, 480, "stone");
+    const bx = x - 110 * f, by = base - 184 * f, bw = 220 * f, bh = 200 * f;
+    for (const take of ["water-a", "water-b"]) sprite(`fountain-${take}`, 1, bx, by, bw, bh, [0.5, 0.5], () => fountain(x, base, f, take === "water-a" ? 481 : 482, take), { kind: take });
+  }
   for (const [i, d] of L.dogs.entries()) {
     const x = X(d.x), y = Y(d.y), s = d.s * W;
     dog(x, y, s, d.pose, d.coat, d.dir, 450 + i, "shadow");
@@ -1479,7 +1615,13 @@ function paint(F) {
       // rocking pivots where the runners touch the ground
       sprite("chair", 3, bx, by, bw, bh, [(x - bx) / bw, (y - by) / bh], () => rockingChair(x, y, cs, -1, 640), { kind: "chair" });
     }
-    teaTable(X(T.table[0]), Y(T.table[1]), T.table[2] * W, 650);
+    {
+      // the table is its own layer, above the rocking chair that stands behind it
+      const tx = X(T.table[0]), ty = Y(T.table[1]), R = T.table[2] * W;
+      teaTable(tx, ty, R, 650, "shadow");
+      const bx = tx - 1.2 * R, by = ty - 0.8 * R, bw = 2.4 * R, bh = 1.9 * R;
+      sprite("table", 3, bx, by, bw, bh, [0.5, 0.5], () => teaTable(tx, ty, R, 650, "table"), { kind: "front" });
+    }
     for (const fg of L.foreground) grassClump(X(fg[0]), X(fg[1]), Y(fg[2]), Y(3.02), fg[3], fg[4]);
     for (const cl of L.clustersFront) cluster(cl);
   }
@@ -1663,7 +1805,7 @@ const DESKTOP = {
     cottage: [0.13, 0.498, 0.15],
     fences: [[0.2, 0.3, 0.517, 0.03]],
     trees1: [
-      { x: 0.88, s: 0.09, kind: "autumn", leaves: [0.56, 0.09, 0.02, 70], y: 0.555 },
+      { x: 0.92, s: 0.09, kind: "autumn", leaves: [0.56, 0.08, 0.02, 60], y: 0.555 },
       { x: 0.03, s: 0.05, kind: "autumn", leaves: [0.495, 0.04, 0.01, 25], y: 0.49 },
       { x: 0.31, s: 0.022, kind: "turning", y: 0.5 },
       { x: 0.66, s: 0.03, kind: "autumn", leaves: [0.535, 0.04, 0.01, 20], y: 0.53 },
@@ -1688,7 +1830,10 @@ const DESKTOP = {
     ],
     borders: [[0.5, 0.95, 607]],
     // interactive grass (x, ground y, height as a fraction of width, flowers) and leafy sprigs (…, lean)
-    tufts1: [[0.07, 0.6, 0.06, 1], [0.19, 0.6, 0.05, 0], [0.38, 0.63, 0.055, 2], [0.5, 0.67, 0.06, 1], [0.84, 0.655, 0.065, 2], [0.94, 0.66, 0.055, 0], [0.3, 0.75, 0.07, 1], [0.72, 0.74, 0.07, 1], [0.12, 0.9, 0.07, 2], [0.9, 0.92, 0.07, 1]],
+    // decorative only here: windmill [x, ground, height as a fraction of width], fountain [x, ground, width]
+    windmill: [0.795, 0.47, 0.098],
+    fountain: [0.14, 0.632, 0.1],
+    tufts1: [[0.055, 0.605, 0.06, 1], [0.215, 0.6, 0.05, 0], [0.38, 0.63, 0.055, 2], [0.5, 0.67, 0.06, 1], [0.84, 0.655, 0.065, 2], [0.94, 0.66, 0.055, 0], [0.3, 0.75, 0.07, 1], [0.72, 0.74, 0.07, 1], [0.12, 0.9, 0.07, 2], [0.9, 0.92, 0.07, 1]],
     sprigs1: [[0.02, 0.56, 0.085, 1], [0.335, 0.525, 0.06, -1], [0.975, 0.62, 0.08, -1], [0.56, 0.72, 0.07, 1]],
     tufts2: [[0.68, 1.12, 0.06, 1], [0.95, 1.18, 0.055, 0], [0.27, 1.47, 0.06, 2], [0.03, 1.47, 0.055, 0], [0.72, 1.5, 0.06, 1], [0.97, 1.52, 0.06, 2], [0.4, 1.975, 0.065, 1], [0.95, 1.975, 0.06, 1]],
     sprigs2: [[0.86, 1.43, 0.075, -1], [0.45, 1.44, 0.065, 1], [0.08, 1.86, 0.08, 1]],
@@ -1711,7 +1856,7 @@ const DESKTOP = {
     tea: {
       tree: [0.11, 2.6, 0.17],
       table: [0.37, 2.57, 0.16],
-      chairBack: [0.585, 2.63, 0.13],
+      chairBack: [0.47, 2.56, 0.12],
       chairFront: null,
       hedge: [0.66, 1.06, 2.72, 2.9],
       gate: [0.79, 0.92],
@@ -1719,7 +1864,7 @@ const DESKTOP = {
       sign: { x: 0.865, y: 2.43, w: 0.17 },
     },
     clusters3: [
-      { seed: 721, x: 0.37, y: 2.82, rx: 0.2, ry: 0.035, n: 80, size: [12, 20], kinds: ["daisy", "cosmos", "tiny", "spike"], foliage: true, stems: true },
+      { seed: 721, x: 0.37, y: 2.84, rx: 0.2, ry: 0.035, n: 80, size: [12, 20], kinds: ["daisy", "cosmos", "tiny", "spike"], foliage: true, stems: true },
       { seed: 722, x: 0.45, y: 2.16, rx: 0.1, ry: 0.02, n: 40, size: [4, 8], kinds: ["tiny", "daisy"] },
       { seed: 723, x: 0.6, y: 2.4, rx: 0.05, ry: 0.025, n: 30, size: [7, 12], kinds: ["cosmos", "daisy"], foliage: true },
     ],
@@ -1770,7 +1915,6 @@ const MOBILE = {
     fences: [[0.42, 0.56, 0.728, 0.022]],
     trees1: [
       { x: 0.88, s: 0.13, kind: "autumn", leaves: [0.75, 0.12, 0.015, 40], y: 0.745 },
-      { x: 0.6, s: 0.04, kind: "turning", y: 0.63 },
     ],
     shrubs1: [[0.06, 0.725, 0.08, "pink"], [0.47, 0.705, 0.06, "white"], [0.97, 0.79, 0.07, "pink"]],
     dogs: [
@@ -1787,7 +1931,9 @@ const MOBILE = {
       { seed: 706, x: 0.7, y: 0.76, rx: 0.12, ry: 0.015, n: 30, size: [3, 6], kinds: ["tiny"] },
     ],
     borders: [[0.73, 0.95, 607]],
-    tufts1: [[0.06, 0.95, 0.16, 1], [0.18, 0.94, 0.13, 0], [0.86, 0.95, 0.15, 2], [0.96, 0.93, 0.13, 0], [0.72, 0.87, 0.12, 1], [0.2, 0.85, 0.12, 2]],
+    windmill: [0.6, 0.655, 0.152],
+    fountain: [0.15, 0.905, 0.24],
+    tufts1: [[0.86, 0.95, 0.15, 2], [0.96, 0.93, 0.13, 0], [0.72, 0.87, 0.12, 1]],
     sprigs1: [[0.04, 0.77, 0.16, 1], [0.96, 0.82, 0.16, -1]],
     tufts2: [[0.85, 1.47, 0.13, 1], [0.92, 1.86, 0.14, 0], [0.08, 1.86, 0.14, 2], [0.76, 1.12, 0.12, 0], [0.1, 1.43, 0.12, 1]],
     sprigs2: [[0.95, 1.6, 0.16, -1]],

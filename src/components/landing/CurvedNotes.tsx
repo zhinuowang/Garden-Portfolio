@@ -23,10 +23,16 @@ function splitLines(text: string, n: number) {
 /**
  * Scene-2 thoughts written along real hill edges: each line's baseline is the
  * crest line of a painted hill (measured by scripts/paint-landing.mjs), so the
- * words rest in the shaded hollow just above it. As the scene arrives, the
- * notes appear one after another, word by word, tied to scroll position, and
- * are complete when the scene settles. Screen readers get a plain copy;
- * without JavaScript the words are simply shown.
+ * words rest in the shaded hollow just above it.
+ *
+ * Reveal: nothing shows until the visitor scrolls into the scene. As it comes
+ * up the screen, each thought in turn (at 30%, 55% and 80% of the way) is
+ * written in word by word; if they are reached together (a quick scroll, or
+ * the page settling) they still follow one another about 0.8 s apart. Scrolling
+ * back above the scene hides them again so the walk can be repeated. The fade
+ * uses fill-opacity, which every browser applies to individual words in SVG
+ * text (plain opacity on a <tspan> is ignored by some). Screen readers get a
+ * plain copy; without JavaScript the words are simply shown.
  */
 export default function CurvedNotes({ texts, desktop, mobile }: { texts: string[]; desktop: Composition; mobile: Composition }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -35,23 +41,30 @@ export default function CurvedNotes({ texts, desktop, mobile }: { texts: string[
     const root = ref.current;
     const section = root?.closest("section");
     if (!root || !section) return;
-    const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const notes = Array.from(root.querySelectorAll<SVGGElement>("[data-note]")).map((g) => ({
-      g,
-      i: Number(g.dataset.note),
-      words: Array.from(g.querySelectorAll<SVGTSpanElement>("tspan")),
-    }));
+    root.dataset.ready = "true";
+    const notes = Array.from(root.querySelectorAll<SVGGElement>("[data-note]"));
+    const THRESHOLDS = [0.3, 0.55, 0.8];
+    let nextFree = 0; // when the next thought may start, so they never arrive all at once
     const update = () => {
       const vh = window.innerHeight;
-      // 0 while the scene is still low on the screen, 1 once it has settled at the top
-      const q = Math.min(1, Math.max(0, (vh * 0.85 - section.getBoundingClientRect().top) / (vh * 0.85)));
-      for (const { g, i, words } of notes) {
-        const p = Math.min(1, Math.max(0, (q - i * 0.2) / 0.45));
-        const n = words.length;
-        words.forEach((w, j) => {
-          w.style.opacity = String(Math.min(1, Math.max(0, (p * (n + 2.5) - j) / 2.5)));
-        });
-        g.style.transform = still ? "" : `translateY(${((1 - p) * 10).toFixed(1)}px)`;
+      // 0 while the scene is still below the screen, 1 once it has settled at the top
+      const q = Math.min(1, Math.max(0, (vh * 0.9 - section.getBoundingClientRect().top) / (vh * 0.9)));
+      const now = performance.now();
+      for (const g of notes) {
+        const i = Number(g.dataset.note);
+        const shown = g.hasAttribute("data-shown");
+        const visible = g.getBoundingClientRect().width > 0; // the other composition is hidden at this size
+        if (!shown && q >= THRESHOLDS[i] && !visible) {
+          g.setAttribute("data-shown", "");
+        } else if (!shown && q >= THRESHOLDS[i]) {
+          const delay = Math.max(0, nextFree - now);
+          g.style.setProperty("--note-delay", `${delay}ms`);
+          g.setAttribute("data-shown", "");
+          nextFree = now + delay + 800;
+        } else if (shown && q < 0.05) {
+          g.removeAttribute("data-shown");
+          nextFree = 0;
+        }
       }
     };
     update();
@@ -84,13 +97,15 @@ export default function CurvedNotes({ texts, desktop, mobile }: { texts: string[
         {c.phrases.map((ph, i) => {
           const lines = splitLines(texts[i] ?? "", ph.lines.length);
           return (
-            <g key={i} data-note={i} filter={`url(#note-halo-${key})`} style={{ transition: "transform 0.3s ease-out" }}>
+            <g key={i} data-note={i} filter={`url(#note-halo-${key})`} className="curved-note">
               {lines.map((words, l) => (
                 <text key={l} fontSize={f} fontWeight={600} fill="#fcf7ea" letterSpacing={f * 0.01} style={{ fontFamily: "var(--font-caveat), cursive" }}>
                   <textPath href={`#note-${key}-${i}-${l}`} startOffset="50%" textAnchor="middle">
                     {words.map((w, j) => (
                       <Fragment key={j}>
-                        <tspan style={{ transition: "opacity 0.35s ease" }}>{w}</tspan>
+                        <tspan className="note-word" style={{ "--word": j } as React.CSSProperties}>
+                          {w}
+                        </tspan>
                         {j < words.length - 1 ? " " : ""}
                       </Fragment>
                     ))}

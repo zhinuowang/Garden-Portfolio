@@ -51,6 +51,7 @@ const note = "[text-shadow:0_0_14px_rgb(246_242_214/0.85),0_1px_2px_rgb(246_242_
 
 const layers = (scene: number) => (
   <LivingLayer
+    breeze={scene !== 1}
     desktop={(anchors.desktop.sprites as Sprite[]).filter((s) => s.scene === scene)}
     mobile={(anchors.mobile.sprites as Sprite[]).filter((s) => s.scene === scene)}
   />
@@ -68,7 +69,7 @@ export default function LandingScenes() {
         {layers(1)}
         <h1
           id="landing-title"
-          className={`absolute inset-x-0 top-[min(50svh,50%)] -translate-y-1/2 px-6 text-center font-serif text-[clamp(3rem,7.6vw,8rem)] leading-[0.95] font-medium tracking-[-0.01em] text-[#33402f] portrait-art:text-[clamp(2.9rem,14vw,5rem)] ${glow}`}
+          className={`pointer-events-none absolute inset-x-0 top-[min(50svh,50%)] -translate-y-1/2 px-6 text-center font-serif text-[clamp(3rem,7.6vw,8rem)] leading-[0.95] font-medium tracking-[-0.01em] text-[#33402f] portrait-art:text-[clamp(2.9rem,14vw,5rem)] ${glow}`}
         >
           {copy.title}
         </h1>
