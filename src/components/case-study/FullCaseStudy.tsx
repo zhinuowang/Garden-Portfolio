@@ -119,6 +119,27 @@ function Block({ b }: { b: CsBlock }) {
           <Plate image={b.image} sizes="(max-width: 768px) 70vw, 272px" className="mx-auto w-full max-w-[17rem]" imgClass="max-h-60 w-auto object-contain" />
         </div>
       );
+    case "link":
+      return (
+        <p className="mt-6">
+          <a
+            href={b.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex min-h-11 items-center gap-2 rounded-full bg-forest px-5 py-2.5 font-medium text-paper transition-colors hover:bg-moss focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-moss"
+          >
+            {b.label}
+            <span className="sr-only"> (opens in a new tab)</span>
+          </a>
+        </p>
+      );
+    case "placeholder":
+      return (
+        <p className="mt-4 rounded-xl border-2 border-dashed border-moss/35 px-4 py-3 text-[0.95rem] leading-relaxed text-ink-soft italic">
+          <span className="mr-1.5 font-hand text-lg text-moss not-italic">to write —</span>
+          {b.text}
+        </p>
+      );
     case "aside": {
       // a wide chart gets more of the row (and sits straight) so its small print stays legible
       const wide = b.image.width / b.image.height > 1.6;
@@ -161,7 +182,7 @@ export default function FullCaseStudy({ project, data, next }: { project: Projec
             {data.facts.map((f) => (
               <div key={f.label}>
                 <dt className="text-xs font-semibold tracking-[0.16em] text-moss uppercase">{f.label}</dt>
-                <dd className="mt-1 text-ink">{f.value}</dd>
+                <dd className={`mt-1 ${f.pending ? "text-ink-soft/70 italic" : "text-ink"}`}>{f.value}</dd>
               </div>
             ))}
           </dl>

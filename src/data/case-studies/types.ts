@@ -23,6 +23,10 @@ export type CsBlock =
   | { type: "figure"; image: CsImage; caption?: string; size?: "sm" | "md" | "lg" }
   /** a numbered step or feature: optional title, optional lead line, text, image below */
   | { type: "step"; n: number; title?: string; lead?: string; text: string; image: CsImage }
+  /** an external link, e.g. to a live app (opens in a new tab) */
+  | { type: "link"; href: string; label: string }
+  /** a clearly marked gap for the owner to fill in; never invented content */
+  | { type: "placeholder"; text: string }
   /** text with an image beside it on wide screens (the source places them side by side) */
   | { type: "aside"; blocks: CsBlock[]; image: CsImage };
 
@@ -32,6 +36,7 @@ export type FullCaseStudy = {
   /** The PDF this page reproduces. */
   source: string;
   subtitle?: string;
-  facts: { label: string; value: string }[];
+  /** `pending` marks a fact still to be supplied (shown as an editable placeholder). */
+  facts: { label: string; value: string; pending?: boolean }[];
   sections: CsSection[];
 };
