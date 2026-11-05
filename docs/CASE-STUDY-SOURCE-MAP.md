@@ -82,7 +82,8 @@ The two product components keep the PDF's emoji (🥽 VR Glasses, 🪥 Electric 
 | Title, subtitle, Type, Tool, the three Overview paragraphs, live-app link | Zhinuo's brief in chat, 2026-11-05 (verbatim) |
 | `public/assets/projects/little-moments/draw-a-little-idea.png` (1152×1580) | Screenshot supplied in chat, copied byte for byte |
 | Core Experience | Describes only what that screenshot shows (categories, Filters, capsule machine, cat, "Draw a little idea", "Skip the animation") |
-| Time, the Vibe Coding workflow, Reflection | Not yet supplied: shown as "to write" placeholders on the page |
+| Time: 2026.10 | Commit history of the little-moments repository (28 commits, 21–27 October 2026) |
+| The Vibe Coding workflow, Reflection | Not yet supplied: shown as "to write" placeholders on the page |
 
 The suggested sections The Inspiration, The Design Challenge and Product Concept are not separate sections
 yet: their supplied content is the Overview itself, so they can be added once there is more to say.

@@ -67,7 +67,7 @@ export const projects: Project[] = [
     role: null,
     collaboration: null,
     courseContext: null,
-    projectDate: null,
+    projectDate: "Oct 2026",
     tools: ["Claude Code", "ChatGPT"],
     heroImage: {
       src: "/assets/projects/little-moments/draw-a-little-idea.png",
@@ -81,7 +81,6 @@ export const projects: Project[] = [
     caseStudySections: [],
     sourceAssetReferences: ["Overview text, metadata and screenshot supplied by Zhinuo in chat (2026-11-05)", "Live app: https://little-moments-eta.vercel.app/"],
     openQuestions: [
-      "Development timeline (Time) not yet supplied.",
       "Vibe Coding workflow and Reflection: placeholders on the page for Zhinuo to write.",
     ],
   },

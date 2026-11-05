@@ -3,8 +3,9 @@ import type { CsImage, FullCaseStudy } from "./types";
 // Little Moments — a self-initiated Vibe Coding project, built through
 // AI-assisted development with Claude Code and ChatGPT. The Overview is
 // Zhinuo's own text. The Core Experience describes only what her supplied
-// screenshot shows. Anything not yet supplied (the timeline, her workflow,
-// her reflection) is a visible placeholder, never invented.
+// screenshot shows. The Time comes from the little-moments repository's commit
+// history (21–27 October 2026). Anything not yet supplied (her workflow, her
+// reflection) is a visible placeholder, never invented.
 
 const DIR = "/assets/projects/little-moments";
 const img = (file: string, width: number, height: number, alt: string, source: string): CsImage => ({ src: `${DIR}/${file}`, width, height, alt, source });
@@ -22,7 +23,7 @@ export const littleMoments: FullCaseStudy = {
   subtitle: "A playful app for discovering little things to do.",
   facts: [
     { label: "Type", value: "Vibe Coding / Product Design" },
-    { label: "Time", value: "To be added", pending: true },
+    { label: "Time", value: "2026.10" }, // the little-moments repo's commits run 21–27 October 2026
     { label: "Tool", value: "Claude Code, ChatGPT" },
   ],
   sections: [
