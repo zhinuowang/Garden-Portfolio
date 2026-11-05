@@ -1,7 +1,7 @@
 # Landing: three scenes of one tall painting
 
-Checkpoints of earlier Landing versions: `landing-v1-checkpoint` … `landing-v8-checkpoint` (v8 is the version before the
-windmill and fountain, the still Scene 1 grass, the chair behind the table and the sequenced Scene 2 reveal).
+Checkpoints of earlier Landing versions: `landing-v1-checkpoint` … `landing-v9-checkpoint` (v9 is the version before
+the Scene 1 clean-up, the closer fountain, the tidied tabletop and the unobstructed chair).
 
 ## Structure
 
@@ -13,7 +13,7 @@ crossfade. Because the files are slices of one picture, the joins are seamless.
 | --- | --- | --- | --- |
 | 1 · A living garden | Peaceful, lived-in, early autumn | **A Garden of Ideas** only, centred in the first view | Composed for the first view on real screens, which shows only the top ~72% of the scene (1280×690, 1440×790 with browser toolbars): sky behind the title to ~0.42, then the cottage, trees, path and all three dogs above ~0.68, and meadow and flowers below. Below: a cream cottage with a white picket fence, four autumn trees, three small dogs with a ball, shrubs, the path edged with flowers, meadow flowers, fallen leaves, and grass and flowers in both bottom corners |
 | 2 · Thoughts on the hills | Reflective | The three thoughts as cream handwritten SVG text resting on real hill edges: each baseline is a painted hill's crest line, so the words sit in the shaded hollow just above it, with a soft dark halo. Hidden until the visitor scrolls into the scene; then each thought is written in word by word, in turn (at least 0.8 s apart), and they hide again if the visitor scrolls back above the scene | Overlapping rounded hills, the winding path, the pink flowering shrub, the daisy and cosmos clusters (unchanged from the previous version) |
-| 3 · Afternoon tea | Cosy destination | "Come see what I've been growing." at the top right; the hanging wooden sign **Explore My Work** (→ `/work`) | A shade tree turning gold; a round table with a pink gingham cloth, teapot, cups, a cake stand, fruit and a small vase; a cream-painted wooden rocking chair with a gingham cushion; flowers around the table; the path ending at a little garden gate in a hedge, with warm light beyond; the sign's post and arm above the gate |
+| 3 · Afternoon tea | Cosy destination | "Come see what I've been growing." at the top right; the hanging wooden sign **Explore My Work** (→ `/work`) | A shade tree turning gold; a round table with a pink gingham cloth: the cake stand at the back left, the teapot in the middle, the vase of flowers at the back right, and the cups and fruit in front, each painted back to front; a cream-painted wooden rocking chair with a gingham cushion; flowers around the table; the path ending at a little garden gate in a hedge, with warm light beyond; the sign's post and arm above the gate |
 
 Light is consistent throughout: a low sun beyond the hills, light from the upper left, warm rims, cool shadowed feet,
 and soft cast shadows under every object.
@@ -88,9 +88,9 @@ painted into the scene images, so they can move without leaving a copy behind. T
 | --- | --- |
 | Three dogs (body + tail each) and the ball | Hovering over the group (or tapping it) plays one 2.6 s sequence: the tan dog trots toward the white one, the white dog bows and hops, the dark dog hops twice, the tails wag and the ball pops up. It won't restart until the pointer has left |
 | Windmill sails (scene 1) | The Work page's windmill, repainted with the landing brushes, small in the distance to the right of the title. Hovering it makes the sails gather speed to about one turn every 5 s; afterwards they coast to a stop |
-| Fountain water (scene 1) | The Work page's two-tier fountain, repainted, at lower left. Hovering it makes water flow: two brush takes of the falling streams cross-fade and a few drops fall from the bowl. When the pointer leaves, the water fades away over about 1.4 s |
-| Grass clumps and leafy sprigs (scene 2 only; those in scene 1 stay still) | Each is anchored at its root. A passing cursor bends nearby plants the way it travels and pushes them slightly away, by about 9° at a slow 400 px/s and up to 16° fast, fading with distance (a reach of about 170 px). They spring back to rest. Sprigs are softer than grass, so their leaves follow a beat later |
-| Rocking chair (scene 3, desktop) | Stands behind the tea table; the table is its own layer in front of it, and only the part that shows above the table answers the pointer. Seen from the side. Hover or tap: it tilts forward and back about the point where its runners touch the ground (−4°, +3°, −1.9°, +1.1°, −0.45°) and settles in 3 s, without sliding |
+| Fountain water (scene 1) | The Work page's two-tier fountain, repainted, in the left middle ground beside the path (closer and larger than before). Hovering it makes water flow: two brush takes of the falling streams cross-fade and a few drops fall from the bowl. When the pointer leaves, the water fades away over about 1.4 s |
+| Grass clumps and leafy sprigs (scene 2 only; scene 1 has none) | Each is anchored at its root. A passing cursor bends nearby plants the way it travels and pushes them slightly away, by about 9° at a slow 400 px/s and up to 16° fast, fading with distance (a reach of about 170 px). They spring back to rest. Sprigs are softer than grass, so their leaves follow a beat later |
+| Rocking chair (scene 3, desktop) | Stands on the open grass above and behind the tea table, clear of it (the table is its own layer). Seen from the side. Hover or tap: it tilts forward and back about the point where its runners touch the ground (−4°, +3°, −1.9°, +1.1°, −0.45°) and settles in 3 s, without sliding |
 
 With reduced motion, none of these move. Touch: tapping starts the dogs or the chair and stirs nearby grass.
 

@@ -10,8 +10,8 @@ import { useEffect, useRef } from "react";
 // - the three dogs play together once when the cursor enters their group;
 // - the windmill's sails turn while hovered, then slow to a stop;
 // - the fountain's water flows while hovered, then fades away;
-// - the rocking chair (behind the tea table, which is a layer above it) rocks
-//   and settles when the cursor reaches its visible part.
+// - the rocking chair (on the grass behind the tea table) rocks and settles
+//   when the cursor reaches it.
 // Touch: a tap starts any of them and stirs nearby grass.
 // Reduced motion: everything stays still.
 
@@ -259,8 +259,7 @@ export default function LivingLayer({ desktop, mobile, breeze = true }: { deskto
           <div data-rocker className="living-rocker absolute" style={{ ...box(chair), transformOrigin: origin(chair) }}>
             {/* eslint-disable-next-line @next/next/no-img-element -- painted layer */}
             <img src={src(fmt, chair.name)} alt="" draggable={false} className="block h-auto w-full select-none" />
-            {/* only the part that shows above the table answers the pointer */}
-            <span data-rocker-hit className="pointer-events-auto absolute inset-x-[15%] top-0 h-[58%]" />
+            <span data-rocker-hit className="pointer-events-auto absolute inset-x-[12%] top-0 bottom-[4%]" />
           </div>
         )}
         {front.map((s) => (

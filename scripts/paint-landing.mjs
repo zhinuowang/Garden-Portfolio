@@ -892,6 +892,19 @@ function paint(F) {
       const on = (fx, fy) => [cx + fx * R, topY + fy * ry];
       const shadowOn = (x, y, w) => glaze(ctx, x + w * 0.25, y + w * 0.1, w * 0.7, w * 0.18, SHADOW, 0.22);
 
+      // a little vase of flowers, at the back right (painted first: furthest back)
+      {
+        const [x, y] = on(0.62, -0.62);
+        const w = R * 0.12;
+        knife(ctx, r, x - w * 0.4, y, -Math.PI / 2, w * 1.1, w * 0.8, hex("#b9cfd2"));
+        dab(ctx, x - w * 0.15, y - w * 0.6, w * 0.12, w * 0.35, 0, hex("#eaf3f2"), 0.8);
+        for (let i = 0; i < 6; i++) {
+          const a = -Math.PI / 2 + (i - 2.5) * 0.28;
+          const sx = x + Math.cos(a) * w * 1.6, sy = y - w * 1.1 + Math.sin(a) * w * 1.6;
+          stroke(ctx, r, x, y - w * 1.0, a, w * 1.6, w * 0.08, hex("#6f8a5a"), 1, 0);
+          if (i % 2) daisy(sx, sy, w * 0.42, r); else cosmos(sx, sy, w * 0.4, r);
+        }
+      }
       // cake stand with little cakes
       {
         const [x, y] = on(-0.45, -0.15);
@@ -963,19 +976,6 @@ function paint(F) {
           const px = x + (r() - 0.5) * w * 1.6, py = y + w * 0.02 - r() * w * 0.12;
           dab(ctx, px, py, w * 0.14, w * 0.17, 0, hex("#c8423f"), 1);
           dab(ctx, px, py - w * 0.15, w * 0.1, w * 0.04, 0, hex("#6f8a5a"), 1);
-        }
-      }
-      // a little vase of flowers
-      {
-        const [x, y] = on(0.22, -0.55);
-        const w = R * 0.12;
-        knife(ctx, r, x - w * 0.4, y, -Math.PI / 2, w * 1.1, w * 0.8, hex("#b9cfd2"));
-        dab(ctx, x - w * 0.15, y - w * 0.6, w * 0.12, w * 0.35, 0, hex("#eaf3f2"), 0.8);
-        for (let i = 0; i < 6; i++) {
-          const a = -Math.PI / 2 + (i - 2.5) * 0.28;
-          const sx = x + Math.cos(a) * w * 1.6, sy = y - w * 1.1 + Math.sin(a) * w * 1.6;
-          stroke(ctx, r, x, y - w * 1.0, a, w * 1.6, w * 0.08, hex("#6f8a5a"), 1, 0);
-          if (i % 2) daisy(sx, sy, w * 0.42, r); else cosmos(sx, sy, w * 0.4, r);
         }
       }
     });
@@ -1824,17 +1824,15 @@ const DESKTOP = {
       { seed: 703, x: 0.9, y: 0.82, rx: 0.1, ry: 0.035, n: 60, size: [9, 16], kinds: ["daisy", "daisy", "tiny", "cosmos"], foliage: true, stems: true },
       { seed: 704, x: 0.45, y: 0.58, rx: 0.1, ry: 0.012, n: 50, size: [2.5, 4.5], kinds: ["tiny"] },
       { seed: 705, x: 0.86, y: 0.69, rx: 0.08, ry: 0.015, n: 40, size: [3, 6], kinds: ["tiny", "daisy"] },
-      { seed: 706, x: 0.3, y: 0.68, rx: 0.1, ry: 0.03, n: 45, size: [6, 11], kinds: ["cosmos", "daisy", "tiny"], foliage: true },
+      { seed: 706, x: 0.17, y: 0.74, rx: 0.1, ry: 0.03, n: 45, size: [6, 11], kinds: ["cosmos", "daisy", "tiny"], foliage: true },
       { seed: 707, x: 0.62, y: 0.86, rx: 0.12, ry: 0.035, n: 55, size: [9, 15], kinds: ["daisy", "cosmos", "tiny"], foliage: true, stems: true },
       { seed: 708, x: 0.1, y: 0.62, rx: 0.06, ry: 0.012, n: 30, size: [3, 5], kinds: ["tiny"] },
     ],
     borders: [[0.5, 0.95, 607]],
-    // interactive grass (x, ground y, height as a fraction of width, flowers) and leafy sprigs (…, lean)
     // decorative only here: windmill [x, ground, height as a fraction of width], fountain [x, ground, width]
     windmill: [0.795, 0.47, 0.098],
-    fountain: [0.14, 0.632, 0.1],
-    tufts1: [[0.055, 0.605, 0.06, 1], [0.215, 0.6, 0.05, 0], [0.38, 0.63, 0.055, 2], [0.5, 0.67, 0.06, 1], [0.84, 0.655, 0.065, 2], [0.94, 0.66, 0.055, 0], [0.3, 0.75, 0.07, 1], [0.72, 0.74, 0.07, 1], [0.12, 0.9, 0.07, 2], [0.9, 0.92, 0.07, 1]],
-    sprigs1: [[0.02, 0.56, 0.085, 1], [0.335, 0.525, 0.06, -1], [0.975, 0.62, 0.08, -1], [0.56, 0.72, 0.07, 1]],
+    fountain: [0.3, 0.665, 0.14],
+    // scene 2's interactive grass (x, ground y, height as a fraction of width, flowers) and leafy sprigs (…, lean)
     tufts2: [[0.68, 1.12, 0.06, 1], [0.95, 1.18, 0.055, 0], [0.27, 1.47, 0.06, 2], [0.03, 1.47, 0.055, 0], [0.72, 1.5, 0.06, 1], [0.97, 1.52, 0.06, 2], [0.4, 1.975, 0.065, 1], [0.95, 1.975, 0.06, 1]],
     sprigs2: [[0.86, 1.43, 0.075, -1], [0.45, 1.44, 0.065, 1], [0.08, 1.86, 0.08, 1]],
     shrub: [0.84, 0.075],
@@ -1856,7 +1854,7 @@ const DESKTOP = {
     tea: {
       tree: [0.11, 2.6, 0.17],
       table: [0.37, 2.57, 0.16],
-      chairBack: [0.47, 2.56, 0.12],
+      chairBack: [0.5, 2.385, 0.11],
       chairFront: null,
       hedge: [0.66, 1.06, 2.72, 2.9],
       gate: [0.79, 0.92],
@@ -1866,7 +1864,7 @@ const DESKTOP = {
     clusters3: [
       { seed: 721, x: 0.37, y: 2.84, rx: 0.2, ry: 0.035, n: 80, size: [12, 20], kinds: ["daisy", "cosmos", "tiny", "spike"], foliage: true, stems: true },
       { seed: 722, x: 0.45, y: 2.16, rx: 0.1, ry: 0.02, n: 40, size: [4, 8], kinds: ["tiny", "daisy"] },
-      { seed: 723, x: 0.6, y: 2.4, rx: 0.05, ry: 0.025, n: 30, size: [7, 12], kinds: ["cosmos", "daisy"], foliage: true },
+      { seed: 723, x: 0.64, y: 2.47, rx: 0.05, ry: 0.025, n: 30, size: [7, 12], kinds: ["cosmos", "daisy"], foliage: true },
     ],
     foreground: [[-0.02, 0.2, 2.86, 220, 801]],
     clustersFront: [
@@ -1932,9 +1930,7 @@ const MOBILE = {
     ],
     borders: [[0.73, 0.95, 607]],
     windmill: [0.6, 0.655, 0.152],
-    fountain: [0.15, 0.905, 0.24],
-    tufts1: [[0.86, 0.95, 0.15, 2], [0.96, 0.93, 0.13, 0], [0.72, 0.87, 0.12, 1]],
-    sprigs1: [[0.04, 0.77, 0.16, 1], [0.96, 0.82, 0.16, -1]],
+    fountain: [0.12, 0.85, 0.25],
     tufts2: [[0.85, 1.47, 0.13, 1], [0.92, 1.86, 0.14, 0], [0.08, 1.86, 0.14, 2], [0.76, 1.12, 0.12, 0], [0.1, 1.43, 0.12, 1]],
     sprigs2: [[0.95, 1.6, 0.16, -1]],
     shrub: [0.86, 0.15],
