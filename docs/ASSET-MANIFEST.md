@@ -10,7 +10,7 @@ contain files Zhinuo supplied. Source paths are relative to `~/Desktop/Portofoli
 | `public/assets/projects/nomi-pudding/cover.jpg` | `Page 1.png` (1920×1080) | Resized to 1600 wide, JPEG; ratio kept | Preview, Work, case study |
 | `public/assets/projects/dog-nutrition/cover.jpg` | `软件封面.JPG` (3800×2800) | Resized to 1600 wide, JPEG; ratio kept | Selected Work, preview, Work, case study |
 | `public/assets/projects/eliminate-bacteria-pro/cover.jpg` | `COVER PAGE.png` (970×600, English version) | PNG→JPEG, original size | Preview, Work, case study |
-| `public/assets/projects/eliminate-bacteria-pro/*.png` (25 files) | Original files from `Desktop/Portofolio` and images embedded in the Y1 portfolio PDF | Copied unchanged, except `interaction-mechanism.png` (lower part of `5.png`, cropped as on deck page 41) and `key-design-value.png` (vector art rendered at 3×). Full map: `docs/EBP-SOURCE-MAP.md` | Case study |
+| `public/assets/projects/eliminate-bacteria-pro/*.png`, `public/assets/projects/dog-nutrition/*.png` | Original files from `Desktop/Portofolio`, matched to the case-study PDFs | Copied unchanged. Full map: `docs/CASE-STUDY-SOURCE-MAP.md` | Case studies |
 | `public/assets/projects/dyson-brochure/cover.jpg` | `Dyson cover.png` (1920×1080) | Resized to 1600 wide, JPEG; ratio kept. The play button is part of the original export. | Preview, Work, case study |
 | `public/assets/about/portrait.jpg` | `Photo.jpg` (960×1282) | PNG→JPEG re-encode, original size | About |
 | `public/assets/projects/little-moments/` | *none yet* | n/a | Placeholder shown |

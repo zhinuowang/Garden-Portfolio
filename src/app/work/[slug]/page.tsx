@@ -6,11 +6,17 @@ import { AssetPlaceholder } from "@/components/ProjectMedia";
 import ProjectMedia from "@/components/ProjectMedia";
 import MarkVisited from "@/components/MarkVisited";
 import FullCaseStudy from "@/components/case-study/FullCaseStudy";
-import { fullCaseStudies } from "@/data/case-studies/eliminate-bacteria-pro";
+import { fullCaseStudies } from "@/data/case-studies";
 import { getProject, nextProject, projects } from "@/data/projects";
 
 export function generateStaticParams() {
   return projects.map((p) => ({ slug: p.slug }));
+}
+
+/** For a full case study, the first sentence of its own Overview. */
+function overviewSentence(slug: string) {
+  const first = JSON.stringify(fullCaseStudies[slug]?.sections[0]?.blocks ?? []).match(/"text":"([^"]+?\.)\s/);
+  return first?.[1];
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -18,7 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!project) return {};
   return {
     title: `${project.title} | A Garden of Ideas — Zhinuo Wang`,
-    description: project.shortDescription ?? `${project.title}, a project by Zhinuo Wang.`,
+    description: overviewSentence(project.slug) ?? project.shortDescription ?? `${project.title}, a project by Zhinuo Wang.`,
   };
 }
 
@@ -36,6 +42,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
   if (!project) notFound();
   const next = nextProject(project.slug);
   const full = fullCaseStudies[project.slug];
+  if (full) return <FullCaseStudy project={project} data={full} next={next} />;
 
   return (
     <article className="px-4 pt-28 pb-20 sm:px-6">
@@ -68,15 +75,11 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
           </div>
         </dl>
 
-        {full ? (
-          <p className="mt-10 font-serif text-2xl leading-snug text-ink">{full.subtitle}</p>
-        ) : (
-          project.shortDescription && <p className="mt-10 font-serif text-2xl leading-snug text-ink">{project.shortDescription}</p>
+        {project.shortDescription && (
+          <p className="mt-10 font-serif text-2xl leading-snug text-ink">{project.shortDescription}</p>
         )}
 
-        {full && <FullCaseStudy data={full} />}
-
-        {!full && project.caseStudySections.map((s) => (
+        {project.caseStudySections.map((s) => (
           <section key={s.id} aria-labelledby={`s-${s.id}`} className="mt-12">
             <h2 id={`s-${s.id}`} className="font-serif text-3xl font-medium">{s.heading}</h2>
             {s.body.map((p) => (
@@ -90,7 +93,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
           </section>
         ))}
 
-        {!full && <section aria-label="Case study in progress" className="mt-14 rounded-3xl border border-forest/15 p-6">
+        <section aria-label="Case study in progress" className="mt-14 rounded-3xl border border-forest/15 p-6">
           <p className="font-medium text-ink">The full case study is still being planted.</p>
           <p className="mt-1 text-ink-soft">
             Process images and the remaining sections will be added from the original project files.
@@ -99,7 +102,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
             <AssetPlaceholder />
             <AssetPlaceholder />
           </div>
-        </section>}
+        </section>
 
         <nav aria-label="More projects" className="mt-16 flex flex-wrap items-center justify-between gap-4 border-t border-forest/15 pt-8">
           <Link href="/work" className="inline-flex min-h-11 items-center font-medium text-forest underline-offset-4 hover:underline">

@@ -136,51 +136,9 @@ export const projects: Project[] = [
       source: "Desktop/Portofolio/软件封面.JPG",
     },
     gallery: [],
-    caseStudySections: [
-      {
-        id: "overview",
-        heading: "Overview",
-        body: [
-          "Dog owners often lack a systematic way to manage daily feeding. Most apps stop at simple logging and overlook treat calories, portion accuracy and coordination between caregivers — which leads to double-feeding and unbalanced nutrition.",
-          "For multi-caregiver households, owners who train with frequent treats, and owners unsure about portion sizes, the project proposes a mobile app built around visual nutrition progress and shared, synchronised records.",
-        ],
-      },
-      {
-        id: "research",
-        heading: "Research",
-        body: [
-          "Secondary research into existing pet-feeding apps and academic work found that most products only support basic event logging. Treats are often given as emotional rewards, making them an easily overlooked source of “hidden calories”.",
-          "Interviews with dog owners surfaced clear behavioural patterns:",
-        ],
-        bullets: [
-          "Treats often go unrecorded.",
-          "Feeding decisions rely on intuition rather than structure.",
-          "Shared care easily leads to double-feeding.",
-          "Many new owners are unsure what a reasonable portion is.",
-        ],
-      },
-      {
-        id: "testing",
-        heading: "Testing and iteration",
-        body: [
-          "Round one ran in class. Participants were unsure where to start on the Tracking page, couldn't interpret the progress bars, and asked how to set a feeding goal. The team simplified Tracking, clarified Progress, added a dedicated Set Goal page and removed Reminders to reduce complexity.",
-          "Round two ran remotely over Microsoft Teams with dog owners outside the class. Most struggled to find Tracking quickly, and some didn't notice their entry had been saved, so they logged it twice. Most did read the progress changes correctly.",
-        ],
-      },
-      {
-        id: "final",
-        heading: "Final design",
-        body: [
-          "In the individual phase, the final screens respond directly to round two: a prominent Tracking shortcut on the Dashboard, a success toast after logging, and the two circular indicators rebuilt as one donut chart showing the meal-to-treat balance at a glance.",
-        ],
-      },
-    ],
-    sourceAssetReferences: [
-      "Desktop/Portofolio/软件封面.JPG",
-      "Desktop/Portofolio/个人作品集.pdf (page 4)",
-      "Desktop/Portofolio/Nora Wang - 狗狗营养追踪App - 软件设计.pdf",
-      "Desktop/Resume.pdf (project experience)",
-    ],
+    // The page is the full case study in src/data/case-studies/ (from the PDF below).
+    caseStudySections: [],
+    sourceAssetReferences: ["Desktop/Wang Nora - Dog Nutrition Tracking App.pdf (the case study source)", "Desktop/Portofolio (original image files)"],
     openQuestions: ["Team size.", "Should the app's name, FEEDO (from the resume), appear on the site?"],
   },
   {
@@ -207,35 +165,9 @@ export const projects: Project[] = [
       source: "Desktop/Portofolio/COVER PAGE.png",
     },
     gallery: [],
-    caseStudySections: [
-      {
-        id: "overview",
-        heading: "Overview",
-        body: [
-          "The concept combines VR with an electric toothbrush to make brushing both fun and thorough. Wearing VR glasses, a child sees a real-time image of their teeth with small grey patterns every 4 mm; holding the brush on a pattern for 3 seconds turns it green — like defeating little monsters — so no area gets missed.",
-        ],
-      },
-      {
-        id: "how-it-works",
-        heading: "How it works",
-        body: ["The product has two parts — VR glasses and an electric toothbrush with a built-in camera in the brush head."],
-        bullets: [
-          "Grey “bacteria” appear every 4 mm on the teeth image.",
-          "Holding the brush on a pattern for 3 seconds cleans it.",
-          "The pattern turns from grey to green, with a bubble sound from speakers in the glasses' arms.",
-          "Pattern styles can be changed so the experience stays fresh.",
-          "Anti-slip bumps on the handle and contactless inductive charging.",
-        ],
-      },
-    ],
-    // The page body is the full case study in src/data/case-studies/eliminate-bacteria-pro.ts
-    // (from the English deck); caseStudySections below are no longer shown for this project.
-    sourceAssetReferences: [
-      "Desktop/Portofolio/[wang2764].Y1-portfolio.[zhinuo].[wang].pdf (pages 36–63, the English case study)",
-      "Desktop/Portofolio/COVER PAGE.png",
-      "Desktop/Portofolio/个人作品集.pdf (page 5)",
-      "Desktop/Portofolio/Nora Wang - Eliminate Bacteria Pro - 产品设计.pdf",
-    ],
+    // The page is the full case study in src/data/case-studies/ (from the PDF below).
+    caseStudySections: [],
+    sourceAssetReferences: ["Desktop/Wang Nora - Eliminate Bacteria Pro.pdf (the case study source)", "Desktop/Portofolio (original image files)"],
     openQuestions: [
       "Individual or team work? The resume says you collaborated on brand development.",
       "The 3D toothbrush render: confirm how it was produced so it can be credited correctly.",
