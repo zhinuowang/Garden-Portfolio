@@ -1,0 +1,518 @@
+{
+  "desktop": {
+    "start": [
+      0.6,
+      0.9
+    ],
+    "girl": {
+      "w": 0.081,
+      "h": 0.1728,
+      "feet": [
+        0.5,
+        0.9444
+      ]
+    },
+    "landmarks": [
+      {
+        "slug": "eliminate-bacteria-pro",
+        "kind": "fountain",
+        "hit": [
+          0.1182,
+          0.5473,
+          0.1636,
+          0.2747
+        ],
+        "label": [
+          0.2,
+          0.82
+        ],
+        "stand": [
+          0.32,
+          0.8
+        ],
+        "face": -1,
+        "layers": [
+          "work-fountain",
+          "work-fountain-water-a",
+          "work-fountain-water-b"
+        ]
+      },
+      {
+        "slug": "dog-nutrition-tracker",
+        "kind": "doghouse",
+        "hit": [
+          0.3175,
+          0.38,
+          0.2925,
+          0.2613
+        ],
+        "label": [
+          0.46,
+          0.66
+        ],
+        "stand": [
+          0.585,
+          0.7
+        ],
+        "face": -1,
+        "layers": [
+          "work-doghouse",
+          "work-puppy-tail",
+          "work-puppy"
+        ]
+      },
+      {
+        "slug": "little-moments",
+        "kind": "windmill",
+        "hit": [
+          0.7354,
+          0.2611,
+          0.1291,
+          0.3889
+        ],
+        "label": [
+          0.8,
+          0.68
+        ],
+        "stand": [
+          0.71,
+          0.705
+        ],
+        "face": 1,
+        "layers": [
+          "work-windmill",
+          "work-sails"
+        ]
+      }
+    ],
+    "sprites": [
+      {
+        "name": "work-fountain",
+        "scene": 1,
+        "kind": "landmark",
+        "x": 0.1,
+        "y": 0.48263,
+        "w": 0.2,
+        "h": 0.32323,
+        "pivot": [
+          0.5,
+          0.5
+        ]
+      },
+      {
+        "name": "work-fountain-water-a",
+        "scene": 1,
+        "kind": "water-a",
+        "x": 0.1,
+        "y": 0.48263,
+        "w": 0.2,
+        "h": 0.32323,
+        "pivot": [
+          0.5,
+          0.5
+        ]
+      },
+      {
+        "name": "work-fountain-water-b",
+        "scene": 1,
+        "kind": "water-b",
+        "x": 0.1,
+        "y": 0.48263,
+        "w": 0.2,
+        "h": 0.32323,
+        "pivot": [
+          0.5,
+          0.5
+        ]
+      },
+      {
+        "name": "work-doghouse",
+        "scene": 1,
+        "kind": "landmark",
+        "x": 0.3175,
+        "y": 0.35333,
+        "w": 0.2925,
+        "h": 0.288,
+        "pivot": [
+          0.5,
+          0.95
+        ]
+      },
+      {
+        "name": "work-puppy-tail",
+        "scene": 1,
+        "kind": "puppy-tail",
+        "x": 0.495,
+        "y": 0.543,
+        "w": 0.09,
+        "h": 0.12053,
+        "pivot": [
+          0.66,
+          0.8761
+        ]
+      },
+      {
+        "name": "work-puppy",
+        "scene": 1,
+        "kind": "puppy",
+        "x": 0.495,
+        "y": 0.543,
+        "w": 0.09,
+        "h": 0.12053,
+        "pivot": [
+          0.5,
+          0.9292
+        ]
+      },
+      {
+        "name": "work-windmill",
+        "scene": 1,
+        "kind": "landmark",
+        "x": 0.76234,
+        "y": 0.33123,
+        "w": 0.07531,
+        "h": 0.33152,
+        "pivot": [
+          0.5,
+          1
+        ]
+      },
+      {
+        "name": "work-sails",
+        "scene": 1,
+        "kind": "sails",
+        "x": 0.71931,
+        "y": 0.23241,
+        "w": 0.16138,
+        "h": 0.2869,
+        "pivot": [
+          0.5,
+          0.5
+        ]
+      },
+      {
+        "name": "work-girl-idle",
+        "scene": 1,
+        "kind": "girl",
+        "x": 0.4595,
+        "y": 0.3368,
+        "w": 0.081,
+        "h": 0.1728,
+        "pivot": [
+          0.5,
+          0.9444
+        ]
+      },
+      {
+        "name": "work-girl-walk-a",
+        "scene": 1,
+        "kind": "girl",
+        "x": 0.4595,
+        "y": 0.3368,
+        "w": 0.081,
+        "h": 0.1728,
+        "pivot": [
+          0.5,
+          0.9444
+        ]
+      },
+      {
+        "name": "work-girl-walk-b",
+        "scene": 1,
+        "kind": "girl",
+        "x": 0.4595,
+        "y": 0.3368,
+        "w": 0.081,
+        "h": 0.1728,
+        "pivot": [
+          0.5,
+          0.9444
+        ]
+      },
+      {
+        "name": "work-girl-reach",
+        "scene": 1,
+        "kind": "girl",
+        "x": 0.4595,
+        "y": 0.3368,
+        "w": 0.081,
+        "h": 0.1728,
+        "pivot": [
+          0.5,
+          0.9444
+        ]
+      },
+      {
+        "name": "work-girl-kneel",
+        "scene": 1,
+        "kind": "girl",
+        "x": 0.4595,
+        "y": 0.3368,
+        "w": 0.081,
+        "h": 0.1728,
+        "pivot": [
+          0.5,
+          0.9444
+        ]
+      }
+    ]
+  },
+  "mobile": {
+    "start": [
+      0.4,
+      0.94
+    ],
+    "girl": {
+      "w": 0.16,
+      "h": 0.108,
+      "feet": [
+        0.5,
+        0.9444
+      ]
+    },
+    "landmarks": [
+      {
+        "slug": "eliminate-bacteria-pro",
+        "kind": "fountain",
+        "hit": [
+          0.1,
+          0.478,
+          0.36,
+          0.1913
+        ],
+        "label": [
+          0.28,
+          0.66
+        ],
+        "stand": [
+          0.5,
+          0.69
+        ],
+        "face": -1,
+        "layers": [
+          "work-fountain",
+          "work-fountain-water-a",
+          "work-fountain-water-b"
+        ]
+      },
+      {
+        "slug": "dog-nutrition-tracker",
+        "kind": "doghouse",
+        "hit": [
+          0.395,
+          0.6481,
+          0.585,
+          0.1654
+        ],
+        "label": [
+          0.62,
+          0.82
+        ],
+        "stand": [
+          0.24,
+          0.875
+        ],
+        "face": 1,
+        "layers": [
+          "work-doghouse",
+          "work-puppy-tail",
+          "work-puppy"
+        ]
+      },
+      {
+        "slug": "little-moments",
+        "kind": "windmill",
+        "hit": [
+          0.5908,
+          0.2318,
+          0.2185,
+          0.2082
+        ],
+        "label": [
+          0.7,
+          0.465
+        ],
+        "stand": [
+          0.55,
+          0.5
+        ],
+        "face": 1,
+        "layers": [
+          "work-windmill",
+          "work-sails"
+        ]
+      }
+    ],
+    "sprites": [
+      {
+        "name": "work-fountain",
+        "scene": 1,
+        "kind": "landmark",
+        "x": 0.06,
+        "y": 0.433,
+        "w": 0.44,
+        "h": 0.225,
+        "pivot": [
+          0.5,
+          0.5
+        ]
+      },
+      {
+        "name": "work-fountain-water-a",
+        "scene": 1,
+        "kind": "water-a",
+        "x": 0.06,
+        "y": 0.433,
+        "w": 0.44,
+        "h": 0.225,
+        "pivot": [
+          0.5,
+          0.5
+        ]
+      },
+      {
+        "name": "work-fountain-water-b",
+        "scene": 1,
+        "kind": "water-b",
+        "x": 0.06,
+        "y": 0.433,
+        "w": 0.44,
+        "h": 0.225,
+        "pivot": [
+          0.5,
+          0.5
+        ]
+      },
+      {
+        "name": "work-doghouse",
+        "scene": 1,
+        "kind": "landmark",
+        "x": 0.395,
+        "y": 0.63125,
+        "w": 0.585,
+        "h": 0.18225,
+        "pivot": [
+          0.5,
+          0.95
+        ]
+      },
+      {
+        "name": "work-puppy-tail",
+        "scene": 1,
+        "kind": "puppy-tail",
+        "x": 0.2425,
+        "y": 0.73822,
+        "w": 0.195,
+        "h": 0.08263,
+        "pivot": [
+          0.66,
+          0.8761
+        ]
+      },
+      {
+        "name": "work-puppy",
+        "scene": 1,
+        "kind": "puppy",
+        "x": 0.2425,
+        "y": 0.73822,
+        "w": 0.195,
+        "h": 0.08263,
+        "pivot": [
+          0.5,
+          0.9292
+        ]
+      },
+      {
+        "name": "work-windmill",
+        "scene": 1,
+        "kind": "landmark",
+        "x": 0.63628,
+        "y": 0.26931,
+        "w": 0.12745,
+        "h": 0.17752,
+        "pivot": [
+          0.5,
+          1
+        ]
+      },
+      {
+        "name": "work-sails",
+        "scene": 1,
+        "kind": "sails",
+        "x": 0.56345,
+        "y": 0.2164,
+        "w": 0.2731,
+        "h": 0.15362,
+        "pivot": [
+          0.5,
+          0.5
+        ]
+      },
+      {
+        "name": "work-girl-idle",
+        "scene": 1,
+        "kind": "girl",
+        "x": 0.42,
+        "y": 0.398,
+        "w": 0.16,
+        "h": 0.108,
+        "pivot": [
+          0.5,
+          0.9444
+        ]
+      },
+      {
+        "name": "work-girl-walk-a",
+        "scene": 1,
+        "kind": "girl",
+        "x": 0.42,
+        "y": 0.398,
+        "w": 0.16,
+        "h": 0.108,
+        "pivot": [
+          0.5,
+          0.9444
+        ]
+      },
+      {
+        "name": "work-girl-walk-b",
+        "scene": 1,
+        "kind": "girl",
+        "x": 0.42,
+        "y": 0.398,
+        "w": 0.16,
+        "h": 0.108,
+        "pivot": [
+          0.5,
+          0.9444
+        ]
+      },
+      {
+        "name": "work-girl-reach",
+        "scene": 1,
+        "kind": "girl",
+        "x": 0.42,
+        "y": 0.398,
+        "w": 0.16,
+        "h": 0.108,
+        "pivot": [
+          0.5,
+          0.9444
+        ]
+      },
+      {
+        "name": "work-girl-kneel",
+        "scene": 1,
+        "kind": "girl",
+        "x": 0.42,
+        "y": 0.398,
+        "w": 0.16,
+        "h": 0.108,
+        "pivot": [
+          0.5,
+          0.9444
+        ]
+      }
+    ]
+  }
+}

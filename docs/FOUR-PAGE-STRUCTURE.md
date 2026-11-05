@@ -8,7 +8,7 @@ Checkpoint before the change: git tag `phase-2-checkpoint`.
 | --- | --- | --- |
 | `/` | Landing | Three scenes of one painted garden: the title, three thoughts on the hills, and afternoon tea with the Explore My Work sign |
 | `/about` | About | Botanical-journal page: intro, education, experience and skills from the resume, plus Download Resume |
-| `/work` | Work | The interactive two-region garden with five project objects, and a plain list below it |
+| `/work` | Work | One compact painted garden with three project landmarks and a small guide, plus a plain list below it |
 | `/contact` | Contact | Garden mailbox scene with a visible email link; the envelope reveals a note |
 | `/work/[slug]` | Case study ×5 | Secondary detail pages, with Back to Work and Next Project |
 
@@ -33,10 +33,15 @@ Removed (all recoverable from the tag): the homepage sections `GardenGate`, `Gar
   `landing-v1-checkpoint` to `landing-v4-checkpoint`. The composition and art spec are in `docs/LANDING-ART-SPEC.md`.
 - **About.** A cream paper page with radial light, a taped polaroid portrait, pressed-flower ornaments, dashed
   journal headings with handwritten side notes, a dotted timeline for experience, and skills grouped as tags.
-- **Work.** The two-region panorama, now painted with oil-style brush strokes: a warmer olive and peach palette on
-  the left, cooler sage on the right. Each of the five objects has a handwritten Caveat label; on hover or focus the
-  label tilts and an underline draws in. Previews open as a taped paper note. On mobile the garden becomes two
-  stacked region panels with large buttons. Back to Work restores the region and focuses the last project.
+- **Work.** One compact painted garden that fits the screen (16:9 on desktop, 9:16 on phones), showing only three
+  projects: Eliminate Bacteria Pro at the fountain and Dog Nutrition Tracker at the dog house (both labelled
+  Academic), and Little Moments at the windmill (Personal). An intro in the sky says "Click a landmark and I'll walk
+  you there." Landmarks glow in turn, and lift with a bobbing cue on hover or focus. On click, a small painted girl
+  walks over, then kneels to the puppy (it wiggles, a heart floats up), touches the fountain (water and bubbles),
+  or touches the windmill (the sails spin). A paper wipe then grows from that landmark into the project page.
+  Landmarks are real links: Enter works, and with reduced motion they open at once. Next Project cycles through the
+  three. Nomi & Pudding and the Dyson brochure keep their case-study pages but are no longer linked from Work.
+  Code: `src/components/work/WorkGarden.tsx`; art: `node scripts/paint-landing.mjs --work`.
 - **Contact.** A pink sky over painted hills and wildflowers. The email link is always visible. Opening the envelope
   raises the flag on a vine-wrapped garden mailbox and slides out a note.
 

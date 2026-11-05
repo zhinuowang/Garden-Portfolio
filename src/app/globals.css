@@ -250,9 +250,163 @@ body {
   50% { transform: translateY(6px); opacity: 1; }
 }
 
+/* ---------- Work: the compact project garden ---------- */
+.work-page::before {
+  content: "";
+  position: absolute;
+  inset: -40px;
+  background: url("/assets/garden/work/garden-desktop-1600.webp") center / cover;
+  filter: blur(36px) saturate(0.9);
+  opacity: 0.55;
+}
+.work-stage {
+  width: min(100%, calc((100svh - 5rem) * var(--ratio)));
+  border-radius: 1.25rem;
+  box-shadow: 0 30px 60px -40px rgb(40 50 35 / 0.6);
+  transition: transform 0.8s ease-in, filter 0.8s ease-in;
+}
+.work-stage--leaving { transform: scale(1.08); filter: brightness(1.04); }
+@media (max-aspect-ratio: 3/4) { .work-stage { border-radius: 0; } }
+.work-layer { transition: filter 0.35s ease, transform 0.35s ease, opacity 0.9s ease; }
+.work-landmark:is([data-state="hover"], [data-state="active"]) .work-layer {
+  filter: brightness(1.07) drop-shadow(0 0 12px rgb(255 240 200 / 0.9));
+}
+.work-landmark:is([data-state="hover"], [data-state="active"]) .work-layer--landmark { transform: translateY(-1.5%); }
+.work-hit { border-radius: 1.5rem; cursor: pointer; }
+.work-hit:focus-visible { outline: 3px solid #fbf3e4; outline-offset: 4px; }
+/* a soft pool of light that comes and goes under each landmark, in turn, so they are easy to spot */
+.work-glow {
+  aspect-ratio: 4 / 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(255 244 210 / 0.95), rgb(255 244 210 / 0));
+  opacity: 0;
+  animation: work-glow 6s ease-in-out infinite;
+  animation-delay: calc(var(--i) * 2s);
+}
+.work-landmark:is([data-state="hover"], [data-state="active"]) .work-glow { animation: none; opacity: 0.95; }
+@keyframes work-glow {
+  0%, 62%, 100% { opacity: 0; }
+  78% { opacity: 0.85; }
+}
+/* the bobbing "you can click this" cue */
+.work-cue {
+  width: clamp(14px, 1.4vw, 22px);
+  aspect-ratio: 20 / 14;
+  transform: translate(-50%, -100%);
+  color: #fbf3e4;
+  filter: drop-shadow(0 2px 3px rgb(40 50 35 / 0.55));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.work-landmark[data-state="hover"] .work-cue { opacity: 1; animation: work-cue 1s ease-in-out infinite; }
+@keyframes work-cue {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -30%; }
+}
+/* labels: the project's name in handwriting, and whether it is academic or personal */
+.work-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  transform: translate(-50%, 0);
+  transition: transform 0.3s ease;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.work-landmark:is([data-state="hover"], [data-state="active"]) .work-label { transform: translate(-50%, 0) scale(1.1); }
+.work-label__title {
+  font-family: var(--font-caveat), "Segoe Print", cursive;
+  font-weight: 700;
+  font-size: clamp(1.15rem, 1.8vw, 1.8rem);
+  line-height: 1;
+  color: #2a3624;
+  text-shadow: 0 0 10px rgb(251 247 238 / 0.95), 0 1px 2px rgb(251 247 238 / 0.9);
+}
+.work-label__badge {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: clamp(0.6rem, 0.75vw, 0.74rem);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: rgb(251 247 238 / 0.9);
+  box-shadow: 0 2px 8px -4px rgb(40 50 35 / 0.5);
+}
+.work-label__badge--academic { color: var(--color-moss); }
+.work-label__badge--personal { color: var(--color-rose); }
+/* the guide: one pose visible at a time, a little bob while she walks */
+.work-girl img { opacity: 0; }
+.work-girl[data-pose="idle"] img[data-for="idle"],
+.work-girl[data-pose="walk-a"] img[data-for="walk-a"],
+.work-girl[data-pose="walk-b"] img[data-for="walk-b"],
+.work-girl[data-pose="reach"] img[data-for="reach"],
+.work-girl[data-pose="kneel"] img[data-for="kneel"] { opacity: 1; }
+.work-girl--walking .work-girl__body { animation: work-bob 0.32s ease-in-out infinite alternate; }
+@keyframes work-bob { from { translate: 0 0; } to { translate: 0 -3%; } }
+/* the moments when she arrives */
+.work-layer--water-a, .work-layer--water-b { opacity: 0; }
+.work-landmark[data-kind="fountain"][data-state="hover"] .work-layer--water-a { opacity: 0.45; }
+.work-stage[data-moment="fountain"] .work-layer--water-a { opacity: 0.95; animation: water-take 0.9s ease-in-out infinite alternate; }
+.work-stage[data-moment="fountain"] .work-layer--water-b { opacity: 0.9; animation: water-take 0.9s ease-in-out -0.45s infinite alternate-reverse; }
+.work-bubble {
+  width: clamp(6px, 0.8vw, 13px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1.5px solid rgb(255 255 255 / 0.85);
+  background: radial-gradient(circle at 35% 30%, rgb(255 255 255 / 0.9), rgb(207 234 238 / 0.25) 60%, rgb(207 234 238 / 0));
+  opacity: 0;
+}
+.work-stage[data-moment="fountain"] .work-bubble { animation: work-bubble 1.2s ease-out infinite; }
+@keyframes work-bubble {
+  0% { transform: translateY(0) scale(0.6); opacity: 0; }
+  25% { opacity: 0.95; }
+  100% { transform: translateY(-260%) scale(1.15); opacity: 0; }
+}
+.work-landmark[data-state="hover"] .work-layer--sails { animation: work-spin 7s linear infinite; }
+.work-stage[data-moment="windmill"] .work-layer--sails { animation: work-spin 1.4s cubic-bezier(0.45, 0.05, 0.3, 1) both; animation-iteration-count: 1; }
+@keyframes work-spin { to { transform: rotate(540deg); } }
+.work-stage[data-moment="doghouse"] .work-layer--puppy { animation: work-puppy 1.3s ease-in-out both; }
+.work-stage[data-moment="doghouse"] .work-layer--puppy-tail { animation: dog-wag 0.2s ease-in-out 6 alternate; }
+.work-landmark[data-kind="doghouse"][data-state="hover"] .work-layer--puppy-tail { animation: dog-wag 0.26s ease-in-out infinite alternate; }
+@keyframes work-puppy {
+  0%, 100% { transform: rotate(0); }
+  20% { transform: rotate(-6deg); }
+  45% { transform: rotate(4deg); }
+  70% { transform: rotate(-3deg); }
+}
+.work-heart {
+  color: #e9868b;
+  font-size: clamp(14px, 1.7vw, 28px);
+  opacity: 0;
+  text-shadow: 0 1px 4px rgb(251 247 238 / 0.8);
+  pointer-events: none;
+}
+.work-stage[data-moment="doghouse"] .work-heart { animation: work-heart 1.3s ease-out forwards; }
+@keyframes work-heart {
+  0% { transform: translateY(10px) scale(0.6); opacity: 0; }
+  30% { opacity: 1; }
+  100% { transform: translateY(-40px) scale(1.15); opacity: 0; }
+}
+/* the paper wipe that carries the visitor into the project */
+.work-wipe {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: var(--color-cream);
+  clip-path: circle(0 at var(--wx) var(--wy));
+  animation: work-wipe 0.75s ease-in forwards;
+}
+@keyframes work-wipe { to { clip-path: circle(150vmax at var(--wx) var(--wy)); } }
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .sway, .drift, .blades, .bubble, .bloom, .garden-sign__board, .living-dog, .living-tail, .living-ball, .living-rocker, .living-water-a, .living-water-b, .living-drop { animation: none !important; }
+  .sway, .drift, .blades, .bubble, .bloom, .garden-sign__board, .living-dog, .living-tail, .living-ball, .living-rocker, .living-water-a, .living-water-b, .living-drop,
+  .work-glow, .work-cue, .work-layer, .work-girl__body, .work-bubble, .work-heart { animation: none !important; }
   .journey-move { transform: none !important; }
   .journey-text { transform: none !important; }
   *, *::before, *::after { transition-duration: 0.01ms !important; }

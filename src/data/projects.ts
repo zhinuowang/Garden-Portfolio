@@ -60,8 +60,8 @@ export const projects: Project[] = [
     title: "Little Moments",
     category: "personal",
     gardenRegion: "creative-corner",
-    gardenLocation: "greenhouse",
-    locationName: "The Greenhouse",
+    gardenLocation: "windmill",
+    locationName: "The Windmill",
     discipline: null,
     shortDescription: null,
     role: null,
@@ -313,6 +313,9 @@ export const regions: Record<
 
 export const selectedWorkSlugs = ["little-moments", "dog-nutrition-tracker"];
 
+/** The projects shown on the Work page for now, in the order the garden presents them. */
+export const workSlugs = ["dog-nutrition-tracker", "eliminate-bacteria-pro", "little-moments"];
+
 export function getProject(slug: string) {
   return projects.find((p) => p.slug === slug);
 }
@@ -321,7 +324,8 @@ export function projectsInRegion(region: GardenRegionId) {
   return projects.filter((p) => p.gardenRegion === region);
 }
 
+/** The next project to suggest: the following Work-page project (other pages lead back into that set). */
 export function nextProject(slug: string) {
-  const i = projects.findIndex((p) => p.slug === slug);
-  return projects[(i + 1) % projects.length];
+  const i = workSlugs.indexOf(slug);
+  return getProject(workSlugs[(i + 1) % workSlugs.length])!;
 }

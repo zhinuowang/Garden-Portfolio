@@ -292,7 +292,7 @@ const glaze = (ctx, x, y, rx, ry, col, alpha) => dab(ctx, x, y, rx, ry, 0, col, 
 
 function paint(F) {
   const { W, S, k } = F; // width, scene height, brush scale
-  const H = S * 3;
+  const H = F.H ?? S * 3;
   const cv = createCanvas(W, H);
   let ctx = cv.getContext("2d");
   const hcv = createCanvas(W, H);
@@ -1124,6 +1124,287 @@ function paint(F) {
     });
   }
 
+  // ================================================== THE WORK GARDEN (one compact scene)
+  if (F.work) return paintWork();
+
+  /**
+   * The Work page: one compact garden with three project landmarks (fountain,
+   * dog house, windmill) and a small guide girl. The ground, sky, paths and
+   * trees are painted into the scene; every landmark, the puppy and each pose
+   * of the girl are separate layers so the page can highlight and animate them.
+   */
+  function paintWork() {
+    // sky
+    const skyPath = new Path2D();
+    skyPath.rect(-40, -40, W + 80, Y(L.skyEnd + 0.06) + 40);
+    form({
+      seed: 1, path: skyPath, bbox: [0, 0, W, Y(L.skyEnd + 0.06)], edge: false, soft: 0,
+      color: (x, y) => {
+        let c = ramp([[0, "#e6abb6"], [0.4, "#f0c0b5"], [0.75, "#f8d6c2"], [1, "#fbe5cf"]], y / Y(L.skyEnd));
+        const sd = Math.hypot((x - X(L.sun[0])) / W, ((y - Y(L.sun[1])) / S) * 1.6);
+        return mix(c, hex("#fff1d6"), clamp(1 - sd / 0.45) * 0.5);
+      },
+      angle: (x, y) => fbm(x / 600, y / 300, 3) * 0.18, spread: 0.12,
+      len: [70, 170], width: [14, 30], alpha: [0.12, 0.28], cover: 0.9, vary: 0.08, bristles: 4, thick: () => 0.08,
+    });
+    {
+      const r = rng(101);
+      ctx.save();
+      ctx.filter = `blur(${14 * k}px)`;
+      for (const [cx, cy, rx, ry] of L.clouds) for (let j = 0; j < 6; j++) glaze(ctx, X(cx) + (r() - 0.5) * X(rx), Y(cy) + (r() - 0.5) * Y(ry) * 0.6, X(rx) * (0.35 + r() * 0.35), Y(ry) * (0.5 + r() * 0.4), mix(hex("#f1bdb8"), hex("#fde6dc"), r()), 0.55);
+      ctx.restore();
+    }
+    // distant ranges, back hills, lawn
+    const far = ridgeFn(L.far, 0.02, 1.4, 11);
+    form({
+      seed: 11, path: landPath(far, Y(L.skyEnd + 0.25)), bbox: [0, Y(L.far[0][1] - 0.08), W, Y(L.skyEnd + 0.25)],
+      color: hillColor(far, [[0, "#cdb4c4"], [1, "#bba9bd"]], 0.1, { haze: 0.25, alt: "#c4b0c6" }),
+      angle: hillAngle(far, 0.9), len: [40, 90], width: [9, 16], alpha: [0.25, 0.45], cover: 1, vary: 0.06, soft: 3, thick: () => 0.12,
+    });
+    const PAL = {
+      sage: [[0, "#c4cc93"], [0.3, "#a7b97c"], [0.7, "#7f9a62"], [1, "#5b7853"]],
+      moss: [[0, "#c9ca86"], [0.3, "#adb872"], [0.7, "#86985a"], [1, "#5d744d"]],
+    };
+    for (const [i, [cxf, topf, rxf, hf, pal]] of L.hills.entries()) {
+      const top = moundTop(cxf, topf, rxf, hf, 61 + i);
+      form({
+        seed: 61 + i, path: landPath(top, H + 40), bbox: [0, Y(topf - 0.01), W, H],
+        color: hillColor(top, PAL[pal], 0.5 + i * 0.3, { alt: "#9bb06e" }),
+        angle: hillAngle(top, 0.45), len: [60, 140], width: [14, 26], alpha: [0.7, 0.92], cover: 1.6, vary: 0.14, spread: 0.55,
+        thick: (x, y) => 0.3 + clamp(y / H) * 0.35, knife: () => 0.02,
+        size: (x, y) => 0.8 + clamp(y / H) * 0.5,
+      });
+    }
+    // soft paths from the girl's spot to each landmark
+    const trail = ([x0, y0], [cx, cy], [x1, y1], w0, w1, seed) => {
+      const pt = (t) => [lerp(lerp(x0, cx, t), lerp(cx, x1, t), t), lerp(lerp(y0, cy, t), lerp(cy, y1, t), t)];
+      const Lp = [], Rp = [];
+      for (let i = 0; i <= 30; i++) {
+        const t = i / 30, [ax, ay] = pt(t), [bx, by] = pt(Math.min(1, t + 0.01));
+        const a = Math.atan2(Y(by - ay), X(bx - ax) || 1e-6), w = X(lerp(w0, w1, t)) / 2;
+        Lp.push([X(ax) - Math.sin(a) * w, Y(ay) + Math.cos(a) * w]);
+        Rp.push([X(ax) + Math.sin(a) * w, Y(ay) - Math.cos(a) * w]);
+      }
+      const p = new Path2D();
+      p.moveTo(Lp[0][0], Lp[0][1]);
+      for (const q of Lp) p.lineTo(q[0], q[1]);
+      for (let i = Rp.length - 1; i >= 0; i--) p.lineTo(Rp[i][0], Rp[i][1]);
+      p.closePath();
+      const xs = [...Lp, ...Rp].map((q) => q[0]), ys = [...Lp, ...Rp].map((q) => q[1]);
+      form({
+        seed, path: p, bbox: [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)], soft: 2,
+        color: (x, y) => mix(hex("#f2e2c3"), hex("#d6bd96"), clamp(fbm(x / 160, y / 160, seed) + 0.45)),
+        angle: () => Math.atan2(Y(y1 - y0), X(x1 - x0)), len: [26, 60], width: [8, 14], alpha: [0.35, 0.6], cover: 1.4, vary: 0.1, spread: 0.7,
+        thick: () => 0.35,
+      });
+    };
+    for (const [i, t] of L.trails.entries()) trail(t[0], t[1], t[2], t[3], t[4], 70 + i);
+    // a few trees and flowers at the edges, kept quiet so the landmarks stand out
+    for (const [i, [tx, ty, ts, kind]] of L.trees.entries()) tree(X(tx), Y(ty), ts * W, 90 + i, kind);
+    for (const cl of L.clusters) cluster(cl);
+
+    // ---- the landmarks, each on its own layer, with their ground shadows in the scene
+    const lm = [];
+    const box = (bx, by, bw, bh) => [+(bx / W).toFixed(4), +(by / S).toFixed(4), +(bw / W).toFixed(4), +(bh / S).toFixed(4)];
+    for (const m of L.landmarks) {
+      const x = X(m.x), base = Y(m.base), names = [];
+      let hit;
+      if (m.kind === "fountain") {
+        const f = (m.w * W) / 220, bx = x - 110 * f, by = base - 184 * f, bw = 220 * f, bh = 200 * f;
+        sprite(`work-fountain`, 1, bx, by, bw, bh, [0.5, 0.5], () => fountain(x, base, f, 480, "stone"), { kind: "landmark" });
+        sprite(`work-fountain-water-a`, 1, bx, by, bw, bh, [0.5, 0.5], () => fountain(x, base, f, 481, "water-a"), { kind: "water-a" });
+        sprite(`work-fountain-water-b`, 1, bx, by, bw, bh, [0.5, 0.5], () => fountain(x, base, f, 482, "water-b"), { kind: "water-b" });
+        names.push("work-fountain", "work-fountain-water-a", "work-fountain-water-b");
+        hit = box(bx + 20 * f, by + 40 * f, bw - 40 * f, bh - 30 * f);
+      } else if (m.kind === "doghouse") {
+        const w = m.w * W, bx = x - 0.75 * w, by = base - 1.0 * w, bw = 1.95 * w, bh = 1.08 * w;
+        ctx.save();
+        ctx.filter = `blur(${8 * k}px)`;
+        glaze(ctx, x + w * 0.1, base + w * 0.02, w * 0.75, w * 0.07, SHADOW, 0.4);
+        ctx.restore();
+        sprite(`work-doghouse`, 1, bx, by, bw, bh, [0.5, 0.95], () => dogHouse(x, base, w, 490), { kind: "landmark" });
+        names.push("work-doghouse");
+        const [px, pb, ps] = m.puppy;
+        const pxx = X(px), pyy = Y(pb), s = ps * W;
+        dog(pxx, pyy, s, "sit", ["#c9935e", "#7a5234", "#f0d3a8"], -1, 495, "shadow");
+        const dbx = pxx - 0.75 * s, dby = pyy - 1.05 * s, dbw = 1.5 * s, dbh = 1.13 * s;
+        const [tu, tv] = DOG_TAIL.sit;
+        sprite(`work-puppy-tail`, 1, dbx, dby, dbw, dbh, [(pxx - tu * s - dbx) / dbw, (pyy + tv * s - dby) / dbh], () => dog(pxx, pyy, s, "sit", ["#c9935e", "#7a5234", "#f0d3a8"], -1, 495, "tail"), { kind: "puppy-tail" });
+        sprite(`work-puppy`, 1, dbx, dby, dbw, dbh, [0.5, (pyy - dby) / dbh], () => dog(pxx, pyy, s, "sit", ["#c9935e", "#7a5234", "#f0d3a8"], -1, 495, "body"), { kind: "puppy" });
+        names.push("work-puppy-tail", "work-puppy");
+        hit = box(bx, by + 0.1 * w, Math.max(bw, pxx + 0.5 * s - bx), bh - 0.1 * w);
+      } else {
+        const f = (m.h * W) / 290;
+        windmill(x, base, f, 470, "shadow-only");
+        const tbx = x - 42 * f, tby = base - 200 * f, tbw = 84 * f, tbh = 208 * f;
+        sprite(`work-windmill`, 1, tbx, tby, tbw, tbh, [0.5, 1], () => windmill(x, base, f, 470, "tower-noshadow"), { kind: "landmark" });
+        const hx = x, hy = base + (104 - 276) * f, rad = 90 * f;
+        sprite(`work-sails`, 1, hx - rad, hy - rad, 2 * rad, 2 * rad, [0.5, 0.5], () => windmill(x, base, f, 471, "sails"), { kind: "sails" });
+        names.push("work-windmill", "work-sails");
+        hit = box(hx - rad * 0.8, hy - rad * 0.8, rad * 1.6, base - hy + rad * 0.8);
+      }
+      lm.push({ slug: m.slug, kind: m.kind, hit, label: m.label, stand: m.stand, face: m.face, layers: names });
+    }
+
+    // ---- the guide girl: one layer per pose, all the same size, anchored at her feet
+    const gh = L.girlH * S, gx = W * 0.5, gy = S * 0.5;
+    const gbx = gx - 0.45 * gh, gby = gy - 1.02 * gh, gbw = 0.9 * gh, gbh = 1.08 * gh;
+    for (const pose of ["idle", "walk-a", "walk-b", "reach", "kneel"]) {
+      sprite(`work-girl-${pose}`, 1, gbx, gby, gbw, gbh, [0.5, 1.02 / 1.08], () => girl(gx, gy, gh, pose, 510), { kind: "girl" });
+    }
+    anchors.work = { start: L.start, girl: { w: +(gbw / W).toFixed(4), h: +(gbh / S).toFixed(4), feet: [0.5, +(1.02 / 1.08).toFixed(4)] }, landmarks: lm };
+
+    lightRelief(cv, hcv, W, H, 1);
+    ctx.save();
+    ctx.globalCompositeOperation = "soft-light";
+    const lg = ctx.createLinearGradient(0, 0, W, H);
+    lg.addColorStop(0, "rgba(255,214,170,0.4)");
+    lg.addColorStop(1, "rgba(255,214,170,0)");
+    ctx.fillStyle = lg;
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+    PAINT.hx = null;
+    anchors.sprites = sprites.map((sp) => Object.fromEntries(Object.entries(sp).filter(([key]) => key !== "canvas")));
+    return { cv, anchors, sprites };
+  }
+
+  /** A small wooden dog house with a paw-print plaque, a food bowl and a bone beside it. */
+  function dogHouse(x, base, w, seed) {
+    const r = rng(seed);
+    const h = w * 0.55, x0 = x - w / 2, top = base - h;
+    withThickness(1, () => {
+      const walls = new Path2D();
+      walls.rect(x0, top, w, h);
+      ctx.fillStyle = rgba(hex("#a9c0c4"));
+      ctx.fill(walls);
+      clipBoth(ctx, walls);
+      for (let row = 0; row < 7; row++) {
+        const y = top + (row + 0.5) * (h / 7);
+        for (let i = 0; i < 6; i++) {
+          const lit = clamp(0.85 - i / 7 + (r() - 0.5) * 0.15);
+          knife(ctx, r, x0 + i * (w / 6) - w * 0.02, y, (r() - 0.5) * 0.03, w * 0.2, h / 7.6, mix(hex("#7f9da3"), hex("#d6e3e2"), lit));
+        }
+        stroke(ctx, r, x0, top + (row + 1) * (h / 7), 0, w, w * 0.008, hex("#6d878c"), 0.6, 0);
+      }
+      unclipBoth(ctx);
+      // roof: two terracotta slopes with a ridge cap
+      const roof = new Path2D();
+      roof.moveTo(x - w * 0.62, top + w * 0.05);
+      roof.lineTo(x, top - w * 0.38);
+      roof.lineTo(x + w * 0.62, top + w * 0.05);
+      roof.lineTo(x + w * 0.5, top + w * 0.08);
+      roof.lineTo(x, top - w * 0.28);
+      roof.lineTo(x - w * 0.5, top + w * 0.08);
+      roof.closePath();
+      ctx.fillStyle = rgba(hex("#b8664f"));
+      ctx.fill(roof);
+      clipBoth(ctx, roof);
+      for (let i = 0; i < 26; i++) {
+        const t = r(), side = r() < 0.5 ? -1 : 1;
+        const px = x + side * t * w * 0.6, py = top - w * 0.36 + t * w * 0.42;
+        knife(ctx, r, px, py, side * 0.56 + (side < 0 ? Math.PI : 0), w * 0.12, w * 0.06, mix(hex("#9c5441"), hex("#e0957a"), side < 0 ? 0.7 : 0.25));
+      }
+      unclipBoth(ctx);
+      // gable in shade under the roof
+      const gable = new Path2D();
+      gable.moveTo(x - w * 0.5, top + w * 0.02);
+      gable.lineTo(x, top - w * 0.26);
+      gable.lineTo(x + w * 0.5, top + w * 0.02);
+      gable.closePath();
+      ctx.fillStyle = rgba(hex("#93acb1"));
+      ctx.fill(gable);
+      // arched door
+      const door = new Path2D();
+      door.moveTo(x - w * 0.17, base);
+      door.lineTo(x - w * 0.17, base - h * 0.5);
+      door.arc(x, base - h * 0.5, w * 0.17, Math.PI, 0);
+      door.lineTo(x + w * 0.17, base);
+      door.closePath();
+      ctx.fillStyle = rgba(hex("#3b302b"));
+      ctx.fill(door);
+      glaze(ctx, x - w * 0.05, base - h * 0.45, w * 0.1, h * 0.3, hex("#5a4a42"), 0.6);
+      // a paw-print plaque above the door
+      knife(ctx, r, x - w * 0.13, top - w * 0.1, 0, w * 0.26, w * 0.12, hex("#f2e6cf"));
+      const paw = [x, top - w * 0.1];
+      dab(ctx, paw[0], paw[1] + w * 0.015, w * 0.03, w * 0.025, 0, hex("#7a5234"), 1);
+      for (const [dx, dy] of [[-0.035, -0.02], [-0.012, -0.035], [0.012, -0.035], [0.035, -0.02]]) dab(ctx, paw[0] + dx * w, paw[1] + dy * w, w * 0.011, w * 0.011, 0, hex("#7a5234"), 1);
+      // food bowl and a bone to the right
+      const bxp = x + w * 0.78, byp = base - w * 0.03;
+      dab(ctx, bxp, byp, w * 0.15, w * 0.05, 0, hex("#d6564f"), 1);
+      dab(ctx, bxp, byp - w * 0.03, w * 0.14, w * 0.035, 0, hex("#f3ece0"), 1);
+      for (let i = 0; i < 9; i++) dab(ctx, bxp + (r() - 0.5) * w * 0.18, byp - w * 0.035 + (r() - 0.5) * w * 0.02, w * 0.016, w * 0.012, 0, hex("#8a5a34"), 1);
+      const bnx = x + w * 0.62, bny = base + w * 0.02;
+      stroke(ctx, r, bnx - w * 0.07, bny, -0.15, w * 0.14, w * 0.025, hex("#f6efe2"), 1, 0);
+      for (const [dx, dy] of [[-0.075, -0.01], [-0.07, 0.015], [0.07, -0.03], [0.075, -0.005]]) dab(ctx, bnx + dx * w, bny + dy * w, w * 0.02, w * 0.02, 0, hex("#f6efe2"), 1);
+    });
+  }
+
+  /** The guide: a small girl in a rose dress, painted in one of five poses, feet at (x, y), height h, facing right. */
+  function girl(x, y, h, pose, seed) {
+    const r = rng(seed);
+    const P = (u, v) => [x + u * h, y - v * h];
+    const skin = hex("#f1d3c0"), dress = hex("#d4837f"), hair = hex("#5b3a2e");
+    ctx.save();
+    ctx.filter = `blur(${4 * k}px)`;
+    glaze(ctx, ...P(0.02, -0.005), 0.2 * h, 0.035 * h, SHADOW, 0.35);
+    ctx.restore();
+    const kneel = pose === "kneel";
+    const hipV = kneel ? 0.25 : 0.38, shoulderV = kneel ? 0.58 : 0.72, headV = kneel ? 0.7 : 0.85, hemV = kneel ? 0.13 : 0.31;
+    withThickness(0.95, () => {
+      const limb = (a, b, wf, col) => {
+        const [ax, ay] = P(...a), [bx, by] = P(...b);
+        stroke(ctx, r, ax, ay, Math.atan2(by - ay, bx - ax), Math.hypot(bx - ax, by - ay), wf * h, col, 1, 1);
+      };
+      const shoe = (u, v) => dab(ctx, ...P(u + 0.02, v + 0.01), 0.045 * h, 0.022 * h, 0, hex("#4a3a33"), 1);
+      // legs and shoes
+      if (kneel) {
+        limb([0.02, hipV], [0.13, 0.08], 0.06, skin); limb([0.13, 0.08], [0.14, 0.01], 0.055, skin); shoe(0.14, 0);
+        limb([-0.04, hipV], [-0.12, 0.03], 0.06, mix(skin, SHADOW, 0.1)); limb([-0.12, 0.03], [-0.24, 0.02], 0.05, mix(skin, SHADOW, 0.1)); shoe(-0.26, 0.01);
+      } else {
+        const sw = pose === "walk-a" ? 0.08 : pose === "walk-b" ? -0.08 : 0.015;
+        limb([-0.03, hipV], [-0.03 - sw, 0.02], 0.058, mix(skin, SHADOW, 0.1)); shoe(-0.03 - sw, 0);
+        limb([0.03, hipV], [0.03 + sw, 0.02], 0.058, skin); shoe(0.03 + sw, 0);
+      }
+      // back arm, behind the dress
+      const back = pose === "walk-a" ? [0.1, hipV + 0.04] : pose === "walk-b" ? [-0.1, hipV + 0.04] : [-0.07, hipV + 0.05];
+      limb([-0.05, shoulderV - 0.03], back, 0.045, mix(skin, SHADOW, 0.12));
+      // dress: a little trapeze with a scalloped hem
+      const d = new Path2D();
+      d.moveTo(...P(-0.085, shoulderV)); d.lineTo(...P(0.085, shoulderV));
+      d.quadraticCurveTo(...P(0.14, (shoulderV + hemV) / 2), ...P(0.18, hemV));
+      for (let i = 0; i <= 6; i++) { const u = 0.18 - (i / 6) * 0.36; d.lineTo(...P(u, hemV - (i % 2 ? 0.015 : 0))); }
+      d.quadraticCurveTo(...P(-0.14, (shoulderV + hemV) / 2), ...P(-0.085, shoulderV));
+      d.closePath();
+      ctx.fillStyle = rgba(dress);
+      ctx.fill(d);
+      clipBoth(ctx, d);
+      for (let i = 0; i < 28; i++) {
+        const u = -0.2 + r() * 0.4, v = hemV + r() * (shoulderV - hemV);
+        knife(ctx, r, ...P(u, v + 0.04), Math.PI / 2 + (r() - 0.5) * 0.2, 0.12 * h, 0.05 * h, mix(hex("#b8615e"), hex("#f2b5ac"), clamp(0.75 - u * 2)));
+      }
+      unclipBoth(ctx);
+      dab(ctx, ...P(0.005, shoulderV - 0.015), 0.07 * h, 0.022 * h, 0, hex("#fbf3e4"), 1); // collar
+      // front arm: down, swinging, reaching up, or reaching low (kneeling)
+      const front = pose === "reach" ? [[0.06, shoulderV - 0.03], [0.27, shoulderV + 0.06]]
+        : kneel ? [[0.06, shoulderV - 0.03], [0.25, 0.24]]
+        : pose === "walk-a" ? [[0.06, shoulderV - 0.03], [-0.04, hipV + 0.03]]
+        : pose === "walk-b" ? [[0.06, shoulderV - 0.03], [0.16, hipV + 0.04]]
+        : [[0.07, shoulderV - 0.03], [0.09, hipV + 0.02]];
+      limb(front[0], front[1], 0.045, skin);
+      dab(ctx, ...P(front[1][0] + 0.005, front[1][1]), 0.025 * h, 0.025 * h, 0, skin, 1);
+      // head, hair with a bun and a pink bow, face
+      dab(ctx, ...P(0.015, headV), 0.1 * h, 0.105 * h, 0, skin, 1);
+      dab(ctx, ...P(-0.02, headV + 0.035), 0.105 * h, 0.085 * h, 0, hair, 1);
+      dab(ctx, ...P(-0.09, headV - 0.01), 0.04 * h, 0.075 * h, 0.3, hair, 1);
+      dab(ctx, ...P(-0.08, headV + 0.09), 0.045 * h, 0.04 * h, 0, hair, 1);
+      for (let i = 0; i < 8; i++) stroke(ctx, r, ...P(-0.08 + r() * 0.16, headV + 0.08), 0.6 + r() * 0.4, 0.06 * h, 0.02 * h, mix(hair, WARM, r() * 0.2), 0.9, 0);
+      dab(ctx, ...P(-0.05, headV + 0.11), 0.03 * h, 0.018 * h, 0.4, hex("#e59a9f"), 1);
+      dab(ctx, ...P(-0.01, headV + 0.11), 0.03 * h, 0.018 * h, -0.4, hex("#e59a9f"), 1);
+      dab(ctx, ...P(0.07, headV), 0.011 * h, 0.014 * h, 0, hex("#2b2420"), 1);
+      dab(ctx, ...P(0.065, headV - 0.035), 0.022 * h, 0.014 * h, 0, hex("#eba3a0"), 0.6);
+    });
+  }
+
   // ================================================== SCENE 1 — a living garden
   // sky: thin, soft paint
   const skyStops = L.skyStops;
@@ -1391,8 +1672,12 @@ function paint(F) {
     const r = rng(seed);
     const P = (u, v) => [x + (u - 100) * f, base + (v - 276) * f];
     withThickness(0.9, () => {
-      if (parts === "tower") {
+      if (parts === "shadow-only") {
         glaze(ctx, ...P(104, 277), 70 * f, 9 * f, SHADOW, 0.35);
+        return;
+      }
+      if (parts === "tower" || parts === "tower-noshadow") {
+        if (parts === "tower") glaze(ctx, ...P(104, 277), 70 * f, 9 * f, SHADOW, 0.35);
         const tower = new Path2D();
         tower.moveTo(...P(70, 274)); tower.lineTo(...P(80, 120)); tower.lineTo(...P(120, 120)); tower.lineTo(...P(130, 274)); tower.closePath();
         ctx.fillStyle = rgba(hex("#efe3cf"));
@@ -1969,6 +2254,102 @@ const MOBILE = {
 };
 
 // ---------------------------------------------------------------- output
+
+
+// ---------------------------------------------------------------- the Work garden
+
+const WORK_DESKTOP = {
+  name: "work-desktop", work: true, W: 2400, S: 1350, H: 1350, k: 1,
+  layout: {
+    mounds: [], phrases: [], zones: [],
+    skyEnd: 0.42, sun: [0.42, 0.38],
+    clouds: [[0.18, 0.1, 0.16, 0.05], [0.84, 0.08, 0.18, 0.06], [0.5, 0.26, 0.2, 0.025]],
+    far: [[0, 0.4], [0.25, 0.375], [0.5, 0.395], [0.75, 0.37], [1, 0.39]],
+    // [centre x, crest y, half-width, height, palette]
+    hills: [[0.25, 0.43, 0.5, 0.04, "sage"], [0.82, 0.45, 0.45, 0.04, "moss"], [0.5, 0.53, 0.95, 0.03, "sage"]],
+    // paths from the girl's spot to each landmark: [from, control, to, width at start, width at end]
+    trails: [
+      [[0.6, 0.9], [0.42, 0.88], [0.3, 0.8], 0.05, 0.032],
+      [[0.6, 0.9], [0.55, 0.78], [0.55, 0.69], 0.05, 0.03],
+      [[0.6, 0.9], [0.72, 0.84], [0.72, 0.7], 0.05, 0.032],
+    ],
+    trees: [[0.05, 0.64, 0.075, "autumn"], [0.965, 0.7, 0.07, "turning"], [0.34, 0.48, 0.02, "green"], [0.64, 0.475, 0.016, "green"]],
+    clusters: [
+      { seed: 901, x: 0.1, y: 0.9, rx: 0.08, ry: 0.03, n: 40, size: [9, 15], kinds: ["daisy", "cosmos", "tiny"], foliage: true, stems: true },
+      { seed: 902, x: 0.92, y: 0.9, rx: 0.07, ry: 0.03, n: 36, size: [9, 15], kinds: ["daisy", "tiny", "spike"], foliage: true, stems: true },
+      { seed: 903, x: 0.4, y: 0.6, rx: 0.08, ry: 0.01, n: 30, size: [2.5, 4.5], kinds: ["tiny"] },
+    ],
+    start: [0.6, 0.9],
+    girlH: 0.16,
+    landmarks: [
+      { slug: "eliminate-bacteria-pro", kind: "fountain", x: 0.2, base: 0.78, w: 0.2, stand: [0.32, 0.8], face: -1, label: [0.2, 0.82] },
+      { slug: "dog-nutrition-tracker", kind: "doghouse", x: 0.43, base: 0.62, w: 0.15, puppy: [0.54, 0.655, 0.06], stand: [0.585, 0.7], face: -1, label: [0.46, 0.66] },
+      { slug: "little-moments", kind: "windmill", x: 0.8, base: 0.65, h: 0.26, stand: [0.71, 0.705], face: 1, label: [0.8, 0.68] },
+    ],
+  },
+};
+
+const WORK_MOBILE = {
+  name: "work-mobile", work: true, W: 1080, S: 1920, H: 1920, k: 0.75,
+  layout: {
+    ...WORK_DESKTOP.layout,
+    skyEnd: 0.26, sun: [0.4, 0.24],
+    clouds: [[0.2, 0.06, 0.3, 0.025], [0.82, 0.12, 0.3, 0.03]],
+    far: [[0, 0.245], [0.5, 0.23], [1, 0.245]],
+    hills: [[0.2, 0.27, 0.6, 0.03, "sage"], [0.85, 0.29, 0.5, 0.03, "moss"], [0.5, 0.34, 1.2, 0.02, "sage"]],
+    trails: [
+      [[0.4, 0.94], [0.44, 0.8], [0.5, 0.69], 0.12, 0.07],
+      [[0.4, 0.94], [0.3, 0.92], [0.24, 0.88], 0.12, 0.08],
+      [[0.4, 0.94], [0.6, 0.62], [0.55, 0.5], 0.12, 0.06],
+    ],
+    trees: [[0.08, 0.4, 0.11, "autumn"]],
+    clusters: [
+      { seed: 901, x: 0.12, y: 0.95, rx: 0.14, ry: 0.02, n: 24, size: [10, 16], kinds: ["daisy", "cosmos", "tiny"], foliage: true, stems: true },
+      { seed: 902, x: 0.88, y: 0.95, rx: 0.12, ry: 0.02, n: 22, size: [10, 16], kinds: ["daisy", "tiny"], foliage: true, stems: true },
+    ],
+    start: [0.4, 0.94],
+    girlH: 0.1,
+    landmarks: [
+      { slug: "eliminate-bacteria-pro", kind: "fountain", x: 0.28, base: 0.64, w: 0.44, stand: [0.5, 0.69], face: -1, label: [0.28, 0.66] },
+      { slug: "dog-nutrition-tracker", kind: "doghouse", x: 0.62, base: 0.8, w: 0.3, puppy: [0.34, 0.815, 0.13], stand: [0.24, 0.875], face: 1, label: [0.62, 0.82] },
+      { slug: "little-moments", kind: "windmill", x: 0.7, base: 0.44, h: 0.44, stand: [0.55, 0.5], face: 1, label: [0.7, 0.465] },
+    ],
+  },
+};
+
+if (process.argv.includes("--work")) {
+  const WORK_ANCHORS = path.resolve("src/data/work-anchors.json");
+  const out = {};
+  for (const F of [WORK_DESKTOP, WORK_MOBILE]) {
+    const t0 = Date.now();
+    const { cv, anchors, sprites } = paint(F);
+    const fmt = F.name.replace("work-", "");
+    out[fmt] = { ...anchors.work, sprites: anchors.sprites };
+    const dir = path.resolve("public/assets/garden/work");
+    fs.mkdirSync(path.join(dir, "sprites"), { recursive: true });
+    const widths = fmt === "desktop" ? [2400, 1600] : [1080, 720];
+    for (const w of widths) {
+      const h = Math.round((F.H * w) / F.W);
+      const o = createCanvas(w, h);
+      const oc = o.getContext("2d");
+      oc.imageSmoothingQuality = "high";
+      oc.drawImage(cv, 0, 0, w, h);
+      fs.writeFileSync(path.join(dir, `garden-${fmt}-${w}.webp`), o.toBuffer("image/webp", 88));
+    }
+    for (const sp of sprites) {
+      const scale = fmt === "desktop" ? 1600 / 2400 : 1;
+      const w = Math.max(2, Math.round(sp.canvas.width * scale)), h = Math.max(2, Math.round(sp.canvas.height * scale));
+      const o = createCanvas(w, h);
+      const oc = o.getContext("2d");
+      oc.imageSmoothingQuality = "high";
+      oc.drawImage(sp.canvas, 0, 0, w, h);
+      fs.writeFileSync(path.join(dir, "sprites", `${fmt}-${sp.name.replace("work-", "")}.webp`), o.toBuffer("image/webp", 90));
+    }
+    console.log(`${F.name}: ${((Date.now() - t0) / 1000).toFixed(1)}s`);
+  }
+  fs.writeFileSync(WORK_ANCHORS, JSON.stringify(out, null, 2) + "\n");
+  process.exit(0);
+}
 
 fs.mkdirSync(PREVIEW ? PREVIEW_DIR : OUT, { recursive: true });
 const allAnchors = fs.existsSync(ANCHORS) ? JSON.parse(fs.readFileSync(ANCHORS, "utf8")) : {};
