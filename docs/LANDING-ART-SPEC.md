@@ -1,7 +1,7 @@
 # Landing: three scenes of one tall painting
 
-Checkpoints of earlier Landing versions: `landing-v1-checkpoint` … `landing-v4-checkpoint` (the last is the first
-three-scene version, before the living garden, the tea scene and the impasto).
+Checkpoints of earlier Landing versions: `landing-v1-checkpoint` … `landing-v5-checkpoint` (v5 is the version before
+this refinement: more sky, straight notes, iron chair).
 
 ## Structure
 
@@ -11,9 +11,9 @@ crossfade. Because the files are slices of one picture, the joins are seamless.
 
 | Scene | Character | Text (real HTML, `src/data/site.ts` → `landingScenes`) | What the painting holds |
 | --- | --- | --- | --- |
-| 1 · A living garden | Peaceful, lived-in, early autumn | **A Garden of Ideas** only, centred in the first view | Pink sunset sky (quiet behind the title), lavender hills, a cream cottage with a terracotta roof and warm windows, golden autumn trees, three small dogs playing with a ball, the path leaving the cottage door, shrubs, wildflowers, a few fallen leaves |
-| 2 · Thoughts on the hills | Reflective | The three thoughts as handwritten notes, each laid along a different slope (right, left, right) and tilted to follow it | Overlapping rounded hills, the winding path, the pink flowering shrub, the daisy and cosmos clusters (unchanged from the previous version) |
-| 3 · Afternoon tea | Cosy destination | "Come see what I've been growing." at the top right; the hanging wooden sign **Explore My Work** (→ `/work`) | A shade tree turning gold; a round table with a pink gingham cloth, teapot, cups, a cake stand, fruit and a small vase; a wrought-iron chair; flowers around the table; the path ending at a little garden gate in a hedge, with warm light beyond; the sign's post and arm above the gate |
+| 1 · A living garden | Peaceful, lived-in, early autumn | **A Garden of Ideas** only, centred in the first view | A smaller pink sky (the horizon is at about 45% of the scene) and lavender hills behind the title. Below: a cream cottage with a white picket fence, four autumn trees, three small dogs with a ball, shrubs, the path edged with flowers, meadow flowers, fallen leaves, and grass and flowers in both bottom corners |
+| 2 · Thoughts on the hills | Reflective | The three thoughts as handwritten SVG text on gentle curves that follow three slopes (right, left, right). Each note's words appear one after another as you scroll it into view | Overlapping rounded hills, the winding path, the pink flowering shrub, the daisy and cosmos clusters (unchanged from the previous version) |
+| 3 · Afternoon tea | Cosy destination | "Come see what I've been growing." at the top right; the hanging wooden sign **Explore My Work** (→ `/work`) | A shade tree turning gold; a round table with a pink gingham cloth, teapot, cups, a cake stand, fruit and a small vase; a cream-painted wooden chair with a gingham cushion; flowers around the table; the path ending at a little garden gate in a hedge, with warm light beyond; the sign's post and arm above the gate |
 
 Light is consistent throughout: a low sun beyond the hills, light from the upper left, warm rims, cool shadowed feet,
 and soft cast shadows under every object.
@@ -51,7 +51,8 @@ All files are in `public/assets/garden/landing/`.
 | `sign-flower.webp` | 200 × 200, transparent | The flower that nods when the sign is hovered or focused |
 
 **Where the text goes.** `src/data/landing-anchors.json` holds, for each composition:
-- where each scene-2 note sits on its slope, and its tilt;
+- the curve each line of each scene-2 note follows (SVG paths in scene pixels), measured from the painted hills
+  with the tilt limited and the bend softened so the letters never warp;
 - where the sign hangs.
 
 The painting script writes this file, so the text always matches the painted hills.

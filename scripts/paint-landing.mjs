@@ -328,14 +328,30 @@ function paint(F) {
 
   // scene 2 notes: laid along chosen hill slopes, just below the crest
   const anchors = { phrases: [], sign: null };
+  // Each note is written along a gentle curve that follows its hill: the chord's
+  // tilt is limited, and the contour's bend is softened, so the words drift with
+  // the grass without warping. Paths are in scene-2 pixels of this composition.
   for (const ph of L.phrases) {
     const top = moundTops[ph.mound];
-    const x = X(ph.x);
-    const yf = top(x) / S + ph.dy;
-    let deg = (Math.atan(slope(top, x)) * 180) / Math.PI;
-    deg = Math.max(-ph.maxTilt, Math.min(ph.maxTilt, deg));
-    anchors.phrases.push({ x: +ph.x.toFixed(4), y: +(yf - 1).toFixed(4), angle: +deg.toFixed(1) });
+    const xs0 = X(ph.x - ph.span / 2), xs1 = X(ph.x + ph.span / 2), xc = X(ph.x);
+    const cy = (x) => top(x) + Y(ph.dy);
+    const chord = (x) => cy(xs0) + ((cy(xs1) - cy(xs0)) * (x - xs0)) / (xs1 - xs0);
+    const maxM = Math.tan((ph.maxTilt * Math.PI) / 180);
+    const m = clamp((cy(xs1) - cy(xs0)) / (xs1 - xs0), -maxM, maxM);
+    const ymid = (cy(xs0) + cy(xs1)) / 2;
+    const lines = [];
+    for (let l = 0; l < ph.lines; l++) {
+      const pts = [];
+      for (let i = 0; i <= 28; i++) {
+        const x = lerp(xs0, xs1, i / 28);
+        const dev = clamp(cy(x) - chord(x), -Y(0.022), Y(0.022)) * ph.bend;
+        pts.push(`${x.toFixed(1)} ${(ymid + m * (x - xc) + dev + l * Y(ph.gap) - S).toFixed(1)}`);
+      }
+      lines.push(`M${pts.join(" L")}`);
+    }
+    anchors.phrases.push({ x: ph.x, y: +(ymid / S - 1 + (ph.gap * (ph.lines - 1)) / 2).toFixed(4), lines });
   }
+  anchors.viewBox = [W, S];
 
   // calm zones: thinner, lighter paint where words sit
   const zones = [
@@ -924,30 +940,57 @@ function paint(F) {
     });
   }
 
-  /** A wrought-iron garden chair. */
-  function chair(x, y, s, dir, seed) {
+  /**
+   * A painted wooden garden chair: cream paint over wood, a slatted back and a
+   * small gingham cushion, built from the same knife slabs and bristle strokes
+   * as the table and gate. (x, y) is the ground under it; s is its height.
+   */
+  function gardenChair(x, y, s, dir, seed) {
     const r = rng(seed);
-    withThickness(0.8, () => {
-      const iron = hex("#3f4d43");
-      glaze(ctx, x + s * 0.2, y + s * 0.03, s * 0.55, s * 0.08, SHADOW, 0.3);
-      for (const lx of [-0.3, 0.3]) stroke(ctx, r, x + lx * s, y - s * 0.45, Math.PI / 2 + lx * 0.2, s * 0.45, s * 0.03, iron, 0.95, 0);
-      ctx.save();
-      ctx.lineWidth = s * 0.05;
-      ctx.strokeStyle = rgba(iron);
-      ctx.beginPath();
-      ctx.ellipse(x, y - s * 0.46, s * 0.36, s * 0.1, 0, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(x - dir * s * 0.32, y - s * 0.46);
-      ctx.bezierCurveTo(x - dir * s * 0.42, y - s * 1.05, x + dir * s * 0.22, y - s * 1.1, x + dir * s * 0.12, y - s * 0.5);
-      ctx.stroke();
-      ctx.lineWidth = s * 0.02;
-      for (let i = 0; i < 3; i++) {
-        ctx.beginPath();
-        ctx.arc(x - dir * s * 0.08, y - s * (0.68 + i * 0.1), s * 0.07, 0, Math.PI * 2);
-        ctx.stroke();
+    const px = (u) => x + dir * u * s;
+    const paint = (lit) => mix(ramp([[0, "#a99c86"], [0.5, "#e6dcc8"], [1, "#fbf4e6"]], lit), WARM, lit * 0.1);
+    ctx.save();
+    ctx.filter = `blur(${10 * k}px)`;
+    glaze(ctx, x + s * 0.12, y + s * 0.02, s * 0.5, s * 0.07, SHADOW, 0.45);
+    ctx.restore();
+    withThickness(1, () => {
+      const leg = (u0, v0, u1, v1, lit, w = 0.06) => {
+        const ax = px(u0), ay = y - v0 * s, bx = px(u1), by = y - v1 * s;
+        knife(ctx, r, ax - (w * s) / 2, ay, Math.atan2(by - ay, bx - ax), Math.hypot(bx - ax, by - ay), w * s, paint(lit));
+        stroke(ctx, r, ax - (w * s) * 0.35, ay, Math.atan2(by - ay, bx - ax), Math.hypot(bx - ax, by - ay), w * s * 0.25, paint(Math.min(1, lit + 0.3)), 0.7, 1);
+      };
+      // back legs and posts (further away, a little greyer)
+      leg(-0.2, 1.0, -0.2, 0.04, 0.45);
+      leg(0.32, 0.98, 0.32, 0.06, 0.3);
+      // back slats and a gently arched top rail
+      for (let i = 0; i < 4; i++) {
+        const u = -0.12 + i * 0.12;
+        knife(ctx, r, px(u) - 0.03 * s, y - 0.93 * s, Math.PI / 2, 0.44 * s, 0.065 * s, paint(0.75 - i * 0.1));
       }
-      ctx.restore();
+      for (let i = 0; i < 4; i++) {
+        stroke(ctx, r, px(-0.23), y - (0.98 - i * 0.012) * s + Math.sin(i) * 2, dir > 0 ? -0.04 : Math.PI + 0.04, 0.58 * s, 0.07 * s, paint(0.85 - i * 0.1), 0.95, 3);
+      }
+      // seat in perspective, lit on its top, darker front edge
+      const seat = new Path2D();
+      seat.moveTo(px(-0.22), y - 0.5 * s);
+      seat.lineTo(px(0.34), y - 0.5 * s);
+      seat.lineTo(px(0.26), y - 0.41 * s);
+      seat.lineTo(px(-0.32), y - 0.41 * s);
+      seat.closePath();
+      clipBoth(ctx, seat);
+      for (let i = 0; i < 18; i++) knife(ctx, r, px(-0.36 + r() * 0.7), y - (0.41 + r() * 0.09) * s, (r() - 0.5) * 0.08, 0.22 * s, 0.05 * s, paint(0.7 + r() * 0.3));
+      unclipBoth(ctx);
+      knife(ctx, r, px(-0.32), y - 0.41 * s, dir > 0 ? 0 : Math.PI, 0.58 * s, 0.035 * s, paint(0.25));
+      // a little gingham cushion, to belong with the tablecloth
+      dab(ctx, px(0.02), y - 0.5 * s, 0.24 * s, 0.06 * s, 0, hex("#f5dcdc"), 1);
+      for (let i = -2; i <= 2; i++) stroke(ctx, r, px(0.02 + i * 0.08), y - 0.55 * s, Math.PI / 2, 0.09 * s, 0.035 * s, hex("#e59a9f"), 0.6, 0);
+      stroke(ctx, r, px(-0.2), y - 0.5 * s, dir > 0 ? 0 : Math.PI, 0.44 * s, 0.03 * s, hex("#e59a9f"), 0.5, 0);
+      glaze(ctx, px(0.1), y - 0.47 * s, 0.16 * s, 0.025 * s, hex("#b68a8a"), 0.35);
+      // front legs, nearest and brightest
+      leg(-0.3, 0.41, -0.31, 0, 0.85, 0.065);
+      leg(0.24, 0.41, 0.25, 0.01, 0.55, 0.065);
+      // a stretcher between the front legs
+      stroke(ctx, r, px(-0.3), y - 0.16 * s, dir > 0 ? 0 : Math.PI, 0.54 * s, 0.03 * s, paint(0.5), 0.9, 1);
     });
   }
 
@@ -1209,7 +1252,47 @@ function paint(F) {
     ctx.restore();
   }
 
-  // ---- scene 1 life: trees, cottage, shrubs, dogs, leaves, flowers
+  /** A short white picket fence. h is its height in px. */
+  function fence(x0, x1, base, h, seed) {
+    const r = rng(seed);
+    ctx.save();
+    ctx.filter = `blur(${8 * k}px)`;
+    glaze(ctx, (x0 + x1) / 2 + h * 0.2, base + h * 0.05, (x1 - x0) * 0.55, h * 0.12, SHADOW, 0.3);
+    ctx.restore();
+    withThickness(0.9, () => {
+      stroke(ctx, r, x0, base - h * 0.7, 0, x1 - x0, h * 0.08, hex("#ddd2bd"), 0.95, 2);
+      stroke(ctx, r, x0, base - h * 0.3, 0, x1 - x0, h * 0.08, hex("#d6cab4"), 0.95, 2);
+      for (let x = x0; x <= x1; x += h * 0.32) {
+        const lit = clamp(0.8 - (x - x0) / (x1 - x0) * 0.4 + (r() - 0.5) * 0.2);
+        knife(ctx, r, x - h * 0.06, base, -Math.PI / 2 + (r() - 0.5) * 0.04, h * (0.92 + r() * 0.08), h * 0.13, mix(hex("#cfc2aa"), hex("#fbf4e6"), lit));
+        dab(ctx, x, base - h * 0.98, h * 0.065, h * 0.05, 0, mix(hex("#e9dfcc"), WARM, 0.3), 1);
+      }
+      for (let i = 0; i < (x1 - x0) / (h * 0.25); i++) stroke(ctx, r, lerp(x0, x1, r()), base, -Math.PI / 2 + (r() - 0.5) * 0.8, h * (0.25 + r() * 0.35), h * 0.07, ramp(GREEN_LEAVES, r()), 0.85, 1);
+    });
+  }
+
+  /** Flowers and leaves edging both sides of the path between two heights. */
+  function pathBorder(yf0, yf1, seed) {
+    const r = rng(seed);
+    withThickness(0.85, () => {
+      for (let yf = yf0; yf < yf1; yf += 0.0045) {
+        const [xf, hw] = pathAt(yf);
+        for (const side of [-1, 1]) {
+          if (r() < 0.45) continue;
+          const x = X(xf + side * (hw + 0.006 + r() * 0.014)), y = Y(yf);
+          const rr = (3 + yf * 7) * k * (0.8 + r() * 0.5);
+          stroke(ctx, r, x, y + rr, -Math.PI / 2 + (r() - 0.5) * 1.6, rr * 2.4, rr * 0.7, ramp(GREEN_LEAVES, 0.3 + r() * 0.6), 0.85, 1);
+          const kind = r();
+          if (kind < 0.35) daisy(x, y, rr, r);
+          else if (kind < 0.6) cosmos(x, y, rr, r);
+          else if (kind < 0.75) spike(x, y + rr, rr * 4, r);
+          else tinyFlower(x, y, rr * 0.6, r);
+        }
+      }
+    });
+  }
+
+  // ---- scene 1 life: trees, cottage, fences, shrubs, dogs, leaves, flowers
   for (const [i, t] of L.trees1.entries()) {
     const top = tops.near;
     tree(X(t.x), t.y ? Y(t.y) : top(X(t.x)) + 6 * k, t.s * W, 410 + i, t.kind);
@@ -1217,10 +1300,13 @@ function paint(F) {
   }
   for (const [i, sb] of L.shrubs1.entries()) shrub(X(sb[0]), Y(sb[1]), sb[2] * W, 430 + i, sb[3] === "white" ? [[0, "#c9b9a6"], [0.5, "#efe6d8"], [1, "#fffaf0"]] : undefined, 90);
   cottage(X(L.cottage[0]), Y(L.cottage[1]), L.cottage[2] * W, 440);
+  for (const [i, f] of (L.fences ?? []).entries()) fence(X(f[0]), X(f[1]), Y(f[2]), Y(f[3]), 445 + i);
+  for (const b of L.borders ?? []) pathBorder(b[0], b[1], b[2]);
   for (const cl of L.clusters1) cluster(cl);
   for (const [i, d] of L.dogs.entries()) dog(X(d.x), Y(d.y), d.s * W, d.pose, d.coat, d.dir, 450 + i);
   if (L.ball) ball(X(L.ball[0]), Y(L.ball[1]), L.ball[2] * W);
   for (const fl of L.leaves1) fallenLeaves(X(fl[0]), Y(fl[1]), X(fl[2]), Y(fl[3]), fl[4], 460 + fl[4]);
+  for (const g of L.grass1 ?? []) grassClump(X(g[0]), X(g[1]), Y(g[2]), Y(g[2] + 0.08), g[3], g[4], [60, 170]);
 
   // ---- scene 2: the shrub and flowers (landscape unchanged)
   shrub(X(L.shrub[0]), tops.shrubHill(X(L.shrub[0])) + Y(0.03), L.shrub[1] * W, 501);
@@ -1244,9 +1330,9 @@ function paint(F) {
     hedgeWithGate(X(T.hedge[0]), X(T.hedge[1]), Y(T.hedge[2]), Y(T.hedge[3]), X(T.gate[0]), X(T.gate[1]), 620);
     signPost(X(T.post[0]), Y(T.post[1]), Y(T.sign.y), X(T.post[2]), 630);
     anchors.sign = { x: T.sign.x, y: +(T.sign.y - 2).toFixed(4), w: T.sign.w };
-    if (T.chairBack) chair(X(T.chairBack[0]), Y(T.chairBack[1]), T.chairBack[2] * W, -1, 640);
+    if (T.chairBack) gardenChair(X(T.chairBack[0]), Y(T.chairBack[1]), T.chairBack[2] * W, -1, 640);
     teaTable(X(T.table[0]), Y(T.table[1]), T.table[2] * W, 650);
-    if (T.chairFront) chair(X(T.chairFront[0]), Y(T.chairFront[1]), T.chairFront[2] * W, 1, 641);
+    if (T.chairFront) gardenChair(X(T.chairFront[0]), Y(T.chairFront[1]), T.chairFront[2] * W, 1, 641);
     for (const fg of L.foreground) grassClump(X(fg[0]), X(fg[1]), Y(fg[2]), Y(3.02), fg[3], fg[4]);
     for (const cl of L.clustersFront) cluster(cl);
   }
@@ -1373,26 +1459,27 @@ function paintSignFlower() {
 const DESKTOP = {
   name: "desktop", W: 2400, S: 1800, k: 1,
   layout: {
-    // the title sits at the centre of the first view (≈ 0.32–0.55 of scene 1): a quiet sky
-    skyStops: [[0, "#e3a5b4"], [0.2, "#eab1b6"], [0.38, "#f0c0b5"], [0.5, "#f6d0bb"], [0.57, "#fadfc6"], [0.66, "#fbe7d0"]],
-    skyEnd: 0.68,
-    sun: [0.6, 0.6],
+    // less sky: the horizon is higher and the land fills the lower half; the title sits
+    // at the centre of the first view (≈ 0.33–0.5 of scene 1) on quiet sky and soft hills
+    skyStops: [[0, "#e3a5b4"], [0.16, "#eab1b6"], [0.3, "#f0c0b5"], [0.4, "#f6d0bb"], [0.46, "#fadfc6"], [0.54, "#fbe7d0"]],
+    skyEnd: 0.56,
+    sun: [0.6, 0.47],
     clouds: [
-      { x: 0.15, y: 0.17, rx: 0.17, ry: 0.06, col: "#efb5b8", shade: "#d98f9a", strokes: 300 },
-      { x: 0.85, y: 0.11, rx: 0.2, ry: 0.08, col: "#f1bdb8", shade: "#d9929d", strokes: 420 },
-      { x: 0.5, y: 0.06, rx: 0.12, ry: 0.025, col: "#f3c4bd", shade: "#e4a1a6", strokes: 120 },
-      { x: 0.1, y: 0.47, rx: 0.12, ry: 0.016, col: "#f7d3bf", shade: "#eab0a4", strokes: 100 },
-      { x: 0.9, y: 0.5, rx: 0.1, ry: 0.015, col: "#f9dcc4", shade: "#eab0a4", strokes: 90, glow: 1.4 },
+      { x: 0.15, y: 0.13, rx: 0.17, ry: 0.05, col: "#efb5b8", shade: "#d98f9a", strokes: 280 },
+      { x: 0.85, y: 0.08, rx: 0.2, ry: 0.065, col: "#f1bdb8", shade: "#d9929d", strokes: 380 },
+      { x: 0.5, y: 0.035, rx: 0.12, ry: 0.02, col: "#f3c4bd", shade: "#e4a1a6", strokes: 120 },
+      { x: 0.08, y: 0.35, rx: 0.1, ry: 0.014, col: "#f7d3bf", shade: "#eab0a4", strokes: 90 },
+      { x: 0.92, y: 0.37, rx: 0.09, ry: 0.013, col: "#f9dcc4", shade: "#eab0a4", strokes: 80, glow: 1.4 },
     ],
-    far1: [[0, 0.585], [0.22, 0.56], [0.45, 0.58], [0.7, 0.555], [1, 0.575]],
-    far2: [[0, 0.615], [0.3, 0.6], [0.55, 0.62], [0.8, 0.605], [1, 0.615]],
-    midL: [0.2, 0.625, 0.42, 0.04],
-    midR: [0.82, 0.645, 0.4, 0.04],
-    midTrees: [[0.36, 0.009], [0.39, 0.007], [0.66, 0.008]],
+    far1: [[0, 0.465], [0.22, 0.44], [0.45, 0.46], [0.7, 0.435], [1, 0.455]],
+    far2: [[0, 0.495], [0.3, 0.48], [0.55, 0.5], [0.8, 0.485], [1, 0.495]],
+    midL: [0.2, 0.505, 0.42, 0.04],
+    midR: [0.82, 0.52, 0.4, 0.04],
+    midTrees: [[0.36, 0.008], [0.39, 0.006], [0.66, 0.007], [0.7, 0.006]],
     // [centre x, crest y, half-width, height, shade depth, palette, name]
     mounds: [
-      [0.5, 0.68, 0.85, 0.035, 0.32, "sage", "near"],
-      [0.95, 0.8, 0.3, 0.06, 0.18, "moss"],
+      [0.5, 0.555, 0.85, 0.035, 0.32, "sage", "near"],
+      [0.95, 0.66, 0.3, 0.06, 0.2, "moss"],
       [0.06, 0.91, 0.38, 0.08, 0.22, "moss"],
       [0.7, 1.0, 0.38, 0.13, 0.26, "cool"],
       [0.32, 1.3, 0.3, 0.12, 0.24, "sage"],
@@ -1404,27 +1491,33 @@ const DESKTOP = {
       [0.5, 2.18, 0.95, 0.04, 0.7, "moss"],
     ],
     // the path leaves the cottage door, winds down the hills, and ends at the garden gate
-    path: [[0.2, 0.714, 0.008], [0.3, 0.75, 0.01], [0.44, 0.8, 0.013], [0.53, 0.88, 0.018], [0.56, 0.97, 0.024], [0.6, 1.15, 0.034], [0.55, 1.35, 0.044], [0.5, 1.55, 0.055], [0.6, 1.75, 0.065], [0.55, 1.98, 0.07], [0.62, 2.16, 0.062], [0.72, 2.36, 0.056], [0.81, 2.55, 0.052], [0.85, 2.7, 0.05], [0.85, 2.78, 0.05]],
-    cottage: [0.2, 0.712, 0.17],
+    path: [[0.15, 0.594, 0.008], [0.24, 0.63, 0.01], [0.36, 0.68, 0.013], [0.47, 0.76, 0.016], [0.54, 0.86, 0.02], [0.56, 0.97, 0.024], [0.6, 1.15, 0.034], [0.55, 1.35, 0.044], [0.5, 1.55, 0.055], [0.6, 1.75, 0.065], [0.55, 1.98, 0.07], [0.62, 2.16, 0.062], [0.72, 2.36, 0.056], [0.81, 2.55, 0.052], [0.85, 2.7, 0.05], [0.85, 2.78, 0.05]],
+    cottage: [0.13, 0.598, 0.15],
+    fences: [[0.2, 0.3, 0.622, 0.032]],
     trees1: [
-      { x: 0.88, s: 0.095, kind: "autumn", leaves: [0.785, 0.09, 0.02, 70], y: 0.785 },
-      { x: 0.045, s: 0.06, kind: "autumn", leaves: [0.72, 0.05, 0.012, 30], y: 0.725 },
-      { x: 0.36, s: 0.03, kind: "turning", y: 0.692 },
+      { x: 0.88, s: 0.095, kind: "autumn", leaves: [0.655, 0.09, 0.02, 70], y: 0.65 },
+      { x: 0.03, s: 0.05, kind: "autumn", leaves: [0.6, 0.04, 0.01, 25], y: 0.59 },
+      { x: 0.33, s: 0.03, kind: "turning", y: 0.565 },
+      { x: 0.62, s: 0.036, kind: "autumn", leaves: [0.605, 0.04, 0.01, 20], y: 0.6 },
     ],
-    shrubs1: [[0.1, 0.74, 0.04, "pink"], [0.31, 0.73, 0.032, "white"]],
+    shrubs1: [[0.06, 0.625, 0.035, "pink"], [0.22, 0.612, 0.03, "white"], [0.45, 0.62, 0.028, "pink"], [0.72, 0.645, 0.032, "white"], [0.97, 0.69, 0.04, "pink"]],
     dogs: [
-      { x: 0.6, y: 0.835, s: 0.068, pose: "trot", coat: ["#c9935e", "#7a5234", "#f0d3a8"], dir: 1 },
-      { x: 0.76, y: 0.815, s: 0.062, pose: "bow", coat: ["#f3e6cf", "#b59c7c", "#fffaf0"], dir: -1 },
-      { x: 0.69, y: 0.89, s: 0.058, pose: "sit", coat: ["#6b5243", "#3b2c24", "#e9dccb"], dir: 1 },
+      { x: 0.6, y: 0.78, s: 0.068, pose: "trot", coat: ["#c9935e", "#7a5234", "#f0d3a8"], dir: 1 },
+      { x: 0.77, y: 0.76, s: 0.062, pose: "bow", coat: ["#f3e6cf", "#b59c7c", "#fffaf0"], dir: -1 },
+      { x: 0.69, y: 0.845, s: 0.058, pose: "sit", coat: ["#6b5243", "#3b2c24", "#e9dccb"], dir: 1 },
     ],
-    ball: [0.68, 0.825, 0.009],
-    leaves1: [[0.5, 0.93, 0.4, 0.04, 40], [0.48, 0.86, 0.06, 0.03, 10]],
+    ball: [0.68, 0.772, 0.009],
+    leaves1: [[0.5, 0.9, 0.4, 0.05, 50], [0.4, 0.72, 0.08, 0.03, 14], [0.3, 0.95, 0.2, 0.03, 20]],
     clusters1: [
-      { seed: 701, x: 0.3, y: 0.745, rx: 0.05, ry: 0.012, n: 30, size: [4, 7], kinds: ["cosmos", "daisy", "tiny"] },
-      { seed: 702, x: 0.13, y: 0.94, rx: 0.1, ry: 0.035, n: 60, size: [8, 14], kinds: ["daisy", "cosmos", "tiny", "spike"], foliage: true, stems: true },
-      { seed: 703, x: 0.9, y: 0.95, rx: 0.08, ry: 0.03, n: 50, size: [8, 14], kinds: ["daisy", "daisy", "tiny"], foliage: true, stems: true },
-      { seed: 704, x: 0.45, y: 0.79, rx: 0.08, ry: 0.012, n: 40, size: [2.5, 4.5], kinds: ["tiny"] },
+      { seed: 701, x: 0.26, y: 0.645, rx: 0.05, ry: 0.012, n: 30, size: [4, 7], kinds: ["cosmos", "daisy", "tiny"] },
+      { seed: 702, x: 0.12, y: 0.94, rx: 0.12, ry: 0.04, n: 70, size: [9, 16], kinds: ["daisy", "cosmos", "tiny", "spike"], foliage: true, stems: true },
+      { seed: 703, x: 0.9, y: 0.95, rx: 0.1, ry: 0.035, n: 60, size: [9, 16], kinds: ["daisy", "daisy", "tiny", "cosmos"], foliage: true, stems: true },
+      { seed: 704, x: 0.45, y: 0.69, rx: 0.1, ry: 0.015, n: 50, size: [2.5, 4.5], kinds: ["tiny"] },
+      { seed: 705, x: 0.84, y: 0.87, rx: 0.1, ry: 0.02, n: 50, size: [3, 6], kinds: ["tiny", "daisy"] },
+      { seed: 706, x: 0.3, y: 0.8, rx: 0.1, ry: 0.03, n: 45, size: [6, 11], kinds: ["cosmos", "daisy", "tiny"], foliage: true },
     ],
+    borders: [[0.6, 0.95, 607]],
+    grass1: [[-0.02, 0.2, 0.92, 120, 811], [0.8, 1.02, 0.93, 110, 812]],
     shrub: [0.84, 0.075],
     clusters2: [
       { seed: 711, x: 0.66, y: 1.6, rx: 0.06, ry: 0.035, n: 40, size: [6, 11], kinds: ["cosmos", "cosmos", "daisy", "tiny"], foliage: true },
@@ -1435,15 +1528,15 @@ const DESKTOP = {
     ],
     // scene 2 notes: on which hill, where along it, how far below the crest
     phrases: [
-      { mound: 3, x: 0.79, dy: 0.06, maxTilt: 9 },
-      { mound: 4, x: 0.22, dy: 0.055, maxTilt: 9 },
-      { mound: 7, x: 0.8, dy: 0.06, maxTilt: 9 },
+      { mound: 3, x: 0.78, dy: 0.065, span: 0.4, lines: 2, gap: 0.042, bend: 0.7, maxTilt: 8 },
+      { mound: 4, x: 0.24, dy: 0.06, span: 0.4, lines: 2, gap: 0.042, bend: 0.7, maxTilt: 8 },
+      { mound: 7, x: 0.79, dy: 0.06, span: 0.4, lines: 2, gap: 0.042, bend: 0.7, maxTilt: 8 },
     ],
-    phraseZone: [0.17, 0.045],
+    phraseZone: [0.22, 0.07],
     tea: {
       tree: [0.11, 2.6, 0.17],
       table: [0.37, 2.57, 0.16],
-      chairBack: [0.57, 2.58, 0.1],
+      chairBack: [0.585, 2.63, 0.13],
       chairFront: null,
       hedge: [0.66, 1.06, 2.72, 2.9],
       gate: [0.79, 0.92],
@@ -1461,7 +1554,7 @@ const DESKTOP = {
       { seed: 732, x: 0.88, y: 2.95, rx: 0.1, ry: 0.035, n: 36, size: [16, 28], kinds: ["daisy", "cosmos", "spike"], stems: true, foliage: true, th: 1 },
     ],
     zones: [
-      { x: 0.5, y: 0.43, rx: 0.36, ry: 0.13, amt: 0.6 }, // title
+      { x: 0.5, y: 0.41, rx: 0.36, ry: 0.11, amt: 0.6 }, // title
       { x: 0.74, y: 2.11, rx: 0.24, ry: 0.05, light: "#d6dfae", amt: 0.55 }, // invitation
     ],
   },
@@ -1471,23 +1564,23 @@ const MOBILE = {
   name: "mobile", W: 1080, S: 2340, k: 0.75,
   layout: {
     ...DESKTOP.layout,
-    skyStops: [[0, "#e3a5b4"], [0.22, "#eab1b6"], [0.4, "#f0c0b5"], [0.52, "#f6d0bb"], [0.6, "#fadfc6"], [0.7, "#fbe7d0"]],
-    skyEnd: 0.72,
-    sun: [0.58, 0.64],
+    skyStops: [[0, "#e3a5b4"], [0.18, "#eab1b6"], [0.32, "#f0c0b5"], [0.42, "#f6d0bb"], [0.48, "#fadfc6"], [0.56, "#fbe7d0"]],
+    skyEnd: 0.58,
+    sun: [0.58, 0.5],
     clouds: [
-      { x: 0.2, y: 0.2, rx: 0.32, ry: 0.035, col: "#efb5b8", shade: "#d98f9a", strokes: 220 },
-      { x: 0.82, y: 0.1, rx: 0.32, ry: 0.05, col: "#f1bdb8", shade: "#d9929d", strokes: 260 },
-      { x: 0.6, y: 0.33, rx: 0.25, ry: 0.014, col: "#f6c9b4", shade: "#e8a69a", strokes: 100 },
+      { x: 0.2, y: 0.16, rx: 0.32, ry: 0.03, col: "#efb5b8", shade: "#d98f9a", strokes: 200 },
+      { x: 0.82, y: 0.08, rx: 0.32, ry: 0.045, col: "#f1bdb8", shade: "#d9929d", strokes: 240 },
+      { x: 0.6, y: 0.3, rx: 0.25, ry: 0.012, col: "#f6c9b4", shade: "#e8a69a", strokes: 90 },
     ],
-    far1: [[0, 0.625], [0.4, 0.605], [0.7, 0.62], [1, 0.605]],
-    far2: [[0, 0.65], [0.5, 0.64], [1, 0.655]],
-    midL: [0.15, 0.665, 0.55, 0.03],
-    midR: [0.9, 0.68, 0.5, 0.03],
-    midTrees: [[0.36, 0.016]],
+    far1: [[0, 0.5], [0.4, 0.485], [0.7, 0.5], [1, 0.485]],
+    far2: [[0, 0.53], [0.5, 0.52], [1, 0.535]],
+    midL: [0.15, 0.545, 0.55, 0.03],
+    midR: [0.9, 0.56, 0.5, 0.03],
+    midTrees: [[0.36, 0.014]],
     mounds: [
-      [0.5, 0.71, 1.0, 0.03, 0.3, "sage", "near"],
-      [1.0, 0.8, 0.45, 0.06, 0.18, "moss"],
-      [0.0, 0.92, 0.55, 0.08, 0.22, "moss"],
+      [0.5, 0.59, 1.0, 0.03, 0.3, "sage", "near"],
+      [1.0, 0.7, 0.45, 0.05, 0.2, "moss"],
+      [0.0, 0.88, 0.55, 0.08, 0.22, "moss"],
       [0.9, 1.02, 0.55, 0.1, 0.26, "cool"],
       [0.2, 1.32, 0.5, 0.09, 0.24, "sage"],
       [1.0, 1.32, 0.4, 0.11, 0.28, "moss", "shrubHill"],
@@ -1497,36 +1590,40 @@ const MOBILE = {
       [0.95, 1.94, 0.5, 0.1, 0.26, "sage"],
       [0.5, 2.18, 1.2, 0.03, 0.7, "moss"],
     ],
-    path: [[0.36, 0.745, 0.01], [0.45, 0.79, 0.016], [0.55, 0.87, 0.022], [0.5, 0.97, 0.028], [0.4, 1.15, 0.038], [0.42, 1.35, 0.048], [0.58, 1.55, 0.058], [0.62, 1.75, 0.066], [0.54, 1.98, 0.074], [0.56, 2.12, 0.07], [0.62, 2.32, 0.066], [0.7, 2.52, 0.062], [0.73, 2.7, 0.06], [0.73, 2.78, 0.06]],
-    cottage: [0.27, 0.745, 0.36],
+    path: [[0.3, 0.712, 0.012], [0.42, 0.76, 0.016], [0.55, 0.84, 0.022], [0.52, 0.92, 0.026], [0.5, 0.97, 0.028], [0.4, 1.15, 0.038], [0.42, 1.35, 0.048], [0.58, 1.55, 0.058], [0.62, 1.75, 0.066], [0.54, 1.98, 0.074], [0.56, 2.12, 0.07], [0.62, 2.32, 0.066], [0.7, 2.52, 0.062], [0.73, 2.7, 0.06], [0.73, 2.78, 0.06]],
+    cottage: [0.25, 0.712, 0.32],
+    fences: [[0.42, 0.56, 0.728, 0.022]],
     trees1: [
-      { x: 0.88, s: 0.13, kind: "autumn", leaves: [0.79, 0.12, 0.015, 40], y: 0.785 },
-      { x: 0.62, s: 0.04, kind: "turning", y: 0.715 },
+      { x: 0.88, s: 0.13, kind: "autumn", leaves: [0.75, 0.12, 0.015, 40], y: 0.745 },
+      { x: 0.6, s: 0.04, kind: "turning", y: 0.63 },
     ],
-    shrubs1: [[0.07, 0.765, 0.08, "pink"], [0.47, 0.755, 0.06, "white"]],
+    shrubs1: [[0.06, 0.725, 0.08, "pink"], [0.47, 0.705, 0.06, "white"], [0.97, 0.79, 0.07, "pink"]],
     dogs: [
-      { x: 0.4, y: 0.865, s: 0.15, pose: "trot", coat: ["#c9935e", "#7a5234", "#f0d3a8"], dir: 1 },
-      { x: 0.78, y: 0.85, s: 0.14, pose: "bow", coat: ["#f3e6cf", "#b59c7c", "#fffaf0"], dir: -1 },
-      { x: 0.6, y: 0.91, s: 0.13, pose: "sit", coat: ["#6b5243", "#3b2c24", "#e9dccb"], dir: 1 },
+      { x: 0.38, y: 0.84, s: 0.15, pose: "trot", coat: ["#c9935e", "#7a5234", "#f0d3a8"], dir: 1 },
+      { x: 0.78, y: 0.83, s: 0.14, pose: "bow", coat: ["#f3e6cf", "#b59c7c", "#fffaf0"], dir: -1 },
+      { x: 0.6, y: 0.895, s: 0.13, pose: "sit", coat: ["#6b5243", "#3b2c24", "#e9dccb"], dir: 1 },
     ],
-    ball: [0.6, 0.86, 0.014],
-    leaves1: [[0.5, 0.95, 0.45, 0.03, 30]],
+    ball: [0.6, 0.835, 0.014],
+    leaves1: [[0.5, 0.94, 0.45, 0.03, 30], [0.7, 0.78, 0.15, 0.02, 12]],
     clusters1: [
-      { seed: 701, x: 0.2, y: 0.8, rx: 0.12, ry: 0.01, n: 24, size: [5, 8], kinds: ["cosmos", "daisy", "tiny"] },
-      { seed: 702, x: 0.12, y: 0.95, rx: 0.14, ry: 0.025, n: 30, size: [9, 15], kinds: ["daisy", "cosmos", "tiny"], foliage: true, stems: true },
-      { seed: 703, x: 0.9, y: 0.96, rx: 0.12, ry: 0.025, n: 26, size: [9, 15], kinds: ["daisy", "tiny"], foliage: true, stems: true },
+      { seed: 701, x: 0.2, y: 0.77, rx: 0.14, ry: 0.01, n: 24, size: [5, 8], kinds: ["cosmos", "daisy", "tiny"] },
+      { seed: 702, x: 0.14, y: 0.95, rx: 0.16, ry: 0.03, n: 40, size: [10, 16], kinds: ["daisy", "cosmos", "tiny"], foliage: true, stems: true },
+      { seed: 703, x: 0.88, y: 0.96, rx: 0.14, ry: 0.03, n: 34, size: [10, 16], kinds: ["daisy", "tiny", "cosmos"], foliage: true, stems: true },
+      { seed: 706, x: 0.7, y: 0.76, rx: 0.12, ry: 0.015, n: 30, size: [3, 6], kinds: ["tiny"] },
     ],
+    borders: [[0.73, 0.95, 607]],
+    grass1: [[-0.05, 0.25, 0.93, 70, 811], [0.75, 1.05, 0.95, 60, 812]],
     shrub: [0.86, 0.15],
     clusters2: [
       { seed: 711, x: 0.74, y: 1.62, rx: 0.12, ry: 0.03, n: 30, size: [8, 13], kinds: ["cosmos", "cosmos", "daisy", "tiny"], foliage: true },
       { seed: 712, x: 0.2, y: 1.84, rx: 0.2, ry: 0.05, n: 45, size: [10, 17], kinds: ["daisy", "daisy", "tiny"], foliage: true },
     ],
     phrases: [
-      { mound: 3, x: 0.55, dy: 0.1, maxTilt: 6 },
-      { mound: 4, x: 0.42, dy: 0.05, maxTilt: 6 },
-      { mound: 7, x: 0.55, dy: 0.055, maxTilt: 6 },
+      { mound: 3, x: 0.52, dy: 0.1, span: 0.86, lines: 2, gap: 0.038, bend: 0.6, maxTilt: 5 },
+      { mound: 4, x: 0.5, dy: 0.05, span: 0.86, lines: 2, gap: 0.038, bend: 0.6, maxTilt: 5 },
+      { mound: 7, x: 0.5, dy: 0.055, span: 0.86, lines: 2, gap: 0.038, bend: 0.6, maxTilt: 5 },
     ],
-    phraseZone: [0.45, 0.05],
+    phraseZone: [0.5, 0.06],
     tea: {
       tree: [0.14, 2.44, 0.24],
       table: [0.36, 2.52, 0.27],
@@ -1545,7 +1642,7 @@ const MOBILE = {
       { seed: 731, x: 0.15, y: 2.96, rx: 0.15, ry: 0.025, n: 18, size: [18, 28], kinds: ["daisy", "cosmos"], stems: true, foliage: true, th: 1 },
     ],
     zones: [
-      { x: 0.5, y: 0.5, rx: 0.5, ry: 0.1, amt: 0.6 },
+      { x: 0.5, y: 0.5, rx: 0.5, ry: 0.09, amt: 0.6 },
       { x: 0.5, y: 2.13, rx: 0.5, ry: 0.05, light: "#d6dfae", amt: 0.55 },
     ],
   },

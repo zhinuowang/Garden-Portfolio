@@ -2,14 +2,17 @@ import Link from "next/link";
 import { landingScenes as copy } from "@/data/site";
 import { landingArt as art } from "@/data/landingArt";
 import anchors from "@/data/landing-anchors.json";
+import CurvedNotes from "./CurvedNotes";
 import Reveal from "./Reveal";
 
 // The Landing is one tall garden painting in three scenes, stacked edge to edge
 // in normal document flow: scrolling simply moves down the painting. Each scene
 // is a slice of the same picture, so the joins are seamless. Viewports at or
 // narrower than 3:4 get the portrait composition (`portrait-art:` variant).
-// Text is real HTML. The scene-2 notes sit on hill slopes whose position and
-// tilt the painting script measured (src/data/landing-anchors.json).
+// The title, invitation and sign are real HTML. The scene-2 notes are SVG text
+// written along gentle curves that follow the painted hills (measured by the
+// painting script into src/data/landing-anchors.json), with an HTML copy for
+// screen readers.
 
 function SceneArt({ scene }: { scene: 1 | 2 | 3 }) {
   const d = art.desktop;
@@ -44,10 +47,6 @@ const glow = "[text-shadow:0_1px_18px_rgb(251_247_238/0.9),0_0_2px_rgb(251_247_2
 /** Handwriting laid on the grass: dark ink with a soft halo of light. */
 const note = "[text-shadow:0_0_14px_rgb(246_242_214/0.85),0_1px_2px_rgb(246_242_214/0.9)]";
 
-type Anchor = { x: number; y: number; angle: number };
-const place = (d: Anchor, m: Anchor) =>
-  ({ "--dx": `${d.x * 100}%`, "--dy": `${d.y * 100}%`, "--da": `${d.angle}deg`, "--mx": `${m.x * 100}%`, "--my": `${m.y * 100}%`, "--ma": `${m.angle}deg` }) as React.CSSProperties;
-
 export default function LandingScenes() {
   const sd = anchors.desktop.sign;
   const sm = anchors.mobile.sign;
@@ -72,20 +71,10 @@ export default function LandingScenes() {
         </div>
       </section>
 
-      {/* ---- Scene 2 · Thoughts on the hills: notes laid along three slopes ---- */}
+      {/* ---- Scene 2 · Thoughts on the hills: notes that curve with the slopes and appear as you scroll ---- */}
       <section aria-label="Thoughts" className="relative">
         <SceneArt scene={2} />
-        {copy.thoughts.map((line, i) => (
-          <Reveal
-            key={line}
-            style={place(anchors.desktop.phrases[i], anchors.mobile.phrases[i])}
-            className="absolute top-(--dy) left-(--dx) w-max max-w-[40vw] -translate-x-1/2 -translate-y-1/2 rotate-(--da) portrait-art:top-(--my) portrait-art:left-(--mx) portrait-art:max-w-[84vw] portrait-art:rotate-(--ma)"
-          >
-            <p className={`reveal-item text-center font-hand text-[clamp(2rem,3.5vw,3.7rem)] leading-[1.05] font-semibold text-[#2a3624] portrait-art:text-[clamp(1.8rem,8.4vw,2.7rem)] ${note}`}>
-              {line}
-            </p>
-          </Reveal>
-        ))}
+        <CurvedNotes texts={copy.thoughts} desktop={anchors.desktop} mobile={anchors.mobile} />
       </section>
 
       {/* ---- Scene 3 · Afternoon tea in the garden ---- */}
