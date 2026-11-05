@@ -7,9 +7,10 @@ import title from "@/data/title-letters.json";
 // --title): lowercase "a garden / of ideas" on two staggered lines, the i's dot
 // a small painted flower. Each letter is its own layer, so the title can arrive
 // one letter at a time, lift under the pointer, and — as the visitor scrolls
-// into Scene 2 — be carried off by the wind: every letter drifts the same way
-// (up and to the right), each at its own pace, distance and spin, fading as it
-// goes, and all of them float back on the way up. The words are in the h1 for
+// into Scene 2 — be blown gently away: every letter floats the same way (up
+// and a little to the right), each on its own path, sway, spin and fade, growing
+// smaller and fainter until it is gone well before Scene 2 settles; all of them
+// float back on the way up. The words are in the h1 for
 // screen readers; the painted letters are decorative. With reduced motion the
 // title simply fades.
 
@@ -23,14 +24,14 @@ const rand = (i: number, k: number) => {
   return s - Math.floor(s);
 };
 const flights = layout.letters.map((l, i) => {
-  const across = (l.x + l.w / 2) / layout.width; // the wind reaches the left letters first
+  const across = (l.x + l.w / 2) / layout.width; // the breeze reaches the left letters first
   return {
-    delay: across * 0.28 + rand(i, 1) * 0.12,
-    span: 0.5 + rand(i, 2) * 0.25,
-    dx: 0.35 + rand(i, 3) * 0.3, // in viewport widths
-    dy: 0.12 + rand(i, 4) * 0.22, // in viewport heights, upward
-    spin: (12 + rand(i, 5) * 38) * (rand(i, 6) < 0.8 ? 1 : -1),
-    flutter: 6 + rand(i, 7) * 12,
+    delay: across * 0.18 + rand(i, 1) * 0.08, // ≤ 0.26
+    span: 0.32 + rand(i, 2) * 0.16, // ≤ 0.48, so every letter has left by 74% of the way
+    dx: 0.1 + rand(i, 3) * 0.14, // in viewport widths
+    dy: 0.12 + rand(i, 4) * 0.12, // in viewport heights, upward
+    spin: (8 + rand(i, 5) * 18) * (rand(i, 6) < 0.75 ? 1 : -1),
+    sway: 10 + rand(i, 7) * 14, // px, side to side as it floats
     phase: rand(i, 8) * Math.PI * 2,
   };
 });
@@ -52,20 +53,22 @@ export default function PaintedTitle({ id, className = "" }: { id: string; class
     const update = () => {
       raf = 0;
       const vw = window.innerWidth, vh = window.innerHeight;
-      const p = Math.min(1.4, Math.max(0, window.scrollY / (vh * 0.6)));
+      const p = Math.max(0, window.scrollY / (vh * 0.55));
       letters.forEach((el, i) => {
         const f = flights[i];
         const q = Math.min(1, Math.max(0, (p - f.delay) / f.span));
+        const fade = 1 - smooth(0.08, 0.8, q);
+        el.style.visibility = fade <= 0.001 ? "hidden" : ""; // once gone, truly gone: nothing lingers at the edges
         if (calm.matches) {
           el.style.transform = "";
-          el.style.opacity = String(1 - smooth(0, 1, p));
+          el.style.opacity = String(1 - smooth(0, 0.7, p));
           return;
         }
-        const e = Math.pow(q, 1.7); // starts gently, then the gust takes it
-        const x = e * f.dx * vw + Math.sin(q * Math.PI * 1.5 + f.phase) * f.flutter * q;
-        const y = -e * f.dy * vh + Math.sin(q * Math.PI * 2.2 + f.phase) * f.flutter * 0.6 * q;
-        el.style.transform = q ? `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) rotate(${(e * f.spin).toFixed(1)}deg)` : "";
-        el.style.opacity = String(1 - smooth(0.3, 1, q));
+        const e = smooth(0, 1, q); // lifts off softly and floats, no tug
+        const x = e * f.dx * vw + Math.sin(q * Math.PI * 2 + f.phase) * f.sway * q;
+        const y = -e * f.dy * vh - Math.sin(q * Math.PI) * f.sway * 0.4;
+        el.style.transform = q ? `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) rotate(${(e * f.spin).toFixed(1)}deg) scale(${(1 - 0.22 * e).toFixed(3)})` : "";
+        el.style.opacity = String(fade);
       });
     };
     const onScroll = () => { if (!raf) raf = requestAnimationFrame(update); };

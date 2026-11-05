@@ -2577,8 +2577,10 @@ function paintTitle() {
   const measure = createCanvas(10, 10).getContext("2d");
   measure.font = FONT;
   const LINES = ["a garden", "of ideas"];
-  const GREENS = ["#1f3a25", "#27472c", "#335733", "#3f6436", "#4d6f3a", "#3c6a55"];
-  const ACCENTS = [["#eba3ad", 0.6], ["#ecd46a", 0.4]];
+  // a softer garden palette: muted olive and warm moss, with dusty rose, blush, butter, cream and a little mauve
+  const GREENS = ["#5a663c", "#667244", "#727d4c", "#5f6c47", "#7d8556", "#6c7a55"];
+  const ACCENTS = [["#c98990", 0.3], ["#e6b2ae", 0.25], ["#ead594", 0.2], ["#efe2c6", 0.12], ["#a88aa2", 0.13]];
+  const TINTS = ["#c98990", "#a88aa2", "#d1a48f"]; // some letters lean a little rosy or mauve
   const letters = [];
   let idx = 0;
   const paintLetter = (ch, seed) => {
@@ -2592,12 +2594,23 @@ function paintTitle() {
     const mk = createCanvas(w, h), mc = mk.getContext("2d");
     mc.font = FONT;
     mc.fillStyle = "#fff";
-    mc.fillText(glyph, ox, oy);
-    // a fuller brush: trace the outline too, so the strokes are as bold as a loaded brush
     mc.strokeStyle = "#fff";
-    mc.lineWidth = F * 0.03;
     mc.lineJoin = "round";
-    mc.strokeText(glyph, ox, oy);
+    mc.lineCap = "round";
+    if (ch === "i") {
+      // a plain lowercase i: one straight brushed stem (no hook), the flower above it is its dot
+      const top = oy - m.actualBoundingBoxAscent * 0.96, sx = ox + m.width * 0.42;
+      mc.lineWidth = F * 0.085;
+      mc.beginPath();
+      mc.moveTo(sx + F * 0.012, top + F * 0.02);
+      mc.lineTo(sx, oy - F * 0.03);
+      mc.stroke();
+    } else {
+      mc.fillText(glyph, ox, oy);
+      // a fuller brush: trace the outline too, so the strokes are as bold as a loaded brush
+      mc.lineWidth = F * 0.03;
+      mc.strokeText(glyph, ox, oy);
+    }
     const base = mc.getImageData(0, 0, w, h).data;
     // the direction of travel at each point: along the letter, i.e. across the gradient of a blurred copy
     const bl = createCanvas(w, h), bc = bl.getContext("2d");
@@ -2615,15 +2628,20 @@ function paintTitle() {
     hx.fillStyle = grey(30);
     hx.fillRect(0, 0, w, h);
     PAINT.hx = hx;
-    ctx.fillStyle = rgba(hex("#2a4a2e"));
+    ctx.fillStyle = rgba(hex("#626d43"));
     ctx.fillRect(0, 0, w, h);
     const patches = [];
-    if (r() < 0.55) {
+    const nP = 1 + Math.floor(r() * 2.5);
+    for (let p = 0; p < nP; p++) {
       let pick = r(), col = ACCENTS[0][0];
       for (const [c, wgt] of ACCENTS) { if (pick < wgt) { col = c; break; } pick -= wgt; }
-      patches.push({ x: ox - L + r() * (L + R), y: oy - A * 0.8 + r() * (A * 0.8 + D), rad: F * (0.05 + r() * 0.05), col: hex(col) });
+      patches.push({ x: ox - L + r() * (L + R), y: oy - A * 0.8 + r() * (A * 0.8 + D), rad: F * (0.06 + r() * 0.06), col: hex(col) });
     }
-    const greenAt = (x, y) => hex(GREENS[Math.min(GREENS.length - 1, Math.floor(clamp(fbm(x / (F * 0.25), y / (F * 0.25), seed + 3, 3) * 0.9 + 0.5) * GREENS.length))]);
+    const tint = r() < 0.3 ? [hex(TINTS[Math.floor(r() * TINTS.length)]), 0.28 + r() * 0.14] : null;
+    const greenAt = (x, y) => {
+      const g = hex(GREENS[Math.min(GREENS.length - 1, Math.floor(clamp(fbm(x / (F * 0.25), y / (F * 0.25), seed + 3, 3) * 0.9 + 0.5) * GREENS.length))]);
+      return tint ? mix(g, tint[0], tint[1]) : g;
+    };
     withThickness(0.9, () => {
       const n = Math.round((w * h) / (F * F) * 1500);
       for (let s2 = 0; s2 < n; s2++) {
@@ -2634,7 +2652,7 @@ function paintTitle() {
         ang += (r() - 0.5) * 0.35;
         let col = greenAt(x, y);
         for (const p of patches) { const d = Math.hypot(x - p.x, y - p.y) / p.rad; if (d < 1 && r() < 1.3 - d) col = p.col; }
-        col = mix(col, r() < 0.5 ? hex("#6f8f55") : SHADOW, r() * 0.22);
+        col = mix(col, r() < 0.6 ? hex("#efe2c6") : SHADOW, r() * 0.14);
         stroke(ctx, r, x, y, ang + (r() < 0.5 ? 0 : Math.PI), F * (0.06 + r() * 0.08), F * (0.03 + r() * 0.02), col, 1, 3);
       }
     });
