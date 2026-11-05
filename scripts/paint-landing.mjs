@@ -2562,190 +2562,148 @@ const WORK_MOBILE = {
 };
 
 /**
- * The Landing title, painted letter by letter: each glyph of a chunky editorial
- * serif (Superclarendon Bold) is filled with short loaded-brush strokes in
- * forest, olive, moss and sage greens, with a few deposits of blush, cream
- * yellow and coral mixed in, then given an impasto relief (ridges catch the
- * light, edges cast a little shadow). The glyph outline is roughened with
- * noise so the contours are organic. Each letter is its own transparent layer,
- * so the page can animate them one by one; two layouts are exported (one line,
- * and two lines for tall screens).
+ * The Landing title, hand-lettered with a brush, letter by letter. Each glyph
+ * starts from a brushed hand (Bradley Hand Bold, set lowercase as
+ * "a garden / of ideas" on two staggered lines, like hand lettering laid into
+ * a painting). The letter is then repainted with strokes that run along its own
+ * shape (directions taken from the letter's edges), in deep garden greens with
+ * a few blush and cream-yellow deposits, given an impasto relief, and its edges
+ * broken up like a dry brush. The dot of the "i" is a small painted flower.
+ * Each letter is its own transparent layer for the page to animate.
  */
 function paintTitle() {
-  const F = 240, PAD = Math.round(F * 0.08);
-  const FONT = `700 ${F}px Superclarendon`;
+  const F = 260, PAD = Math.round(F * 0.1);
+  const FONT = `700 ${F}px "Bradley Hand"`;
   const measure = createCanvas(10, 10).getContext("2d");
   measure.font = FONT;
-  const TEXT = "A Garden of Ideas";
-  const GREENS = ["#203a26", "#2b4c2f", "#3a5e34", "#4f6e38", "#66803c", "#4a7a62", "#789048"];
-  const ACCENTS = [["#eba3ad", 0.48], ["#ecd46a", 0.34], ["#e35f36", 0.18]];
+  const LINES = ["a garden", "of ideas"];
+  const GREENS = ["#1f3a25", "#27472c", "#335733", "#3f6436", "#4d6f3a", "#3c6a55"];
+  const ACCENTS = [["#eba3ad", 0.6], ["#ecd46a", 0.4]];
   const letters = [];
   let idx = 0;
-  for (const [i, ch] of [...TEXT].entries()) {
-    if (ch === " ") continue;
-    const m = measure.measureText(ch);
+  const paintLetter = (ch, seed) => {
+    const glyph = ch === "i" ? "ı" : ch; // the i's dot becomes a flower
+    const m = measure.measureText(glyph);
     const L = Math.ceil(m.actualBoundingBoxLeft), R = Math.ceil(m.actualBoundingBoxRight);
-    const A = Math.ceil(m.actualBoundingBoxAscent), D = Math.ceil(m.actualBoundingBoxDescent);
-    const w = L + R + PAD * 2, h = A + D + PAD * 2, ox = L + PAD, oy = A + PAD;
-    const seed = 1300 + idx * 7;
+    const A = Math.ceil(ch === "i" ? m.actualBoundingBoxAscent + F * 0.42 : m.actualBoundingBoxAscent), D = Math.ceil(m.actualBoundingBoxDescent);
+    const w = L + R + PAD * 2 + (ch === "i" ? Math.round(F * 0.12) : 0), h = A + D + PAD * 2, ox = L + PAD, oy = A + PAD;
     const r = rng(seed);
-    // 1 · an organic mask: the glyph, softened, then re-thresholded against noise
+    // 1 · the letter's shape, slightly softened
     const mk = createCanvas(w, h), mc = mk.getContext("2d");
     mc.font = FONT;
-    mc.filter = `blur(${F * 0.012}px)`;
     mc.fillStyle = "#fff";
-    mc.fillText(ch, ox, oy);
-    const md = mc.getImageData(0, 0, w, h);
-    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-      const k = (y * w + x) * 4;
-      const t = 128 + fbm(x / (F * 0.09), y / (F * 0.09), seed, 3) * 90 + fbm(x / (F * 0.025), y / (F * 0.025), seed + 1, 2) * 40;
-      const a = md.data[k + 3];
-      md.data[k + 3] = clamp((a - t) / 24 + 0.5) * 255;
-    }
-    mc.putImageData(md, 0, 0);
-    // 2 · the paint, with its own height map
+    mc.fillText(glyph, ox, oy);
+    // a fuller brush: trace the outline too, so the strokes are as bold as a loaded brush
+    mc.strokeStyle = "#fff";
+    mc.lineWidth = F * 0.03;
+    mc.lineJoin = "round";
+    mc.strokeText(glyph, ox, oy);
+    const base = mc.getImageData(0, 0, w, h).data;
+    // the direction of travel at each point: along the letter, i.e. across the gradient of a blurred copy
+    const bl = createCanvas(w, h), bc = bl.getContext("2d");
+    bc.filter = `blur(${F * 0.03}px)`;
+    bc.drawImage(mk, 0, 0);
+    const bd = bc.getImageData(0, 0, w, h).data;
+    const a = (x, y) => bd[(Math.min(h - 1, Math.max(0, y)) * w + Math.min(w - 1, Math.max(0, x))) * 4 + 3];
+    const along = (x, y) => {
+      const gx = a(x + 3, y) - a(x - 3, y), gy = a(x, y + 3) - a(x, y - 3);
+      return Math.hypot(gx, gy) < 4 ? null : Math.atan2(gy, gx) + Math.PI / 2;
+    };
+    // 2 · the paint: strokes following the letter, with its own height map
     const cv = createCanvas(w, h), ctx = cv.getContext("2d");
     const hcv = createCanvas(w, h), hx = hcv.getContext("2d");
     hx.fillStyle = grey(30);
     hx.fillRect(0, 0, w, h);
     PAINT.hx = hx;
-    // where the mixed-in colours sit: a few soft patches per letter
+    ctx.fillStyle = rgba(hex("#2a4a2e"));
+    ctx.fillRect(0, 0, w, h);
     const patches = [];
-    const nP = 1 + Math.floor(r() * 2.4);
-    for (let p = 0; p < nP; p++) {
+    if (r() < 0.55) {
       let pick = r(), col = ACCENTS[0][0];
       for (const [c, wgt] of ACCENTS) { if (pick < wgt) { col = c; break; } pick -= wgt; }
-      patches.push({ x: ox - L + r() * (L + R), y: oy - A + r() * (A + D), rad: F * (0.08 + r() * 0.07) * (col === "#e35f36" ? 0.6 : 1), col: hex(col) });
+      patches.push({ x: ox - L + r() * (L + R), y: oy - A * 0.8 + r() * (A * 0.8 + D), rad: F * (0.05 + r() * 0.05), col: hex(col) });
     }
-    const greenAt = (x, y) => {
-      const t = clamp(fbm(x / (F * 0.22), y / (F * 0.22), seed + 3, 3) * 0.9 + 0.5);
-      return hex(GREENS[Math.min(GREENS.length - 1, Math.floor(t * GREENS.length))]);
-    };
-    // a dark green underpaint, so no canvas shows between the strokes
-    ctx.fillStyle = rgba(hex("#2f4a2e"));
-    ctx.fillRect(0, 0, w, h);
-    withThickness(0.95, () => {
-      // short, loaded strokes over the whole letter, in slowly turning directions
-      const n = Math.round((w * h) / (F * F) * 1100);
+    const greenAt = (x, y) => hex(GREENS[Math.min(GREENS.length - 1, Math.floor(clamp(fbm(x / (F * 0.25), y / (F * 0.25), seed + 3, 3) * 0.9 + 0.5) * GREENS.length))]);
+    withThickness(0.9, () => {
+      const n = Math.round((w * h) / (F * F) * 1500);
       for (let s2 = 0; s2 < n; s2++) {
-        const x = r() * w, y = r() * h;
-        const ang = fbm(x / (F * 0.3), y / (F * 0.3), seed + 5, 2) * 2.4 + (r() - 0.5) * 0.5;
+        const x = Math.floor(r() * w), y = Math.floor(r() * h);
+        if (base[(y * w + x) * 4 + 3] < 40 && r() < 0.85) continue;
+        let ang = along(x, y);
+        if (ang === null) ang = fbm(x / (F * 0.3), y / (F * 0.3), seed + 5, 2) * 2.4;
+        ang += (r() - 0.5) * 0.35;
         let col = greenAt(x, y);
-        for (const p of patches) {
-          const d = Math.hypot(x - p.x, y - p.y) / p.rad;
-          if (d < 1 && r() < 1.35 - d) col = p.col;
-        }
-        col = mix(col, r() < 0.5 ? WARM : SHADOW, r() * 0.18);
-        stroke(ctx, r, x, y, ang, F * (0.08 + r() * 0.08), F * (0.036 + r() * 0.026), col, 1, 3);
+        for (const p of patches) { const d = Math.hypot(x - p.x, y - p.y) / p.rad; if (d < 1 && r() < 1.3 - d) col = p.col; }
+        col = mix(col, r() < 0.5 ? hex("#6f8f55") : SHADOW, r() * 0.22);
+        stroke(ctx, r, x, y, ang + (r() < 0.5 ? 0 : Math.PI), F * (0.06 + r() * 0.08), F * (0.03 + r() * 0.02), col, 1, 3);
       }
-      // a few palette-knife marks and highlights on top
-      for (let s2 = 0; s2 < 6; s2++) knife(ctx, r, ox - L + r() * (L + R), oy - A + r() * (A + D), r() * Math.PI, F * 0.08, F * 0.035, mix(greenAt(0, 0), hex("#c9d39a"), 0.5), 0.55);
     });
-    // 3 · keep paint and relief only inside the letter, then light the relief
+    // 3 · a dry-brush edge: the shape (only lightly softened) thresholded against noise stretched along the stroke
+    const eg = createCanvas(w, h), ec = eg.getContext("2d");
+    ec.filter = `blur(${F * 0.009}px)`;
+    ec.drawImage(mk, 0, 0);
+    const ed = ec.getImageData(0, 0, w, h).data;
+    const md = mc.getImageData(0, 0, w, h);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const k = (y * w + x) * 4;
+      const ang = along(x, y) ?? 0;
+      const u = x * Math.cos(ang) + y * Math.sin(ang), v = -x * Math.sin(ang) + y * Math.cos(ang);
+      const streak = fbm(u / (F * 0.2), v / (F * 0.012), seed + 9, 2); // long along the stroke, fine across it
+      const t = 122 + streak * 70 + fbm(x / (F * 0.08), y / (F * 0.08), seed + 1, 2) * 30;
+      md.data[k + 3] = clamp((ed[k + 3] - t) / 22 + 0.5) * 255;
+    }
+    mc.putImageData(md, 0, 0);
+    // 4 · the i's flower: five blush petals and a honey centre, painted with relief
+    if (ch === "i") {
+      const fx = ox + m.width * 0.42 + F * 0.03, fy = oy - m.actualBoundingBoxAscent - F * 0.2, pr = F * 0.12;
+      withThickness(0.7, () => {
+        for (let p = 0; p < 5; p++) {
+          const ang = -Math.PI / 2 + (p / 5) * Math.PI * 2 + 0.3;
+          const px = fx + Math.cos(ang) * pr * 0.62, py = fy + Math.sin(ang) * pr * 0.62;
+          const petal = new Path2D();
+          petal.ellipse(px, py, pr * 0.62, pr * 0.42, ang, 0, Math.PI * 2);
+          const fill = mix(hex("#f2b9bd"), hex("#fbe6e2"), r() * 0.5);
+          ctx.fillStyle = rgba(fill);
+          ctx.fill(petal);
+          mc.fillStyle = "#fff";
+          mc.fill(petal);
+          for (let k2 = 0; k2 < 5; k2++) stroke(ctx, r, fx + Math.cos(ang) * pr * 0.2, fy + Math.sin(ang) * pr * 0.2, ang + (r() - 0.5) * 0.5, pr * (0.6 + r() * 0.5), pr * 0.18, mix(fill, r() < 0.5 ? hex("#fff4ef") : hex("#e08e98"), 0.4), 0.8, 2);
+        }
+        dab(ctx, fx, fy, pr * 0.24, pr * 0.24, 0, hex("#e3b452"), 1);
+        dab(ctx, fx - pr * 0.06, fy - pr * 0.06, pr * 0.1, pr * 0.1, 0, hex("#f6dc8e"), 1);
+        mc.beginPath(); mc.arc(fx, fy, pr * 0.3, 0, Math.PI * 2); mc.fill();
+        // a short stem leaf, tucked toward the letter
+        stroke(ctx, r, fx + pr * 0.35, fy + pr * 0.5, 2.2, pr * 0.9, pr * 0.3, hex("#6f8f55"), 0.95, 1);
+        mc.save(); mc.translate(fx + pr * 0.35, fy + pr * 0.5); mc.rotate(2.2); mc.fillRect(0, -pr * 0.15, pr * 0.9, pr * 0.3); mc.restore();
+      });
+    }
+    // 5 · keep paint and relief inside the shape, then light the relief
     for (const c of [ctx, hx]) { c.save(); c.globalCompositeOperation = "destination-in"; c.drawImage(mk, 0, 0); c.restore(); }
     hx.save(); hx.globalCompositeOperation = "destination-over"; hx.fillStyle = grey(20); hx.fillRect(0, 0, w, h); hx.restore();
-    lightRelief(cv, hcv, w, h, 1.45);
+    lightRelief(cv, hcv, w, h, 1.4);
     ctx.save(); ctx.globalCompositeOperation = "destination-in"; ctx.drawImage(mk, 0, 0); ctx.restore();
     PAINT.hx = null;
-    letters.push({ ch, i, idx, w, h, ox, oy, canvas: cv });
-    idx++;
-  }
-  // layouts in glyph pixels: one line, and two lines for tall screens
-  const place = (lines, lead) => {
-    const out = [];
-    const widths = lines.map((ln) => measure.measureText(ln).width);
-    const W = Math.max(...widths);
-    let start = 0;
-    lines.forEach((ln, li) => {
-      const x0 = (W - widths[li]) / 2, base = F * 0.82 + li * F * lead;
-      for (let c = 0; c < ln.length; c++) {
-        if (ln[c] === " ") continue;
-        const L = letters.find((q) => q.i === start + c);
-        out.push({ idx: L.idx, x: +(x0 + measure.measureText(ln.slice(0, c)).width - L.ox).toFixed(1), y: +(base - L.oy).toFixed(1), w: L.w, h: L.h });
-      }
-      start += ln.length + 1;
-    });
-    return { width: Math.ceil(W), height: Math.ceil(F * (1.08 + (lines.length - 1) * lead)), letters: out };
+    return { w, h, ox, oy, advance: m.width, canvas: cv };
   };
-  return {
-    letters,
-    meta: { text: TEXT, font: F, chars: letters.map((l) => l.ch), wide: place([TEXT], 1), tall: place(["A Garden", "of Ideas"], 1.02) },
-  };
-}
-
-/**
- * The Landing cursor: a tiny painted butterfly seen from above, head at the
- * top centre (the click point). Left wing, right wing and body are separate
- * layers on the same canvas so the page can flutter the wings about the body.
- */
-function paintButterfly() {
-  const W = 200, H = 180, cx = 100, top = 34;
-  const out = {};
-  for (const part of ["left", "right", "body"]) {
-    const cv = createCanvas(W, H), ctx = cv.getContext("2d");
-    const hcv = createCanvas(W, H), hx = hcv.getContext("2d");
-    hx.fillStyle = grey(20);
-    hx.fillRect(0, 0, W, H);
-    PAINT.hx = hx;
-    const r = rng(1400 + (part === "right" ? 1 : 0));
-    withThickness(0.8, () => {
-      if (part === "body") {
-        // a slim olive body, a round head, two fine antennae with knobs
-        for (let i = 0; i < 5; i++) stroke(ctx, r, cx + (r() - 0.5) * 2, top + 18, Math.PI / 2, 78, 9 - i, mix(hex("#5d6b3a"), hex("#8c9a5a"), i / 5), 1, 1);
-        dab(ctx, cx, top + 12, 8, 8, 0, hex("#4f5c33"), 1);
-        for (const side of [-1, 1]) {
-          stroke(ctx, r, cx + side * 2, top + 6, -Math.PI / 2 + side * 0.45, 26, 2.2, hex("#4f5c33"), 1, 0);
-          dab(ctx, cx + side * 13, top - 17, 3.4, 3.4, 0, hex("#4f5c33"), 1);
-        }
-        return;
-      }
-      const d = part === "left" ? -1 : 1;
-      const X = (u) => cx + d * u;
-      const wing = (pts, base, edge, spots) => {
-        const p = new Path2D();
-        p.moveTo(X(pts[0][0]), pts[0][1]);
-        for (let i = 1; i < pts.length; i += 3) p.bezierCurveTo(X(pts[i][0]), pts[i][1], X(pts[i + 1][0]), pts[i + 1][1], X(pts[i + 2][0]), pts[i + 2][1]);
-        p.closePath();
-        ctx.fillStyle = rgba(hex(base));
-        ctx.fill(p);
-        clipBoth(ctx, p);
-        // strokes radiating from the body, cream near the root, blush toward the edge
-        for (let i = 0; i < 150; i++) {
-          const ang = (d < 0 ? Math.PI : 0) + (r() - 0.5) * 2.2, len = 30 + r() * 70;
-          const t = r();
-          stroke(ctx, r, X(4) + Math.cos(ang) * 6, pts[0][1] + 6 + Math.sin(ang) * 6, ang, len, 7 + r() * 6, mix(hex("#fbeee0"), hex(base), 0.35 + t * 0.6), 0.7, 3);
-        }
-        // a painted rim and a few sage dots near the edge
-        for (let i = 0; i < pts.length - 1; i++) {
-          const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
-          stroke(ctx, r, X(ax), ay, Math.atan2(by - ay, X(bx) - X(ax)), Math.hypot(X(bx) - X(ax), by - ay) * 1.1, 6, hex(edge), 0.55, 1);
-        }
-        for (const [u, v, rr] of spots) dab(ctx, X(u), v, rr, rr * 0.85, 0, hex("#9aae7c"), 0.9);
-        unclipBoth(ctx);
-      };
-      // upper wing, then the smaller lower wing
-      wing([[4, top + 22], [30, top - 10], [80, top - 22], [92, top + 2], [98, top + 26], [70, top + 52], [6, top + 50]], "#f2b9b4", "#d98c8a", [[70, top - 6, 5], [80, top + 12, 3.5]]);
-      wing([[4, top + 52], [40, top + 54], [70, top + 70], [66, top + 98], [58, top + 122], [24, top + 118], [6, top + 76]], "#f6d6c4", "#d99f8e", [[48, top + 100, 4]]);
-    });
-    hx.save(); hx.globalCompositeOperation = "destination-in"; hx.drawImage(cv, 0, 0); hx.restore();
-    hx.save(); hx.globalCompositeOperation = "destination-over"; hx.fillStyle = grey(20); hx.fillRect(0, 0, W, H); hx.restore();
-    const alpha = createCanvas(W, H);
-    alpha.getContext("2d").drawImage(cv, 0, 0);
-    lightRelief(cv, hcv, W, H, 1.1);
-    ctx.save(); ctx.globalCompositeOperation = "destination-in"; ctx.drawImage(alpha, 0, 0); ctx.restore();
-    PAINT.hx = null;
-    out[part] = cv;
-  }
-  return { out, hotspot: [cx / W, (top - 2) / H] };
-}
-
-if (process.argv.includes("--butterfly")) {
-  const dir = path.resolve("public/assets/garden/butterfly");
-  fs.mkdirSync(dir, { recursive: true });
-  const { out, hotspot } = paintButterfly();
-  for (const [k, cv] of Object.entries(out)) fs.writeFileSync(path.join(dir, `butterfly-${k}.webp`), cv.toBuffer("image/webp", 92));
-  console.log("butterfly hotspot", hotspot.map((v) => v.toFixed(3)).join(", "));
-  process.exit(0);
+  // lay out the two staggered lines, as hand lettering would sit in a painting
+  const place = [];
+  const lead = F * 0.95, indent = [0, F * 1.05];
+  LINES.forEach((line, li) => {
+    let pen = indent[li];
+    for (const ch of line) {
+      if (ch === " ") { pen += measure.measureText(" ").width * 0.9; continue; }
+      const seed = 1500 + idx * 7;
+      const Lr = paintLetter(ch, seed);
+      letters.push({ ch, idx, ...Lr });
+      place.push({ idx, x: +(pen - Lr.ox).toFixed(1), y: +(F * 0.95 + li * lead - Lr.oy).toFixed(1), w: Lr.w, h: Lr.h });
+      pen += Lr.advance * 0.96;
+      idx++;
+    }
+  });
+  const minX = Math.min(...place.map((p) => p.x)), minY = Math.min(...place.map((p) => p.y));
+  for (const p of place) { p.x = +(p.x - minX).toFixed(1); p.y = +(p.y - minY).toFixed(1); }
+  const layout = { width: Math.ceil(Math.max(...place.map((p) => p.x + p.w))), height: Math.ceil(Math.max(...place.map((p) => p.y + p.h))), letters: place };
+  return { letters, meta: { text: "A Garden of Ideas", lettering: LINES.join(" / "), font: F, chars: letters.map((l) => l.ch), wide: layout, tall: layout } };
 }
 
 if (process.argv.includes("--title")) {

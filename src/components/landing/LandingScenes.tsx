@@ -69,7 +69,7 @@ export default function LandingScenes() {
       <section aria-labelledby="landing-title" className="relative">
         <SceneArt scene={1} />
         {layers(1)}
-        <PaintedTitle id="landing-title" className="pointer-events-none absolute inset-x-0 top-[min(44svh,44%)] -translate-y-1/2 px-6 portrait-art:top-[min(40svh,40%)]" />
+        <PaintedTitle id="landing-title" className="pointer-events-none absolute inset-x-0 top-[min(38svh,38%)] -translate-y-1/2 px-6 portrait-art:top-[min(38svh,38%)]" />
         {/* a quiet, wordless cue at the foot of the first view */}
         <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-[min(calc(100svh-4.5rem),92%)] flex justify-center text-[#33402f]/70">
           <svg viewBox="0 0 24 40" className="h-10 w-6 motion-safe:animate-[cue_2.6s_ease-in-out_infinite]">

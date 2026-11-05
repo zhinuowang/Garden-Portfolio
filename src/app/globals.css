@@ -251,21 +251,18 @@ body {
 }
 
 /* ---------- Landing: the painted title ---------- */
-/* each letter: fades upward as Scene 1 scrolls away (staggered a touch), rises in on arrival, lifts under the pointer */
-.painted-title { --out: 0; }
-.pt-letter {
-  --o: clamp(0, calc(var(--out) * 1.5 - var(--i) * 0.025), 1);
-  opacity: calc(1 - var(--o));
-  translate: 0 calc(var(--o) * -1.6rem);
-  pointer-events: auto;
-}
-.pt-rise { animation: pt-rise 0.72s cubic-bezier(0.22, 1.18, 0.36, 1) calc(0.25s + var(--i) * 55ms) both; }
+/* the wind exit is set per letter by PaintedTitle (transform and opacity, from the scroll) */
+.pt-letter { pointer-events: auto; will-change: transform, opacity; }
+/* arrival: one letter at a time, left to right, each rising and settling as if just painted */
+.pt-rise { animation: pt-rise 0.9s cubic-bezier(0.22, 1.15, 0.36, 1) calc(0.35s + var(--i) * 110ms) both; }
 @keyframes pt-rise {
-  from { opacity: 0; transform: translateY(26%) scale(0.97); }
-  to { opacity: 1; transform: none; }
+  0% { opacity: 0; transform: translateY(34%) rotate(calc(var(--tilt) * -0.8)) scale(0.94); }
+  45% { opacity: 1; }
+  100% { opacity: 1; transform: none; }
 }
-.pt-paint { transition: transform 0.55s cubic-bezier(0.34, 1.5, 0.6, 1), filter 0.4s ease; will-change: transform; }
-.pt-letter:hover .pt-paint { transform: translateY(-6px) rotate(var(--tilt)); filter: saturate(1.12) brightness(1.06); }
+/* hover: just this letter lifts, sways and bounces back softly */
+.pt-paint { transition: transform 0.6s cubic-bezier(0.34, 1.7, 0.5, 1), filter 0.4s ease; will-change: transform; }
+.pt-letter:hover .pt-paint { transform: translateY(-11px) rotate(var(--tilt)) scale(1.05); filter: saturate(1.15) brightness(1.07); }
 
 /* ---------- Landing: the butterfly cursor ---------- */
 html.butterfly-cursor, html.butterfly-cursor * { cursor: none; }
@@ -588,7 +585,6 @@ html.butterfly-cursor :is(a, button, [role="button"], input, select, textarea, l
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .pt-letter { translate: none; }
   .pt-paint { transition: none; }
   .sway, .drift, .blades, .bubble, .bloom, .garden-sign__board, .living-dog, .living-tail, .living-ball, .living-rocker, .living-water-a, .living-water-b, .living-drop,
   .pt-rise, .work-glow, .work-cue, .work-layer, .work-girl__body, .work-bubble, .work-heart, .work-ripple,

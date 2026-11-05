@@ -59,9 +59,11 @@ The Landing statements live in `src/data/site.ts` → `landingScenes`. Edit them
   the edges; `node scripts/paint-landing.mjs --journal`), contents in the margin, sage vines under headings and
   leaf bullets. Project images sit straight on the page with no card, border or tape; only those with an opaque
   background get a faint, diffused neutral shadow. The images themselves are untouched.
-- **Landing title and cursor.** "A Garden of Ideas" is painted letter by letter in oil (Superclarendon Bold letterforms,
-  green brushwork with blush, cream-yellow and coral deposits, impasto relief; `node scripts/paint-landing.mjs
-  --title`). The letters rise in one by one, fade upward with the scroll into Scene 2 and back, and each lifts and
-  tilts a little under the pointer; the h1 keeps the text for screen readers. On devices with a mouse a small painted
-  butterfly (`--butterfly`) is the cursor on the Landing page only, with its head at the click point; over links the
-  normal pointer returns. Touch devices and reduced motion keep the normal cursor.
+- **Landing title and cursor.** "A Garden of Ideas" is hand-lettered with a brush in oil, lowercase on two staggered
+  lines ("a garden / of ideas"), in deep garden greens with a few blush and cream-yellow touches; the i's dot is a
+  small painted flower (`node scripts/paint-landing.mjs --title`, letterforms from Bradley Hand Bold, repainted with
+  strokes that follow each letter and a dry-brush edge). The letters arrive one by one, left to right; each lifts,
+  sways and bounces a little under the pointer; and scrolling into Scene 2 carries them off on the wind (same
+  direction, each its own pace, distance and spin), back again on the way up. The h1 keeps "A Garden of Ideas" for
+  screen readers. On devices with a mouse a small painted butterfly (`--butterfly`) is the cursor on the Landing
+  page only, with its head at the click point; over links the normal pointer returns. Touch devices and reduced motion keep the normal cursor.
