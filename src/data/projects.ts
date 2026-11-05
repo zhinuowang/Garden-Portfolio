@@ -228,7 +228,10 @@ export const projects: Project[] = [
         ],
       },
     ],
+    // The page body is the full case study in src/data/case-studies/eliminate-bacteria-pro.ts
+    // (from the English deck); caseStudySections below are no longer shown for this project.
     sourceAssetReferences: [
+      "Desktop/Portofolio/[wang2764].Y1-portfolio.[zhinuo].[wang].pdf (pages 36–63, the English case study)",
       "Desktop/Portofolio/COVER PAGE.png",
       "Desktop/Portofolio/个人作品集.pdf (page 5)",
       "Desktop/Portofolio/Nora Wang - Eliminate Bacteria Pro - 产品设计.pdf",

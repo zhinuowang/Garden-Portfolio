@@ -5,6 +5,8 @@ import CategoryBadge from "@/components/CategoryBadge";
 import { AssetPlaceholder } from "@/components/ProjectMedia";
 import ProjectMedia from "@/components/ProjectMedia";
 import MarkVisited from "@/components/MarkVisited";
+import FullCaseStudy from "@/components/case-study/FullCaseStudy";
+import { fullCaseStudies } from "@/data/case-studies/eliminate-bacteria-pro";
 import { getProject, nextProject, projects } from "@/data/projects";
 
 export function generateStaticParams() {
@@ -33,6 +35,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
   const project = getProject((await params).slug);
   if (!project) notFound();
   const next = nextProject(project.slug);
+  const full = fullCaseStudies[project.slug];
 
   return (
     <article className="px-4 pt-28 pb-20 sm:px-6">
@@ -65,11 +68,15 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
           </div>
         </dl>
 
-        {project.shortDescription && (
-          <p className="mt-10 font-serif text-2xl leading-snug text-ink">{project.shortDescription}</p>
+        {full ? (
+          <p className="mt-10 font-serif text-2xl leading-snug text-ink">{full.subtitle}</p>
+        ) : (
+          project.shortDescription && <p className="mt-10 font-serif text-2xl leading-snug text-ink">{project.shortDescription}</p>
         )}
 
-        {project.caseStudySections.map((s) => (
+        {full && <FullCaseStudy data={full} />}
+
+        {!full && project.caseStudySections.map((s) => (
           <section key={s.id} aria-labelledby={`s-${s.id}`} className="mt-12">
             <h2 id={`s-${s.id}`} className="font-serif text-3xl font-medium">{s.heading}</h2>
             {s.body.map((p) => (
@@ -83,7 +90,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
           </section>
         ))}
 
-        <section aria-label="Case study in progress" className="mt-14 rounded-3xl border border-forest/15 p-6">
+        {!full && <section aria-label="Case study in progress" className="mt-14 rounded-3xl border border-forest/15 p-6">
           <p className="font-medium text-ink">The full case study is still being planted.</p>
           <p className="mt-1 text-ink-soft">
             Process images and the remaining sections will be added from the original project files.
@@ -92,7 +99,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
             <AssetPlaceholder />
             <AssetPlaceholder />
           </div>
-        </section>
+        </section>}
 
         <nav aria-label="More projects" className="mt-16 flex flex-wrap items-center justify-between gap-4 border-t border-forest/15 pt-8">
           <Link href="/work" className="inline-flex min-h-11 items-center font-medium text-forest underline-offset-4 hover:underline">
