@@ -81,7 +81,7 @@ export const projects: Project[] = [
     caseStudySections: [],
     sourceAssetReferences: ["Overview text, metadata and screenshot supplied by Zhinuo in chat (2026-11-05)", "Live app: https://little-moments-eta.vercel.app/"],
     openQuestions: [
-      "Vibe Coding workflow and Reflection: placeholders on the page for Zhinuo to write.",
+      "Case study copy complete (supplied 2026-11-06). Screenshots of the result card or other screens could be added.",
     ],
   },
   {

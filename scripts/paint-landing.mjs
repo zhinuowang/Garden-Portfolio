@@ -2705,16 +2705,17 @@ function paintTitle() {
   };
   // lay out the two staggered lines, as hand lettering would sit in a painting
   const place = [];
-  const lead = F * 0.95, indent = [0, F * 1.05];
+  // a little air: letters ~7% further apart, wider word gaps, ~10% more between the lines
+  const lead = F * 1.05, indent = [0, F * 0.82];
   LINES.forEach((line, li) => {
     let pen = indent[li];
     for (const ch of line) {
-      if (ch === " ") { pen += measure.measureText(" ").width * 0.9; continue; }
+      if (ch === " ") { pen += measure.measureText(" ").width * 1.25; continue; }
       const seed = 1500 + idx * 7;
       const Lr = paintLetter(ch, seed);
       letters.push({ ch, idx, ...Lr });
       place.push({ idx, x: +(pen - Lr.ox).toFixed(1), y: +(F * 0.95 + li * lead - Lr.oy).toFixed(1), w: Lr.w, h: Lr.h });
-      pen += Lr.advance * 0.96;
+      pen += Lr.advance * 1.03;
       idx++;
     }
   });

@@ -85,7 +85,7 @@ export default function PaintedTitle({ id, className = "" }: { id: string; class
   return (
     <h1 id={id} ref={ref} className={`painted-title ${className}`}>
       <span className="sr-only">{title.text}</span>
-      <span aria-hidden="true" className="relative mx-auto block w-[min(62vw,50rem)] portrait-art:w-[min(88vw,27rem)]" style={{ aspectRatio: `${layout.width} / ${layout.height}` }}>
+      <span aria-hidden="true" className="relative mx-auto block w-[min(63vw,50.5rem)] portrait-art:w-[min(87vw,27.5rem)]" style={{ aspectRatio: `${layout.width} / ${layout.height}` }}>
         {layout.letters.map((l, n) => (
           <span
             key={l.idx}
