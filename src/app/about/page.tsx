@@ -28,7 +28,7 @@ export default function AboutPage() {
     // (scripts/paint-landing.mjs --about), with the content resting on a faint layer of light
     <div className="nightable relative isolate overflow-x-clip px-4 pt-28 pb-24 sm:px-6">
       <div aria-hidden="true" className="journal-backdrop journal-backdrop--about" />
-      <FloatingFlora />
+      <FloatingFlora garden="about" />
       <article className="garden-mist relative mx-auto max-w-5xl">
         <PressedSprig className="pointer-events-none absolute -top-4 -right-2 hidden w-20 rotate-12 opacity-80 md:block" />
         <PressedBlossom className="pointer-events-none absolute top-[38rem] -left-16 hidden w-24 -rotate-12 opacity-75 lg:block" />

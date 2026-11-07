@@ -46,7 +46,7 @@ export default function ContactGarden() {
   return (
     <div className="nightable relative isolate flex min-h-[100svh] items-center overflow-x-clip px-4 pt-28 pb-20 sm:px-6">
       <div aria-hidden="true" className="journal-backdrop journal-backdrop--contact" />
-      <FloatingFlora variant="single" />
+      <FloatingFlora garden="contact" />
 
       {/* one composition: a left-aligned block — the title and the three ways to reach me — and, on the
           right, the garden mailbox in its flowers as the page's visual anchor */}
@@ -54,7 +54,7 @@ export default function ContactGarden() {
         {/* the whole content group sits a little in from the left (≈5% of the window), leaving room to breathe
             before the mailbox */}
         <div className="lg:pb-6 lg:pl-[4vw] xl:pl-[5vw]">
-          <h1 id="contact-title" className="font-serif text-[clamp(2.6rem,5.6vw,4.6rem)] leading-[1.04] font-medium text-ink">
+          <h1 id="contact-title" data-flora-left className="font-serif text-[clamp(2.6rem,5.6vw,4.6rem)] leading-[1.04] font-medium text-ink">
             Let&rsquo;s stay in touch.
           </h1>
 

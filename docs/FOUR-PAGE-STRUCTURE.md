@@ -35,26 +35,18 @@ Removed (all recoverable from the tag): the homepage sections `GardenGate`, `Gar
   flowers (`node scripts/paint-landing.mjs --about`), the content resting on the same faint reading surface as the case
   studies. The taped polaroid portrait (the supplied photo, unaltered), pressed-flower ornaments, case-study-style
   headings with handwritten side notes and a painted vine, a dotted timeline for experience, and skills grouped as tags.
-- **Three depths (case studies, About, Contact).** Background: the painted backdrop, fixed (it moves least).
-  Content: the page, scrolling normally. Foreground: `FloatingFlora`, a layer fixed to the window above the content
-  (z 30 inside the page; the header stays above it; no pointer events), holding painted blossoms after Zhinuo's oil-painting
-  references — a pink lily, a hibiscus, daisies (one only half there), a daffodil, a lavender rose, peonies, a poppy and
-  drifting petals; heads only, no stems (`node scripts/paint-landing.mjs --loose`). They come in small composed clusters
-  (a large bloom with one or two smaller ones overlapping it, a few drifting petals; thirteen compositions) placed
-  down each side of the page in its own uneven rhythm (0.5–1.3 window-heights apart), so neither edge stays bare for
-  long; and two fuller bouquets (four or five overlapping blooms) are held to the window's lower-left and upper-right
-  corners, partly cropped, swaying gently as you scroll, so every view has a balanced, roughly triangular
-  composition; members genuinely overlap (positions computed
-  from each painting's measured extent; roughly 15–30% of the smaller bloom, varied), with a clear front and back; a
-  cluster drifts as one, its members at most ~11 px apart in depth over a full pass. The flowers are painted with the
-  backdrop's brushes and relief, then harmonised toward its warm light (slightly less saturated, softened edges), with
-  only a faint warm shadow; at night they cool and dim with the garden. In a narrow margin a cluster is painted smaller rather than cropped away. Each is anchored
-  to a point down the page and moves 1.2–1.65× faster than the content as you scroll, with a slight sideways drift and a
-  slow sway, entering from the window's edges and partly cropped by them. Its reach is capped by the content column:
-  on the right it may just touch an image's outer edge (≈20 px), on the left it stays clear (the contents links stay clear).
-  Smaller and fewer on tablets; on phones they only peek in (≤ 22 px) and move more gently. With reduced motion they
-  stay put on the page. Clicks always reach the content beneath.
-  On Contact the two corner bouquets and a few drifting petals are kept about 40 px clear of the content.
+- **Three depths (case studies, About, Contact).** Background: the painted backdrop, fixed. Content: the page,
+  scrolling normally. Foreground: `FloatingFlora`, a layer fixed to the window above the content (the header stays
+  above it; no pointer events) holding just two painted flower clusters that frame the window — one rising from the
+  lower-left corner, one hanging into the upper-right — each two or three overlapping heads (lily, hibiscus, daisies,
+  daffodil, lavender rose, peonies, poppy, petals; `node scripts/paint-landing.mjs --loose`, painted after Zhinuo's
+  references and harmonised with the backdrop's light). Every page has its own combination (`GARDENS`, keyed by the
+  project slug, "about" and "contact"). The clusters answer the scroll at their own pace (about a sixth of its speed
+  at most), only ever drifting into open margin — the lower one sinking, the upper one down the empty right margin;
+  scrolling back reverses it. Each reaches inward up to the text column where the margin is clear and eases back to
+  the outer margin while a case study's contents list is beside it. Smaller and kept short of the content on tablets;
+  on phones they only peek in (≤ 20 px). Still with reduced motion; dimmed at night. Checked over full scrolls of all
+  five pages at desktop, tablet and phone sizes: no text, heading, image, link or button is covered.
 - **Garden mailbox (Landing and Contact).** `Mailbox`: one painting in layers (`--mailbox`, drawn at 2× so it stays
   crisp when large): body, envelope, flag, door, and on Contact a small patch of daisies and pink flowers at its foot.
   On hover or focus the arched door tips open, the flag lifts and a little envelope slides out (≈ 0.4 s). On the

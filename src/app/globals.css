@@ -589,7 +589,7 @@ html[data-night-ink] .contact-icon::before { background: radial-gradient(closest
    own stacking context; the site header stays above it), never taking clicks. Its clusters are placed and
    moved from script; the inner span adds only a slow, slight sway. Right-hand clusters are mirrored. */
 .flora-fg { position: fixed; inset: 0; z-index: 30; overflow: hidden; pointer-events: none; }
-.flora-fg__item { position: absolute; top: 0; visibility: hidden; will-change: transform; }
+.flora-fg__item { position: absolute; top: 0; visibility: hidden; will-change: transform; transition: translate 0.9s cubic-bezier(0.3, 0.7, 0.3, 1); }
 .flora-fg__sway { display: block; transform: rotate(var(--rot)); animation: flora-sway 11s ease-in-out infinite; }
 .flora-fg__item img {
   display: block;
