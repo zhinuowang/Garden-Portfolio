@@ -591,8 +591,6 @@ html[data-night-ink] .contact-icon::before { background: radial-gradient(closest
 .flora-fg { position: fixed; inset: 0; z-index: 30; overflow: hidden; pointer-events: none; }
 .flora-fg__item { position: absolute; top: 0; visibility: hidden; will-change: transform; }
 .flora-fg__sway { display: block; transform: rotate(var(--rot)); animation: flora-sway 11s ease-in-out infinite; }
-.flora-fg__item:nth-child(2n) .flora-fg__sway { animation-duration: 13s; animation-delay: -4s; }
-.flora-fg__item:nth-child(3n) .flora-fg__sway { animation-duration: 9s; animation-delay: -7s; }
 .flora-fg__item img {
   display: block;
   width: 100%;
@@ -602,10 +600,15 @@ html[data-night-ink] .contact-icon::before { background: radial-gradient(closest
   filter: drop-shadow(0 26px 22px rgb(96 48 58 / 0.24));
   transition: filter var(--dusk);
 }
-.flora-fg__item[data-side="r"] img { transform: scaleX(-1); }
+/* a cluster: its members placed inside it (back to front); right-hand clusters are mirrored as a whole */
+.flora-fg__cluster { position: absolute; inset: 0; display: block; }
+.flora-fg__item[data-side="r"] .flora-fg__cluster { transform: scaleX(-1); }
+.flora-fg__part { position: absolute; display: block; will-change: transform; }
+.flora-fg__part:nth-child(2) .flora-fg__sway { animation-duration: 12s; animation-delay: -5s; }
+.flora-fg__part:nth-child(3) .flora-fg__sway { animation-duration: 9.5s; animation-delay: -2s; }
 @keyframes flora-sway {
   0%, 100% { transform: rotate(var(--rot)); }
-  50% { transform: rotate(calc(var(--rot) + 2.5deg)); }
+  50% { transform: rotate(calc(var(--rot) + 2deg)); }
 }
 html[data-night] .flora-fg__item img { filter: brightness(0.6) saturate(0.7) drop-shadow(0 26px 22px rgb(8 12 28 / 0.4)); }
 @media (prefers-reduced-motion: reduce) { .flora-fg__sway { animation: none; } }

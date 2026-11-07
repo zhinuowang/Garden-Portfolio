@@ -37,15 +37,19 @@ Removed (all recoverable from the tag): the homepage sections `GardenGate`, `Gar
   headings with handwritten side notes and a painted vine, a dotted timeline for experience, and skills grouped as tags.
 - **Three depths (case studies, About, Contact).** Background: the painted backdrop, fixed (it moves least).
   Content: the page, scrolling normally. Foreground: `FloatingFlora`, a layer fixed to the window above the content
-  (z 30 inside the page; the header stays above it; no pointer events), holding loose, imperfect painted blossoms — daisies
-  (one only half there), lopsided peonies, a poppy and drifting petals, no stems (`node scripts/paint-landing.mjs --loose`). Each is anchored
+  (z 30 inside the page; the header stays above it; no pointer events), holding painted blossoms after Zhinuo's oil-painting
+  references — a pink lily, a hibiscus, daisies (one only half there), a daffodil, a lavender rose, peonies, a poppy and
+  drifting petals; heads only, no stems (`node scripts/paint-landing.mjs --loose`). They come in small composed clusters
+  (a large bloom with smaller ones tucked behind, an overlapping pair, a lone blossom with petals) at uneven intervals
+  down the page, on irregularly alternating sides, with some stretches empty; a cluster drifts as one, its members only
+  very slightly apart in depth. In a narrow margin a cluster is painted smaller rather than cropped away. Each is anchored
   to a point down the page and moves 1.2–1.65× faster than the content as you scroll, with a slight sideways drift and a
   slow sway, entering from the window's edges and partly cropped by them. Its reach is capped by the content column:
   on the right it may just touch an image's outer edge (≈20 px), on the left it stays clear (the contents links stay clear).
   Smaller and fewer on tablets; on phones they only peek in (≤ 22 px) and move more gently. With reduced motion they
   stay put on the page. Clicks always reach the content beneath.
-  On Contact the foreground is lighter: five smaller blossoms and petals composed round the window's corners and kept
-  about 40 px clear of the content.
+  On Contact the foreground is lighter: three small clusters composed round the window's corners, kept about 40 px
+  clear of the content.
 - **Garden mailbox (Landing and Contact).** `Mailbox`: one painting in layers (`--mailbox`, drawn at 2× so it stays
   crisp when large): body, envelope, flag, door, and on Contact a small patch of daisies and pink flowers at its foot.
   On hover or focus the arched door tips open, the flag lifts and a little envelope slides out (≈ 0.4 s). On the
