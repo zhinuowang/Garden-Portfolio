@@ -589,7 +589,7 @@ html[data-night-ink] .contact-icon::before { background: radial-gradient(closest
    own stacking context; the site header stays above it), never taking clicks. Its clusters are placed and
    moved from script; the inner span adds only a slow, slight sway. Right-hand clusters are mirrored. */
 .flora-fg { position: fixed; inset: 0; z-index: 30; overflow: hidden; pointer-events: none; }
-.flora-fg__item { position: absolute; top: 0; visibility: hidden; will-change: transform; transition: translate 0.9s cubic-bezier(0.3, 0.7, 0.3, 1); }
+.flora-fg__item { position: absolute; top: 0; visibility: hidden; will-change: transform; }
 .flora-fg__sway { display: block; transform: rotate(var(--rot)); animation: flora-sway 11s ease-in-out infinite; }
 .flora-fg__item img {
   display: block;
@@ -601,8 +601,8 @@ html[data-night-ink] .contact-icon::before { background: radial-gradient(closest
   transition: filter var(--dusk);
 }
 /* a cluster: its members placed inside it (back to front); right-hand clusters are mirrored as a whole */
-.flora-fg__cluster { position: absolute; inset: 0; display: block; }
-.flora-fg__item[data-side="r"] .flora-fg__cluster { transform: scaleX(-1); }
+.flora-fg__cluster { position: absolute; inset: 0; display: block; transform-origin: left bottom; transition: translate 0.55s cubic-bezier(0.3, 0.7, 0.3, 1), scale 0.55s cubic-bezier(0.3, 0.7, 0.3, 1); }
+.flora-fg__item[data-side="r"] .flora-fg__cluster { transform: scaleX(-1); transform-origin: center; }
 .flora-fg__part { position: absolute; display: block; will-change: transform; }
 .flora-fg__part:nth-child(2) .flora-fg__sway { animation-duration: 12s; animation-delay: -5s; }
 .flora-fg__part:nth-child(3) .flora-fg__sway { animation-duration: 9.5s; animation-delay: -2s; }

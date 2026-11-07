@@ -35,18 +35,19 @@ Removed (all recoverable from the tag): the homepage sections `GardenGate`, `Gar
   flowers (`node scripts/paint-landing.mjs --about`), the content resting on the same faint reading surface as the case
   studies. The taped polaroid portrait (the supplied photo, unaltered), pressed-flower ornaments, case-study-style
   headings with handwritten side notes and a painted vine, a dotted timeline for experience, and skills grouped as tags.
-- **Three depths (case studies, About, Contact).** Background: the painted backdrop, fixed. Content: the page,
+- **Three depths (case studies, About).** Background: the painted backdrop, fixed. Content: the page,
   scrolling normally. Foreground: `FloatingFlora`, a layer fixed to the window above the content (the header stays
   above it; no pointer events) holding just two painted flower clusters that frame the window — one rising from the
   lower-left corner, one hanging into the upper-right — each two or three overlapping heads (lily, hibiscus, daisies,
   daffodil, lavender rose, peonies, poppy, petals; `node scripts/paint-landing.mjs --loose`, painted after Zhinuo's
   references and harmonised with the backdrop's light). Every page has its own combination (`GARDENS`, keyed by the
-  project slug, "about" and "contact"). The clusters answer the scroll at their own pace (about a sixth of its speed
+  project slug and "about"). The Contact page has no floating flowers. The clusters answer the scroll at their own pace (about a sixth of its speed
   at most), only ever drifting into open margin — the lower one sinking, the upper one down the empty right margin;
-  scrolling back reverses it. Each reaches inward up to the text column where the margin is clear and eases back to
-  the outer margin while a case study's contents list is beside it. Smaller and kept short of the content on tablets;
+  scrolling back reverses it. Each reaches inward up to the text column where the margin is clear. On a case study the
+  lower-left cluster sits just below the pinned contents list (never more than about half hidden); while the list is
+  beside it (near the top of the page) it steps back into the outer margin, drawn smaller but whole. Smaller and kept short of the content on tablets;
   on phones they only peek in (≤ 20 px). Still with reduced motion; dimmed at night. Checked over full scrolls of all
-  five pages at desktop, tablet and phone sizes: no text, heading, image, link or button is covered.
+  four pages at desktop, tablet and phone sizes: no text, heading, image, link or button is covered.
 - **Garden mailbox (Landing and Contact).** `Mailbox`: one painting in layers (`--mailbox`, drawn at 2× so it stays
   crisp when large): body, envelope, flag, door, and on Contact a small patch of daisies and pink flowers at its foot.
   On hover or focus the arched door tips open, the flag lifts and a little envelope slides out (≈ 0.4 s). On the

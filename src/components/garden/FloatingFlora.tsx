@@ -12,8 +12,8 @@ import { useEffect, useRef } from "react";
 // cluster moves as one; its blooms overlap and differ only a few pixels in depth.
 //
 // Each cluster is held to its corner, partly cropped by the window's edges, and reaches inward only as far as the
-// content allows: up to the text column where the margin is clear, back to the outer margin while the case
-// studies' contents list is beside it (it eases between the two). Smaller on tablets; on phones it only peeks in.
+// content allows: up to the text column where the margin is clear; while a case study's contents list is
+// beside it, it steps back into the outer margin, drawn smaller but still whole (it eases between the two). Smaller on tablets; on phones it only peeks in.
 
 type Kind = "loose-daisy" | "loose-daisy-half" | "loose-peony" | "loose-peony-red" | "loose-poppy" | "loose-petals" | "lily" | "hibiscus" | "daffodil" | "rose-lavender";
 // a bloom in a cluster, drawn for a cluster entering from the LEFT (the upper-right cluster is mirrored on the
@@ -25,7 +25,7 @@ type Cluster = { w: number; h: number; members: Member[] };
 const GARDENS: Record<string, { ll: Cluster; ur: Cluster }> = {
   "dog-nutrition-tracker": {
     ll: { w: 293, h: 250, members: [{ kind: "loose-peony-red", x: 0, y: 0, size: 250, rot: 8, dz: 0.006 }, { kind: "loose-daisy", x: 123, y: 13, size: 170, rot: 18, dz: 0.008 }, { kind: "loose-petals", x: 84, y: 12, size: 100, rot: 30, dz: 0.008 }] },
-    ur: { w: 230, h: 301, members: [{ kind: "loose-daisy-half", x: 43, y: 136, size: 165, rot: -110 }, { kind: "hibiscus", x: 0, y: 0, size: 230, rot: 12, dz: 0.006 }] },
+    ur: { w: 241, h: 275, members: [{ kind: "loose-peony", x: 66, y: 100, size: 175, rot: -12 }, { kind: "loose-daisy", x: 9, y: 0, size: 220, rot: 16, dz: 0.006 }, { kind: "loose-petals", x: 0, y: 115, size: 90, rot: 40, dz: 0.008 }] },
   },
   "eliminate-bacteria-pro": {
     ll: { w: 292, h: 252, members: [{ kind: "loose-peony", x: 36, y: 0, size: 140, rot: 10 }, { kind: "rose-lavender", x: 0, y: 7, size: 245, rot: -6, dz: 0.006 }, { kind: "loose-daisy", x: 132, y: 48, size: 160, rot: 20, dz: 0.008 }] },
@@ -38,10 +38,6 @@ const GARDENS: Record<string, { ll: Cluster; ur: Cluster }> = {
   "about": {
     ll: { w: 294, h: 311, members: [{ kind: "loose-peony", x: 68, y: 0, size: 165, rot: 10 }, { kind: "lily", x: 0, y: 56, size: 255, rot: -20, dz: 0.006 }, { kind: "loose-daisy", x: 159, y: 137, size: 135, rot: -10, dz: 0.008 }] },
     ur: { w: 225, h: 296, members: [{ kind: "hibiscus", x: 52, y: 126, size: 170, rot: 30 }, { kind: "rose-lavender", x: 0, y: 0, size: 225, rot: 10, dz: 0.006 }] },
-  },
-  "contact": {
-    ll: { w: 295, h: 235, members: [{ kind: "hibiscus", x: 0, y: 0, size: 235, rot: -8, dz: 0.006 }, { kind: "loose-daisy", x: 125, y: 23, size: 170, rot: 14, dz: 0.008 }] },
-    ur: { w: 205, h: 247, members: [{ kind: "daffodil", x: 44, y: 97, size: 150, rot: 20 }, { kind: "loose-peony-red", x: 0, y: 0, size: 205, rot: -4, dz: 0.006 }, { kind: "loose-petals", x: 103, y: 76, size: 90, rot: 60, dz: 0.008 }] },
   },
 };
 
@@ -58,7 +54,7 @@ export default function FloatingFlora({ garden }: { garden: string }) {
     if (!box || !fg) return;
     const set = GARDENS[garden] ?? GARDENS["dog-nutrition-tracker"];
     const still = window.matchMedia("(prefers-reduced-motion: reduce)");
-    type Item = { el: HTMLElement; parts: { el: HTMLElement; dz: number }[]; corner: "ll" | "ur"; w: number; h: number; top: number; home: number; safe: number; amp: number };
+    type Item = { el: HTMLElement; inner: HTMLElement; parts: { el: HTMLElement; dz: number }[]; corner: "ll" | "ur"; w: number; h: number; top: number; home: number; safe: number; amp: number };
     let items: Item[] = [];
     let toc: HTMLElement | null = null;
 
@@ -78,13 +74,20 @@ export default function FloatingFlora({ garden }: { garden: string }) {
         const dx = calm ? 0 : Math.sin(phase * 0.6) * it.amp * 0.12 * (it.corner === "ll" ? -1 : 1);
         it.el.style.transform = `translate3d(${dx.toFixed(1)}px, ${(it.top + dy).toFixed(1)}px, 0)`;
         for (const [i, p] of it.parts.entries()) if (p.dz) p.el.style.transform = calm ? "" : `translate3d(0, ${(Math.sin(phase + i) * p.dz * 700).toFixed(1)}px, 0)`;
-        // how far in it may come: home, unless the contents list shares its band of the window
-        let inward = it.home;
+        // how far in it may come: home, unless the contents list shares its band of the window — then the whole
+        // cluster steps back into the outer margin, drawn smaller so it stays complete rather than cut off
+        let tx = 0, ty = 0, sc = 1;
         if (t && it.corner === "ll") {
-          const bandTop = it.top + dy + it.h * 0.18; // (its very top is only a petal or two)
-          if (t.bottom > bandTop - 12 && t.top < vh) inward = it.safe;
+          const bandTop = it.top + dy + it.h * 0.06;
+          if (t.bottom > bandTop - 24 && t.top < vh) {
+            sc = Math.min(1, it.safe / (it.w * 0.84));
+            tx = it.safe - 0.84 * it.w * sc - (it.home - it.w); // its right edge just inside the margin
+            ty = vh + 0.2 * it.h * sc - (it.top + dy + it.h); // its foot lifted: only a fifth of the smaller cluster below the edge
+          }
         }
-        it.el.style.translate = `${(inward - it.home).toFixed(0)}px 0`;
+        // (on the inner cluster, so the step back eases independently of the scroll-linked motion above)
+        it.inner.style.translate = `${tx.toFixed(0)}px ${ty.toFixed(0)}px`;
+        it.inner.style.scale = sc.toFixed(3);
       }
     };
 
@@ -103,7 +106,7 @@ export default function FloatingFlora({ garden }: { garden: string }) {
       // (on tablets the margins are narrow, so the clusters stop just short of the content's edge)
       const pad = tier === "tablet" ? -8 : 20;
       const homeL = tier === "phone" ? 20 : text && tier === "desktop" ? text.left - 28 : leftEdge && tier === "desktop" ? leftEdge.left - 28 : marginL + pad;
-      const safeL = tier === "phone" ? 20 : Math.min(marginL + 6, homeL);
+      const safeL = tier === "phone" ? 20 : Math.min(marginL - 12, homeL);
       const homeR = tier === "phone" ? 20 : text && tier === "desktop" ? vw - text.right - 8 : marginR + (tier === "tablet" ? -8 : 24);
 
       fg.replaceChildren();
@@ -149,9 +152,16 @@ export default function FloatingFlora({ garden }: { garden: string }) {
         const top = corner === "ll" ? vh - h * 0.78 : 52 - h * 0.12;
         // the lower-left cluster is kept to the margin's width while the contents list is beside it; the band it
         // occupies is its visible top part, so on case studies it sits a little lower to leave the list clear
-        return { el, parts, corner, w, h, top: corner === "ll" && toc?.offsetParent ? vh - h * 0.55 : top, home, safe, amp: tier === "phone" ? 18 : tier === "tablet" ? 50 : 70 };
+        return { el, inner, parts, corner, w, h, top: corner === "ll" && toc?.offsetParent
+          // on a case study: as high as it can sit while staying clear of the contents list once that list is
+          // pinned (it is sticky 96 px from the top), and never more than about half hidden
+          ? Math.min(vh - h * 0.45, Math.max(vh - h * 0.74, 96 + toc.offsetHeight + 24 - h * 0.06))
+          : top, home, safe, amp: tier === "phone" ? 18 : tier === "tablet" ? 50 : 70 };
       });
+      // place them where they belong straight away (no easing in from elsewhere), then let later changes ease
+      for (const it of items) it.inner.style.transition = "none";
       update();
+      requestAnimationFrame(() => requestAnimationFrame(() => { for (const it of items) it.inner.style.transition = ""; }));
     };
 
     // scroll events already arrive once per frame, so the layer is updated right in step with the page
