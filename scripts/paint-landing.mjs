@@ -3549,6 +3549,142 @@ if (process.argv.includes("--heads")) {
   process.exit(0);
 }
 
+/**
+ * Loose painted blossoms for the floating foreground: expressive, asymmetric and a little unfinished, like
+ * flowers laid down quickly with a loaded brush and a knife. No stems. Each is built from heavy, tapering
+ * strokes and thick dabs rather than neat petal shapes; some petals are missing, some barely suggested.
+ */
+function paintLoose(kind) {
+  const S = 480;
+  const cv = createCanvas(S, S), ctx = cv.getContext("2d");
+  const hcv = createCanvas(S, S), hx = hcv.getContext("2d");
+  hx.fillStyle = grey(20);
+  hx.fillRect(0, 0, S, S);
+  PAINT.hx = hx;
+  const r = rng(2500 + [...kind].reduce((a, ch) => a + ch.charCodeAt(0), 0));
+  const jit = (v, a) => v + (r() - 0.5) * a;
+  // a loaded brushstroke petal: a few parallel, tapering bristle strokes from the heart outward, the paint
+  // thick at the start and dragging thin at the end; lights pulled through it in a second pass
+  const brushPetal = (cx, cy, ang, len, w, col, shade, light, rough = 1) => {
+    const n = 2 + Math.floor(r() * 3);
+    for (let i = 0; i < n; i++) {
+      const o = (i - (n - 1) / 2) * w * 0.32 + (r() - 0.5) * w * 0.2 * rough;
+      const a = ang + (r() - 0.5) * 0.16 * rough;
+      const x = cx - Math.sin(ang) * o, y = cy + Math.cos(ang) * o;
+      stroke(ctx, r, x, y, a, len * jit(1, 0.35 * rough), w * jit(0.42, 0.18), mix(col, r() < 0.4 ? shade : col, r() * 0.45), 0.9, 3);
+    }
+    if (r() < 0.75) stroke(ctx, r, cx + Math.cos(ang) * len * 0.15, cy + Math.sin(ang) * len * 0.15, ang + (r() - 0.5) * 0.1, len * jit(0.6, 0.3), w * 0.16, light, 0.7, 2);
+  };
+  // a curved, loaded stroke: short overlapping bristle strokes laid along an arc (the curling edge of a
+  // petal, a swirl of impasto)
+  const arcStroke = (cx, cy, rad, a0, a1, w, col, alpha = 0.92, sq = 1) => {
+    const n = Math.max(2, Math.round(Math.abs(a1 - a0) * rad / 30));
+    for (let i = 0; i < n; i++) {
+      const t0 = a0 + ((a1 - a0) * i) / n, t1 = a0 + ((a1 - a0) * (i + 1)) / n;
+      const x0 = cx + Math.cos(t0) * rad, y0 = cy + Math.sin(t0) * rad * sq, x1 = cx + Math.cos(t1) * rad, y1 = cy + Math.sin(t1) * rad * sq;
+      const taper = Math.sin(((i + 0.5) / n) * Math.PI) * 0.6 + 0.4;
+      stroke(ctx, r, x0, y0, Math.atan2(y1 - y0, x1 - x0), Math.hypot(x1 - x0, y1 - y0) * 1.35, w * taper, col, alpha, 3);
+    }
+  };
+  // a shaped petal (a soft teardrop from base to tip), filled with bristle strokes that stay inside it
+  const shapedPetal = (x, y, ang, len, w, col, shade, light) => {
+    const tx = x + Math.cos(ang) * len, ty = y + Math.sin(ang) * len, nx = -Math.sin(ang), ny = Math.cos(ang);
+    const p = new Path2D();
+    p.moveTo(x, y);
+    p.bezierCurveTo(x + Math.cos(ang) * len * 0.3 + nx * w * jit(0.7, 0.3), y + Math.sin(ang) * len * 0.3 + ny * w * jit(0.7, 0.3), tx + nx * w * 0.4, ty + ny * w * 0.4, tx + jit(0, 8), ty + jit(0, 8));
+    p.bezierCurveTo(tx - nx * w * 0.5, ty - ny * w * 0.5, x + Math.cos(ang) * len * 0.3 - nx * w * jit(0.6, 0.3), y + Math.sin(ang) * len * 0.3 - ny * w * jit(0.6, 0.3), x, y);
+    ctx.save(); ctx.filter = "blur(1.2px)"; ctx.fillStyle = rgba(col); ctx.fill(p); ctx.restore();
+    clipBoth(ctx, p);
+    for (let i = 0; i < 9; i++) { const o = (r() - 0.5) * w * 0.9; stroke(ctx, r, x + nx * o * 0.3, y + ny * o * 0.3, ang + (r() - 0.5) * 0.25, len * jit(0.95, 0.2), jit(w * 0.22, w * 0.1), mix(col, i % 3 === 0 ? shade : i % 3 === 1 ? light : col, 0.25 + r() * 0.3), 0.75, 3); }
+    unclipBoth(ctx);
+    arcStroke(x + Math.cos(ang) * len * 0.62, y + Math.sin(ang) * len * 0.62, w * 0.5, ang - 1.2, ang + 0.6, 5, light, 0.6);
+  };
+  // a cupped, crumpled petal mass laid with the flat of the knife (for roses and peonies)
+  const swirl = (cx, cy, rad, ang0, col, light, shade) => {
+    for (let i = 0; i < 3; i++) {
+      const a = ang0 + i * 0.5 + (r() - 0.5) * 0.4;
+      knife(ctx, r, cx + Math.cos(a) * rad * 0.3, cy + Math.sin(a) * rad * 0.3, a + Math.PI / 2, rad * jit(1.1, 0.4), rad * jit(0.32, 0.12), mix(col, i === 2 ? light : shade, r() * 0.4), 0.92);
+    }
+  };
+  withThickness(0.95, () => {
+    if (kind === "loose-daisy" || kind === "loose-daisy-half") {
+      // a white daisy: long brushstroke petals radiating unevenly, some short, some missing; the half version
+      // keeps only one arc of petals, like a blossom drifting in from outside the frame
+      const cx = S / 2 + jit(0, 20), cy = S / 2 + jit(0, 20);
+      const n = 17, from = kind === "loose-daisy-half" ? -0.4 : 0, span = kind === "loose-daisy-half" ? Math.PI * 1.15 : Math.PI * 2;
+      for (let i = 0; i < n; i++) {
+        if (r() < 0.14) continue;
+        const a = from + (i / n) * span + jit(0, 0.2);
+        const len = 150 * jit(1, 0.45), d = 26 + r() * 10;
+        brushPetal(cx + Math.cos(a) * d, cy + Math.sin(a) * d * 0.9, a, len, 44, mix(hex("#fbf8f1"), hex("#f2ece2"), r()), hex("#cfc8c9"), hex("#ffffff"));
+      }
+      // the heart: thick dabs of ochre and butter, a few darker flecks, not quite round
+      for (let i = 0; i < 26; i++) { const a = r() * Math.PI * 2, d = r() * 30; dab(ctx, cx + Math.cos(a) * d, cy + Math.sin(a) * d * 0.85, jit(10, 6), jit(8, 5), r() * 3, mix(hex("#e6b347"), r() < 0.25 ? hex("#a8742a") : hex("#f7dc8c"), r()), 0.95); }
+    } else if (kind === "loose-peony" || kind === "loose-peony-red") {
+      // a full, ragged peony: a soft irregular body, then curling swirls of thick paint — the cupped petals —
+      // deepening toward a dark pocket at the heart, with a few lights dragged across the top; open on one side
+      const red = kind === "loose-peony-red";
+      const base = red ? hex("#e57766") : hex("#f2a9b3"), light = red ? hex("#f9cdbd") : hex("#fde4e4"), shade = red ? hex("#b34c45") : hex("#d27c8d");
+      const cx = S / 2 + jit(0, 24), cy = S / 2 + jit(0, 24);
+      ctx.save(); ctx.filter = "blur(5px)";
+      for (let i = 0; i < 7; i++) { const a = r() * Math.PI * 2, d = r() * 50; glaze(ctx, cx + Math.cos(a) * d, cy + Math.sin(a) * d, jit(110, 40), jit(90, 30), mix(base, shade, r() * 0.3), 0.55); }
+      ctx.restore();
+      const open = r() * Math.PI * 2; // the side where the outer petals fall away
+      // petals as broad, uneven curls: each centred somewhere off the heart, at its own radius and sweep,
+      // so the bloom is lopsided and loose rather than a tidy spiral
+      for (let k = 0; k < 5; k++) {
+        const rad = 150 * (1 - k * 0.17), n = 6 - Math.floor(k / 2);
+        for (let i = 0; i < n; i++) {
+          const a = (i / n) * Math.PI * 2 + k * 1.1 + jit(0, 0.9);
+          if (k < 2 && Math.cos(a - open) > 0.4) continue;
+          const pc = cx + Math.cos(a) * rad * jit(0.3, 0.3), py = cy + Math.sin(a) * rad * jit(0.25, 0.25);
+          const col = mix(mix(base, light, 0.08 + k * 0.1 + r() * 0.25), shade, r() < 0.35 ? 0.4 : 0);
+          const sweep = jit(0.8, 0.5);
+          arcStroke(pc, py, rad * jit(0.62, 0.3), a - sweep, a + sweep * jit(1, 0.5), jit(40, 16) * (1 - k * 0.12), col, 0.94, 0.82);
+          if (r() < 0.45) arcStroke(pc, py, rad * jit(0.7, 0.2), a - sweep * 0.6, a + sweep * 0.2, 7, light, 0.7, 0.82);
+        }
+      }
+      for (let i = 0; i < 5; i++) arcStroke(cx + jit(0, 14), cy + jit(0, 12), jit(18, 10), r() * 6, r() * 6 + 2.4, 8, mix(shade, hex("#6f2a30"), 0.35), 0.85);
+    } else if (kind === "loose-poppy") {
+      // a soft coral poppy: four broad, uneven petals — strokes radiating inside each, a crinkled lit rim — and a
+      // dark heart with a few stamens
+      const cx = S / 2 + jit(0, 20), cy = S / 2 + jit(0, 20);
+      const base = hex("#ec8a76"), light = hex("#fbd0be"), shade = hex("#c25a4f");
+      for (let i = 0; i < 4; i++) {
+        const a = i * (Math.PI / 2) + jit(0.3, 0.5), rad = jit(128, 46);
+        const px = cx + Math.cos(a) * rad * 0.52, py = cy + Math.sin(a) * rad * 0.48;
+        const p = new Path2D();
+        p.ellipse(px, py, rad * 0.68, rad * 0.56, a, 0, Math.PI * 2);
+        ctx.save(); ctx.filter = "blur(1.5px)"; ctx.fillStyle = rgba(mix(base, shade, r() * 0.25)); ctx.fill(p); ctx.restore();
+        clipBoth(ctx, p);
+        for (let j = 0; j < 14; j++) stroke(ctx, r, cx, cy, a + jit(0, 1.1), rad * jit(1.2, 0.3), jit(20, 10), mix(base, j % 3 ? light : shade, 0.2 + r() * 0.4), 0.7, 3);
+        for (let j = 0; j < 4; j++) arcStroke(px, py, rad * jit(0.55, 0.12), a - 1.1 + j * 0.5, a - 0.6 + j * 0.5, 7, j % 2 ? light : mix(base, light, 0.5), 0.75);
+        unclipBoth(ctx);
+      }
+      dab(ctx, cx, cy, 28, 25, 0.4, hex("#3d3534"), 1);
+      for (let i = 0; i < 22; i++) { const a = r() * Math.PI * 2, d = 24 + r() * 16; stroke(ctx, r, cx, cy, a, d, 3, r() < 0.7 ? hex("#2e2828") : hex("#d9b25a"), 0.85, 1); }
+    } else {
+      // drifting fragments: three or four loose petals, a white one and two pinks, scattered as if blown
+      for (const [x, y, a, len, col, sh] of [[150, 160, -0.6, 160, hex("#fbf7f0"), hex("#d6cfcf")], [300, 250, 0.5, 130, hex("#f2a9b3"), hex("#d47f8f")], [210, 340, -1.8, 110, hex("#e57766"), hex("#b34c45")], [350, 120, 2.6, 90, hex("#f6c9cf"), hex("#d47f8f")]]) {
+        shapedPetal(x, y, a, len, 62, col, sh, mix(col, hex("#ffffff"), 0.5));
+      }
+    }
+  });
+  lightRelief(cv, hcv, S, S, 1.1);
+  PAINT.hx = null;
+  return cv;
+}
+
+if (process.argv.includes("--loose")) {
+  const dir = path.resolve("public/assets/garden/flora");
+  fs.mkdirSync(dir, { recursive: true });
+  for (const kind of ["loose-daisy", "loose-daisy-half", "loose-peony", "loose-peony-red", "loose-poppy", "loose-petals"]) {
+    fs.writeFileSync(path.join(dir, `${kind}.webp`), paintLoose(kind).toBuffer("image/webp", 90));
+    console.log(kind);
+  }
+  process.exit(0);
+}
+
 /** v: "journal" (case studies), "about" (a quiet corner of the garden) or "contact" (the last stop). */
 function paintJournal(W, H, portrait, v = "journal") {
   const cv = createCanvas(W, H);

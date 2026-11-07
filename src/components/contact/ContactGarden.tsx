@@ -51,7 +51,9 @@ export default function ContactGarden() {
       {/* one composition: a left-aligned block — the title and the three ways to reach me — and, on the
           right, the garden mailbox in its flowers as the page's visual anchor */}
       <section aria-labelledby="contact-title" className="garden-mist garden-mist--soft relative mx-auto grid w-full max-w-6xl items-center gap-10 lg:grid-cols-[minmax(0,1fr)_21rem] lg:gap-12 lg:pr-[3vw] xl:pr-[4vw]">
-        <div className="lg:pb-6">
+        {/* the whole content group sits a little in from the left (≈5% of the window), leaving room to breathe
+            before the mailbox */}
+        <div className="lg:pb-6 lg:pl-[4vw] xl:pl-[5vw]">
           <h1 id="contact-title" className="font-serif text-[clamp(2.6rem,5.6vw,4.6rem)] leading-[1.04] font-medium text-ink">
             Let&rsquo;s stay in touch.
           </h1>
@@ -60,7 +62,7 @@ export default function ContactGarden() {
             <li style={{ ["--tilt" as string]: "-3deg" }}>
               <a href={`mailto:${contact.email}`} className={card}>
                 <Icon kind="email" />
-                <Label title="Email" sub={<><span className="lg:hidden">Send a note</span><span className="hidden whitespace-nowrap lg:inline">{contact.email}</span></>} />
+                <Label title="Email" sub={<><span className="xl:hidden">Send a note</span><span className="hidden whitespace-nowrap xl:inline">{contact.email}</span></>} />
               </a>
             </li>
             <li style={{ ["--tilt" as string]: "2deg" }}>
