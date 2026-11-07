@@ -2973,14 +2973,142 @@ if (process.argv.includes("--title")) {
  * text), and the colour moves from blue to green gradually — one continuous
  * painting, no panels. Light canvas relief; brushwork only where it helps.
  */
-function paintJournal(W, H, portrait) {
+/**
+ * The three contact icons (Email, LinkedIn, WeChat) as one hand-painted set: each symbol is a
+ * simple, recognisable shape filled with directional oil strokes, edged with a painted contour and
+ * a few knife highlights, then lit for relief. Same canvas, weight and palette for all three.
+ */
+function paintIcon(kind) {
+  const S = 360;
+  const cv = createCanvas(S, S), ctx = cv.getContext("2d");
+  const hcv = createCanvas(S, S), hx = hcv.getContext("2d");
+  hx.fillStyle = grey(20);
+  hx.fillRect(0, 0, S, S);
+  PAINT.hx = hx;
+  const r = rng({ email: 1701, linkedin: 1702, wechat: 1703 }[kind]);
+  const C = { cream: hex("#f7eedd"), cream2: hex("#fdf7ea"), creamD: hex("#ead9bd"), sage: hex("#8eab78"), sageD: hex("#6f8a5a"), sageL: hex("#b4c99c"), blue: hex("#8fb3d6"), blueD: hex("#7099c2"), blueL: hex("#b8d1e8"), blush: hex("#e7a8a2") };
+  // fill a path with a soft-edged base, then lay strokes inside it in the given direction
+  const body = (p, base, tones, ang, n, w) => {
+    ctx.save();
+    ctx.filter = "blur(1.2px)";
+    ctx.fillStyle = rgba(base);
+    ctx.fill(p);
+    ctx.restore();
+    clipBoth(ctx, p);
+    withThickness(0.7, () => {
+      for (let i = 0; i < n; i++) {
+        const x = 20 + r() * (S - 40), y = 20 + r() * (S - 40);
+        stroke(ctx, r, x - Math.cos(ang) * 40, y - Math.sin(ang) * 40, ang + (r() - 0.5) * 0.25, 60 + r() * 70, w * (0.7 + r() * 0.6), tones[Math.floor(r() * tones.length)], 0.55, 3);
+      }
+    });
+    unclipBoth(ctx);
+  };
+  // a painted contour: short overlapping strokes following the outline points
+  const contour = (pts, w, col, alpha = 0.95) => withThickness(0.85, () => {
+    for (let i = 0; i < pts.length - 1; i++) {
+      const [x0, y0] = pts[i], [x1, y1] = pts[i + 1];
+      const len = Math.hypot(x1 - x0, y1 - y0);
+      stroke(ctx, r, x0, y0, Math.atan2(y1 - y0, x1 - x0), len + w * 0.6, w * (0.85 + r() * 0.3), mix(col, hex("#ffffff"), r() * 0.12), alpha, 2);
+    }
+  });
+  const rrect = (x, y, w, h, rad, n = 64) => {
+    const pts = [];
+    const corners = [[x + w - rad, y + rad, -Math.PI / 2], [x + w - rad, y + h - rad, 0], [x + rad, y + h - rad, Math.PI / 2], [x + rad, y + rad, Math.PI]];
+    for (const [cx, cy, a0] of corners) for (let i = 0; i <= n / 4; i++) { const a = a0 + (i / (n / 4)) * (Math.PI / 2); pts.push([cx + Math.cos(a) * rad + (r() - 0.5) * 1.5, cy + Math.sin(a) * rad + (r() - 0.5) * 1.5]); }
+    pts.push(pts[0]);
+    return pts;
+  };
+  const toPath = (pts) => { const p = new Path2D(); pts.forEach(([x, y], i) => (i ? p.lineTo(x, y) : p.moveTo(x, y))); p.closePath(); return p; };
+  const line = (x0, y0, x1, y1, n = 6) => Array.from({ length: n + 1 }, (_, i) => [lerp(x0, x1, i / n) + (r() - 0.5) * 1.2, lerp(y0, y1, i / n) + (r() - 0.5) * 1.2]);
+  // a bubble: an ellipse with a small tail
+  const bubble = (cx, cy, rx, ry, tail) => {
+    const pts = [];
+    // the arc between a0 and a1 (degrees, clockwise on screen) is replaced by a point out to the tip
+    let tipped = false;
+    for (let i = 0; i <= 72; i++) {
+      const deg = (i / 72) * 360, a = (deg * Math.PI) / 180;
+      if (deg > tail.a0 && deg < tail.a1) { if (!tipped) { pts.push(tail.tip); tipped = true; } continue; }
+      pts.push([cx + Math.cos(a) * rx * (1 + (r() - 0.5) * 0.012), cy + Math.sin(a) * ry * (1 + (r() - 0.5) * 0.012)]);
+    }
+    return pts;
+  };
+
+  if (kind === "email") {
+    const x = 42, y = 86, w = 276, h = 192;
+    const out = rrect(x, y, w, h, 24);
+    body(toPath(out), C.cream, [C.cream2, C.creamD, C.cream], 0.05, 70, 18);
+    // the lower folds, faint, then the flap
+    contour(line(x + 14, y + h - 12, x + w * 0.42, y + h * 0.52), 5, C.creamD, 0.8);
+    contour(line(x + w - 14, y + h - 12, x + w * 0.58, y + h * 0.52), 5, C.creamD, 0.8);
+    const flap = [[x + 8, y + 12], [x + w / 2, y + h * 0.6], [x + w - 8, y + 12]];
+    const fp = new Path2D(); fp.moveTo(...flap[0]); fp.lineTo(...flap[1]); fp.lineTo(...flap[2]); fp.closePath();
+    body(fp, C.cream2, [C.cream2, C.cream], -0.1, 18, 14);
+    contour([...line(...flap[0], ...flap[1]), ...line(...flap[1], ...flap[2]).slice(1)], 8, C.sage);
+    contour(out, 10, C.sage);
+    // a small blush seal where the flap meets
+    withThickness(0.9, () => { dab(ctx, x + w / 2, y + h * 0.6, 15, 14, 0, C.blush, 1); dab(ctx, x + w / 2 - 4, y + h * 0.6 - 4, 6, 5, 0, mix(C.blush, hex("#ffffff"), 0.45), 0.9); });
+    for (let i = 0; i < 4; i++) knife(ctx, r, x + 40 + r() * (w - 80), y + h - 30 - r() * 30, (r() - 0.5) * 0.2, 30 + r() * 20, 6, C.cream2, 0.7);
+  } else if (kind === "linkedin") {
+    const x = 58, y = 58, w = 244, h = 244;
+    const out = rrect(x, y, w, h, 54);
+    body(toPath(out), C.blue, [C.blueL, C.blueD, C.blue, C.blueL], -0.6, 80, 20);
+    contour(out, 9, C.blueD, 0.85);
+    // "in": the i's dot and stem, then the n's stem and arch, in thick cream paint
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = rgba(C.cream);
+    ctx.fillStyle = rgba(C.cream);
+    ctx.beginPath(); ctx.arc(122, 120, 19, 0, Math.PI * 2); ctx.fill();
+    ctx.lineWidth = 34;
+    ctx.beginPath(); ctx.moveTo(122, 166); ctx.lineTo(122, 252); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(176, 252); ctx.lineTo(176, 166); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(176, 200); ctx.bezierCurveTo(182, 166, 240, 158, 244, 204); ctx.lineTo(244, 252); ctx.stroke();
+    withThickness(0.9, () => {
+      for (const [x0, y0, x1, y1] of [[122, 168, 122, 250], [176, 168, 176, 250], [244, 210, 244, 250]]) for (let i = 0; i < 3; i++) stroke(ctx, r, x0 + (r() - 0.5) * 12, y1, -Math.PI / 2, y1 - y0, 10, mix(C.cream2, C.creamD, r() * 0.6), 0.8, 2);
+      dab(ctx, 122, 120, 16, 15, 0, C.cream2, 0.9);
+      dab(ctx, 116, 114, 7, 6, 0, hex("#ffffff"), 0.8);
+      for (const [px, py, a] of [[184, 180, -0.9], [206, 168, -0.15], [230, 176, 0.6], [240, 192, 1.2]]) stroke(ctx, r, px, py, a, 26, 12, mix(C.cream2, C.creamD, r() * 0.5), 0.8, 2);
+      knife(ctx, r, 112, 190, -Math.PI / 2, 40, 6, C.cream2, 0.75);
+      knife(ctx, r, 166, 230, -Math.PI / 2, 40, 6, C.cream2, 0.75);
+    });
+    for (let i = 0; i < 3; i++) knife(ctx, r, x + 30 + r() * 50, y + 26 + r() * 20, -0.5, 40, 7, C.blueL, 0.7);
+  } else {
+    // the familiar pair of bubbles: a large sage one behind, a smaller cream one in front
+    const big = bubble(146, 150, 112, 94, { a0: 112, a1: 140, tip: [56, 268] });
+    body(toPath(big), C.sage, [C.sageL, C.sage, hex("#a2bd8a"), C.sageD], -0.25, 70, 18);
+    contour(big, 8, C.sageD, 0.85);
+    for (const [ex, ey] of [[108, 132], [184, 132]]) withThickness(0.9, () => { dab(ctx, ex, ey, 13, 12, 0, hex("#4f6b45"), 1); dab(ctx, ex - 4, ey - 4, 4, 4, 0, C.sageL, 0.8); });
+    const small = bubble(238, 226, 90, 74, { a0: 34, a1: 60, tip: [322, 310] });
+    body(toPath(small), C.cream, [C.cream2, C.cream, C.creamD], 0.2, 50, 16);
+    contour(small, 8, C.sage, 0.95);
+    for (const [ex, ey] of [[210, 214], [266, 214]]) withThickness(0.9, () => { dab(ctx, ex, ey, 10, 9, 0, C.sageD, 1); dab(ctx, ex - 3, ey - 3, 3, 3, 0, C.cream2, 0.8); });
+    for (let i = 0; i < 3; i++) knife(ctx, r, 100 + r() * 60, 92 + r() * 14, -0.2, 40, 7, C.sageL, 0.75);
+    for (let i = 0; i < 2; i++) knife(ctx, r, 214 + r() * 40, 176 + r() * 10, -0.1, 34, 6, C.cream2, 0.75);
+  }
+  lightRelief(cv, hcv, S, S, 0.9);
+  PAINT.hx = null;
+  return cv;
+}
+
+if (process.argv.includes("--icons")) {
+  const dir = path.resolve("public/assets/garden/contact");
+  fs.mkdirSync(dir, { recursive: true });
+  for (const kind of ["email", "linkedin", "wechat"]) {
+    fs.writeFileSync(path.join(dir, `icon-${kind}.webp`), paintIcon(kind).toBuffer("image/webp", 92));
+    console.log(`icon-${kind}`);
+  }
+  process.exit(0);
+}
+
+/** v: "journal" (case studies), "about" (a quiet corner of the garden) or "contact" (the last stop). */
+function paintJournal(W, H, portrait, v = "journal") {
   const cv = createCanvas(W, H);
   const ctx = cv.getContext("2d");
   const hcv = createCanvas(W, H);
   const hx = hcv.getContext("2d");
   primeCanvas(hx, W, H);
   PAINT.hx = hx;
-  const r = rng(1401);
+  const r = rng(v === "journal" ? 1401 : v === "about" ? 1501 : 1601);
   const k = W / 1600;
   // the sky: deeper blue at the top, paling toward the horizon (a little paler in the reading column)
   const sky = ctx.createLinearGradient(0, 0, 0, H);
@@ -2993,6 +3121,8 @@ function paintJournal(W, H, portrait) {
   ctx.save();
   ctx.filter = `blur(${160 * k}px)`;
   glaze(ctx, W / 2, H * 0.55, W * (portrait ? 0.5 : 0.32), H * 0.6, hex("#eaf2f5"), 0.55); // calm light behind the text
+  if (v === "about") glaze(ctx, W * 0.08, H * 0.04, W * 0.32, H * 0.3, hex("#fffaf0"), 0.42); // warm cream light from the upper left
+  if (v === "contact") glaze(ctx, W / 2, H * (portrait ? 0.86 : 0.74), W * 0.7, H * 0.16, hex("#f6dccf"), 0.5); // a soft blush warmth low in the sky
   ctx.restore();
   // long, soft horizontal strokes in the sky: it should read as paint, not a gradient
   withThickness(0.22, () => {
@@ -3004,12 +3134,12 @@ function paintJournal(W, H, portrait) {
     }
   });
   // the meadow: soft green hills rising along the foot of the frame, highest at the sides
-  const hill = (seed, base, amp, col, lift) => {
+  const hill = (seed, base, amp, col, lift, tilt = 0) => {
     const p = new Path2D();
     p.moveTo(-20, H + 20);
     for (let x = -20; x <= W + 20; x += 8) {
       const u = x / W, side = portrait ? 0.35 : Math.pow(Math.abs(u - 0.5) * 2, 1.6);
-      const y = H * (base - side * lift) - amp * H * (0.5 + fbm(u * 3, seed * 0.1, seed, 3));
+      const y = H * (base - side * lift + tilt * (u - 0.5)) - amp * H * (0.5 + fbm(u * 3, seed * 0.1, seed, 3));
       p.lineTo(x, y);
     }
     p.lineTo(W + 20, H + 20);
@@ -3053,7 +3183,59 @@ function paintJournal(W, H, portrait) {
       }
     });
   };
-  if (portrait) {
+  // a small cluster of blush flowers: thin sage stems, five soft petals, a cream heart
+  const bloom = (cx, cy, w, n, seed) => {
+    const rr = rng(seed);
+    withThickness(0.75, () => {
+      for (let i = 0; i < n; i++) {
+        const x = cx + (rr() - 0.5) * w, y = cy + (rr() - 0.5) * w * 0.25, f = (6 + rr() * 5) * k, stem = (18 + rr() * 30) * k;
+        stroke(ctx, rr, x, y + stem, -Math.PI / 2 + (rr() - 0.5) * 0.3, stem, 2.2 * k, mix(hex("#7f9e68"), hex("#a3bd88"), rr()), 0.85, 1);
+        if (rr() < 0.5) stroke(ctx, rr, x + 2 * k, y + stem * 0.6, -Math.PI / 2 + 0.7, 10 * k, 3.5 * k, hex("#9fba84"), 0.8, 1);
+        const pc = [hex("#efb7b0"), hex("#f4cbc3"), hex("#e6a5a3"), hex("#f8e3da")][Math.floor(rr() * 4)];
+        for (let p2 = 0; p2 < 5; p2++) {
+          const a = (p2 / 5) * Math.PI * 2 + rr() * 0.4;
+          dab(ctx, x + Math.cos(a) * f * 0.7, y + Math.sin(a) * f * 0.55, f * 0.62, f * 0.4, a, mix(pc, hex("#ffffff"), rr() * 0.25), 0.9);
+        }
+        dab(ctx, x, y, f * 0.28, f * 0.24, 0, hex("#f3d9a0"), 0.95);
+      }
+    });
+  };
+  if (v === "about") {
+    if (portrait) {
+      hill(1511, 0.9, 0.03, ["#b5cf9c", "#cfe0b6"], 0, -0.03);
+      tree(W * 0.86, H * 0.885, 46 * k, 1531, 0.55);
+      hill(1512, 0.97, 0.025, ["#93b57c", "#b3cc98"], 0);
+      bloom(W * 0.12, H * 0.955, W * 0.2, 7, 1541);
+      bloom(W * 0.9, H * 0.965, W * 0.16, 5, 1542);
+    } else {
+      hill(1511, 0.86, 0.025, ["#b8d1a0", "#d3e3ba"], 0.1, 0.12);
+      tree(W * 0.93, H * 0.86, 62 * k, 1531, 0.55);
+      tree(W * 0.975, H * 0.88, 34 * k, 1533, 0.35);
+      tree(W * 0.05, H * 0.79, 30 * k, 1532, 0.45);
+      hill(1512, 0.97, 0.02, ["#97b880", "#b6cf9a"], 0.14);
+      bloom(W * 0.06, H * 0.93, W * 0.1, 9, 1541);
+      bloom(W * 0.95, H * 0.95, W * 0.08, 7, 1542);
+    }
+  } else if (v === "contact") {
+    if (portrait) {
+      hill(1611, 0.88, 0.03, ["#b5cf9c", "#cfe0b6"], 0);
+      tree(W * 0.1, H * 0.87, 36 * k, 1631, 0.5);
+      tree(W * 0.9, H * 0.865, 30 * k, 1632, 0.6);
+      hill(1612, 0.95, 0.025, ["#93b57c", "#b3cc98"], 0);
+      bloom(W * 0.16, H * 0.95, W * 0.26, 9, 1641);
+      bloom(W * 0.84, H * 0.96, W * 0.24, 8, 1642);
+    } else {
+      hill(1611, 0.84, 0.025, ["#b8d1a0", "#d3e3ba"], 0.12);
+      tree(W * 0.06, H * 0.71, 44 * k, 1631, 0.5);
+      tree(W * 0.11, H * 0.745, 26 * k, 1633, 0.7);
+      tree(W * 0.94, H * 0.715, 40 * k, 1632, 0.55);
+      hill(1612, 0.95, 0.02, ["#97b880", "#b6cf9a"], 0.12);
+      bloom(W * 0.08, H * 0.93, W * 0.12, 11, 1641);
+      bloom(W * 0.92, H * 0.94, W * 0.12, 10, 1642);
+      bloom(W * 0.3, H * 0.975, W * 0.06, 4, 1643);
+      bloom(W * 0.72, H * 0.98, W * 0.05, 3, 1644);
+    }
+  } else if (portrait) {
     hill(1411, 0.92, 0.03, ["#b5cf9c", "#cfe0b6"], 0);
     tree(W * 0.08, H * 0.905, 34 * k, 1431, 0.55);
     tree(W * 0.93, H * 0.9, 28 * k, 1432, 0.4);
@@ -3114,7 +3296,13 @@ function paintJournal(W, H, portrait) {
       for (let s2 = 0; s2 < 4; s2++) { const [x, y, rad] = lobes[n + Math.floor(rr() * (lobes.length - n))] ?? lobes[0]; knife(ctx, rr, x - rad * 0.3, y - rad * 0.55, -0.15 + rr() * 0.3, rad * 0.55, rad * 0.14, hex("#fffaf2"), 0.65); }
     });
   };
-  if (portrait) {
+  if (v === "about") {
+    if (portrait) { cloud(W * 0.78, H * 0.07, W * 0.46, 1521); }
+    else { cloud(W * 0.88, H * 0.11, W * 0.24, 1521); cloud(W * 0.05, H * 0.42, W * 0.12, 1522); }
+  } else if (v === "contact") {
+    if (portrait) { cloud(W * 0.22, H * 0.08, W * 0.44, 1621); cloud(W * 0.86, H * 0.2, W * 0.3, 1622); }
+    else { cloud(W * 0.12, H * 0.14, W * 0.24, 1621); cloud(W * 0.86, H * 0.2, W * 0.22, 1622); }
+  } else if (portrait) {
     cloud(W * 0.2, H * 0.07, W * 0.5, 1421);
     cloud(W * 0.84, H * 0.15, W * 0.4, 1422);
   } else {
@@ -3134,6 +3322,18 @@ if (process.argv.includes("--journal")) {
   for (const [name, W, H, portrait] of [["desktop", 2000, 1250, false], ["mobile", 900, 1600, true]]) {
     fs.writeFileSync(path.join(dir, `journal-${name}.webp`), paintJournal(W, H, portrait).toBuffer("image/webp", 84));
     console.log(`journal-${name}`);
+  }
+  process.exit(0);
+}
+
+// the About and Contact backdrops: the same sky and meadow, composed as other corners of the garden
+for (const v of ["about", "contact"]) {
+  if (!process.argv.includes(`--${v}`)) continue;
+  const dir = path.resolve(`public/assets/garden/${v}`);
+  fs.mkdirSync(dir, { recursive: true });
+  for (const [name, W, H, portrait] of [["desktop", 2000, 1250, false], ["mobile", 900, 1600, true]]) {
+    fs.writeFileSync(path.join(dir, `${v}-${name}.webp`), paintJournal(W, H, portrait, v).toBuffer("image/webp", 84));
+    console.log(`${v}-${name}`);
   }
   process.exit(0);
 }

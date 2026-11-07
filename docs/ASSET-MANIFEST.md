@@ -28,10 +28,12 @@ Everything is code-drawn except the Landing painting, which is interim raster ar
 | `public/assets/garden/landing/*.webp` | The Landing painting and the wooden sign: interim raster artwork rendered by `scripts/paint-landing.mjs` (spec: `docs/LANDING-ART-SPEC.md`) |
 | `public/assets/garden/work/*.webp`, `public/assets/garden/work/sprites/*.webp` | The Work garden, its landmark layers and the guide's poses: decorative artwork rendered by `scripts/paint-landing.mjs --work` (desktop panorama `garden-desktop-2000/3000`, phones `garden-mobile-720/1080`; positions in `src/data/work-anchors.json`). Not project assets. |
 | `public/assets/garden/journal/*` | The case-study page backdrop (wide and tall): decorative artwork rendered by `scripts/paint-landing.mjs --journal`. Not project assets. |
+| `public/assets/garden/about/*`, `public/assets/garden/contact/contact-*.webp` | The About and Contact backdrops (wide and tall), from `--about` and `--contact`: decorative artwork. |
+| `public/assets/garden/contact/icon-{email,linkedin,wechat}.webp` | The three hand-painted contact icons, from `--icons`: decorative artwork (the LinkedIn "in" and WeChat bubbles are drawn as symbols only). |
 | `public/assets/garden/title/letter-*.webp` | The painted Landing title, one layer per letter (positions in `src/data/title-letters.json`): decorative artwork from `scripts/paint-landing.mjs --title`. |
 | `public/assets/garden/butterfly/*.webp` | The Landing butterfly cursor (left wing, right wing, body): decorative artwork from `--butterfly`. |
 | `public/assets/garden/lamp/lamp-{off,lit}.webp` | The Scene 1 lamppost, dark and lit: decorative artwork from `--lamp`. |
-| `public/assets/garden/**/*-night.webp` | Moonlit versions of the Landing scenes, the Work garden and the case-study backdrop, colour-graded by `scripts/night-grade.mjs`: decorative artwork. |
+| `public/assets/garden/**/*-night.webp` | Moonlit versions of the Landing scenes, the Work garden and the case-study, About and Contact backdrops, colour-graded by `scripts/night-grade.mjs`: decorative artwork. |
 | `src/components/garden/Painted.tsx` | Painted hills, brush strokes, wildflowers, stems, clouds |
 | `src/components/botanical/Pressed.tsx` | Pressed flowers and tape for the About page and previews |
 | `src/components/contact/MailboxScene.tsx` | Contact landscape, mailbox and envelope |

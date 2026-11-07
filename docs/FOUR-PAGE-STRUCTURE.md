@@ -9,7 +9,7 @@ Checkpoint before the change: git tag `phase-2-checkpoint`.
 | `/` | Landing | Three scenes of one painted garden: the title, three thoughts on the hills, and afternoon tea with the Explore My Work sign |
 | `/about` | About | Botanical-journal page: intro, education, experience and skills from the resume, plus Download Resume |
 | `/work` | Work | One full-width painted garden with three project landmarks and a small guide — the whole page is the scene |
-| `/contact` | Contact | Garden mailbox scene with a visible email link; the envelope reveals a note |
+| `/contact` | Contact | "Let's stay in touch." with three hand-painted contact icons: Email, LinkedIn, WeChat |
 | `/work/[slug]` | Case study ×5 | Secondary detail pages, with Back to Work and Next Project |
 
 The persistent nav is Home / About / Work / Contact; the current page is marked with `aria-current`. The brand reads
@@ -31,8 +31,12 @@ Removed (all recoverable from the tag): the homepage sections `GardenGate`, `Gar
 - **Landing.** Three scenes of one tall painting, stacked edge to edge in normal scroll: the title only, then the
   thoughts along the hills, then afternoon tea with a hanging wooden Explore My Work sign. Earlier versions are tagged
   `landing-v1-checkpoint` to `landing-v4-checkpoint`. The composition and art spec are in `docs/LANDING-ART-SPEC.md`.
-- **About.** A cream paper page with radial light, a taped polaroid portrait, pressed-flower ornaments, dashed
-  journal headings with handwritten side notes, a dotted timeline for experience, and skills grouped as tags.
+- **About.** A quiet corner of the painted garden: an oil-painted sky and meadow with a turning tree and a few blush
+  flowers (`node scripts/paint-landing.mjs --about`), the content resting on the same faint reading surface as the case
+  studies. The taped polaroid portrait (the supplied photo, unaltered), pressed-flower ornaments, case-study-style
+  headings with handwritten side notes and a painted vine, a dotted timeline for experience, and skills grouped as tags.
+- **Reading surface (case studies, About, Contact).** `.garden-mist`: a semi-transparent layer of light behind the
+  content, feathered at every edge, no blur, border or shadow; moonlit slate at night. Project images are untouched.
 - **Work.** One compact painted garden that fits the screen (16:9 on desktop, 9:16 on phones), showing only three
   projects: Eliminate Bacteria Pro at the fountain and Dog Nutrition Tracker at the dog house (both labelled
   Academic), and Little Moments at the windmill (Personal). A single heading above the scene reads "Choose a place to explore my work." Landmarks glow in turn, and lift with a bobbing cue on hover or focus. On click, a small painted girl
@@ -51,8 +55,11 @@ Removed (all recoverable from the tag): the homepage sections `GardenGate`, `Gar
   the heading painted into the sky. It fills the window below the header (a little wider than the window when needed,
   trimming only the edge trees), and the page has no list or footer beneath it; phones get their own tall composition.
   Code: `src/components/work/WorkGarden.tsx`; art: `node scripts/paint-landing.mjs --work`.
-- **Contact.** A pink sky over painted hills and wildflowers. The email link is always visible. Opening the envelope
-  raises the flag on a vine-wrapped garden mailbox and slides out a note.
+- **Contact.** The last stop in the garden: an oil-painted sky over a meadow with blush flowers
+  (`node scripts/paint-landing.mjs --contact`) and three hand-painted icons as one set (`--icons`), each with a written
+  label. Email opens a `mailto:` link; LinkedIn opens the profile in a new tab; WeChat opens a small panel that will hold
+  the QR code (`contact.wechatQr` in `src/data/site.ts`; a labelled placeholder until it is supplied). On hover or focus an
+  icon lifts, tilts a little and catches a soft light (300 ms; none with reduced motion).
 
 ## Copy to edit
 
@@ -83,7 +90,7 @@ The Landing statements live in `src/data/site.ts` → `landingScenes`. Edit them
   small, cute firefly — round head with bright eyes and curled antennae, veined wings that flutter in flight,
   and a plump honey-gold tail glowing in a soft halo); the loose grass clumps of Scene 2 fade away at night. Only opacity, transform and a few small filters animate; the night art is
   loaded with the page. Night is remembered and carries to the Work garden and the case studies (their night
-  paintings and backdrop cross-fade in; project images are never filtered); About and Contact keep their day look.
+  paintings and backdrop cross-fade in; project images are never filtered); About and Contact have moonlit backdrops too.
   While it is night a small "Day" lantern switch sits in the header.
 - **Typography.** Fraunces is set to its softest (`"SOFT" 100`) everywhere it is used, for rounded, organic
   terminals instead of sharp wedges; DM Sans (body) and Caveat (handwritten labels) are unchanged.

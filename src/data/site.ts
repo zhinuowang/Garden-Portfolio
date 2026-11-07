@@ -93,7 +93,9 @@ export const about = {
 };
 
 export const contact = {
-  email: "zhinuowang0601@gmail.com",
-  // Listed on Resume.pdf. This is the previous portfolio, so remove it if it shouldn't be public.
-  links: [{ label: "Previous portfolio (Adobe Portfolio)", href: "https://wangzhinuo601.myportfolio.com" }],
+  email: "zhinuowang0601@gmail.com", // from Resume.pdf
+  linkedin: "https://www.linkedin.com/in/zhinuo-wang-81a6b4271", // supplied by Zhinuo in chat (2026-11-06)
+  // Zhinuo's real WeChat QR code goes here once supplied (e.g. "/assets/contact/wechat-qr.png").
+  // Until then the WeChat panel shows a clearly labelled placeholder: never a made-up code.
+  wechatQr: null as string | null,
 };

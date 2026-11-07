@@ -166,7 +166,7 @@ export default function FullCaseStudy({ project, data, next }: { project: Projec
       <PressedSprig className="pointer-events-none absolute top-24 -right-3 hidden w-20 rotate-12 opacity-70 md:block" />
       <PressedBlossom className="pointer-events-none absolute top-[46rem] -left-10 hidden w-24 -rotate-12 opacity-60 xl:block" />
 
-      <div className="mx-auto max-w-6xl">
+      <div className="garden-mist mx-auto max-w-6xl">
         <Link href="/work" className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-forest underline-offset-4 hover:underline">
           <span aria-hidden="true">←</span> Back to Work
         </Link>
