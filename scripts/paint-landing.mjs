@@ -2793,49 +2793,84 @@ function paintButterfly() {
 }
 
 /**
- * A garden lamppost for Scene 1: a slim dark-green iron post with a little
- * four-pane lantern. Painted twice on the same canvas — glass dark (off) and
- * glass glowing warm (lit) — so the page can cross-fade between them.
+ * The Scene 1 lamppost: a traditional iron streetlamp in dark bronze — a stepped
+ * stone plinth, a fluted lower post with rings, an ornamental collar, a slender
+ * upper post, scrolled brackets, and a lantern that widens toward the top under
+ * a domed cap and finial, with amber glass. Painted twice on the same canvas:
+ * glass smoky and unlit (off), and glowing warm with a flame (lit), so the page
+ * can cross-fade between them.
  */
 function paintLamp(lit) {
-  const W = 180, H = 560, cx = 90;
+  const W = 220, H = 820, cx = 110;
   const cv = createCanvas(W, H), ctx = cv.getContext("2d");
   const hcv = createCanvas(W, H), hx = hcv.getContext("2d");
   hx.fillStyle = grey(20);
   hx.fillRect(0, 0, W, H);
   PAINT.hx = hx;
   const r = rng(1600);
-  const iron = (t) => mix(hex("#24302a"), hex("#4f6352"), t);
-  withThickness(0.8, () => {
-    // base and post
-    knife(ctx, r, cx - 26, H - 14, 0, 52, 22, iron(0.2));
-    knife(ctx, r, cx - 17, H - 34, 0, 34, 18, iron(0.35));
-    // the post: straight knife-laid iron, a lighter edge where the light catches it
-    knife(ctx, r, cx - 5, H - 34, -Math.PI / 2, H - 200, 11, iron(0.2));
-    knife(ctx, r, cx - 2, H - 36, -Math.PI / 2, H - 206, 3, iron(0.6), 0.8);
-    // a little collar and the lantern's arms
-    knife(ctx, r, cx - 14, 200, 0, 28, 12, iron(0.4));
-    knife(ctx, r, cx - 30, 176, 0, 60, 6, iron(0.3));
-    // lantern: a tapered body of four panes under a peaked cap
+  const iron = (t) => mix(hex("#1d211e"), hex("#5a5240"), t); // dark bronze
+  const stone = (t) => mix(hex("#b9a58a"), hex("#ecdcc0"), t);
+  const bar = (x0, y0, x1, y1, w, col) => { ctx.strokeStyle = rgba(col); ctx.lineWidth = w; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke(); };
+  withThickness(0.85, () => {
+    // stepped stone plinth
+    for (const [y, w, h2, t] of [[H - 26, 96, 26, 0.45], [H - 50, 80, 24, 0.6], [H - 68, 64, 18, 0.75]]) {
+      knife(ctx, r, cx - w / 2, y + h2 / 2, 0, w, h2, stone(t));
+      for (let n = 0; n < 4; n++) stroke(ctx, r, cx - w / 2 + r() * w * 0.8, y + h2 * 0.3 + r() * h2 * 0.4, 0, w * 0.25, 4, stone(t + 0.2), 0.6, 2);
+    }
+    // fluted lower post with rings
+    bar(cx, H - 74, cx, H - 300, 24, iron(0.15));
+    for (const u of [-6, 0, 6]) bar(cx + u, H - 80, cx + u * 0.8, H - 296, 2, iron(0.5));
+    for (const y of [H - 86, H - 300]) knife(ctx, r, cx - 17, y, 0, 34, 10, iron(0.4));
+    // ornamental collar: a swelling knop and two small rings
+    dab(ctx, cx, H - 318, 16, 12, 0, iron(0.3), 1);
+    dab(ctx, cx - 4, H - 322, 6, 5, 0, iron(0.75), 0.8);
+    knife(ctx, r, cx - 11, H - 336, 0, 22, 7, iron(0.45));
+    // slender upper post
+    bar(cx, H - 336, cx, 240, 13, iron(0.2));
+    bar(cx - 2, H - 344, cx - 2, 244, 2.5, iron(0.62));
+    // scrolled brackets under the lantern
+    for (const side of [-1, 1]) {
+      ctx.strokeStyle = rgba(iron(0.25));
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(cx, 300);
+      ctx.bezierCurveTo(cx + side * 10, 270, cx + side * 44, 268, cx + side * 40, 238);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(cx + side * 30, 296, 6, side < 0 ? 0 : Math.PI, side < 0 ? Math.PI * 1.6 : Math.PI * 2.6);
+      ctx.stroke();
+    }
+    knife(ctx, r, cx - 26, 240, 0, 52, 9, iron(0.35)); // the lantern's foot
+    // the lantern: wider at the top, four amber panes
     const glass = new Path2D();
-    glass.moveTo(cx - 26, 100); glass.lineTo(cx + 26, 100); glass.lineTo(cx + 20, 170); glass.lineTo(cx - 20, 170); glass.closePath();
-    ctx.fillStyle = rgba(lit ? hex("#ffd98a") : hex("#5d6a72"));
+    glass.moveTo(cx - 46, 128); glass.lineTo(cx + 46, 128); glass.lineTo(cx + 30, 234); glass.lineTo(cx - 30, 234); glass.closePath();
+    ctx.fillStyle = rgba(lit ? hex("#ffc66b") : hex("#6b5f4c"));
     ctx.fill(glass);
     clipBoth(ctx, glass);
-    for (let i = 0; i < 18; i++) stroke(ctx, r, cx - 24 + r() * 48, 100 + r() * 70, Math.PI / 2 + (r() - 0.5) * 0.3, 22, 7, lit ? mix(hex("#fff3cf"), hex("#f2b45c"), r()) : mix(hex("#7e8b92"), hex("#3f4a52"), r()), 0.8, 2);
-    if (lit) dab(ctx, cx, 136, 10, 14, 0, hex("#fffbe8"), 0.95); // the flame
+    for (let n = 0; n < 26; n++) stroke(ctx, r, cx - 44 + r() * 88, 130 + r() * 102, Math.PI / 2 + (r() - 0.5) * 0.4, 26, 9, lit ? mix(hex("#fff0c4"), hex("#f0a24a"), r()) : mix(hex("#8a7a5e"), hex("#433c31"), r()), 0.85, 2);
+    if (lit) { dab(ctx, cx, 190, 16, 24, 0, hex("#fff8dc"), 0.95); dab(ctx, cx, 196, 7, 12, 0, hex("#ffffff"), 0.9); }
+    else for (let n = 0; n < 3; n++) stroke(ctx, r, cx - 34 + n * 10, 138, 1.35, 60, 5, hex("#a39377"), 0.45, 0); // a faint reflection
     unclipBoth(ctx);
-    // the lantern's frame: straight mullions and a base rail
-    ctx.strokeStyle = rgba(iron(0.15));
-    ctx.lineCap = "round";
-    for (const [x0, x1, w] of [[cx - 26, cx - 20, 5], [cx, cx, 3.5], [cx + 26, cx + 20, 5]]) { ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(x0, 100); ctx.lineTo(x1, 170); ctx.stroke(); }
-    knife(ctx, r, cx - 24, 172, 0, 48, 7, iron(0.3));
-    const cap = new Path2D();
-    cap.moveTo(cx - 36, 102); cap.lineTo(cx, 62); cap.lineTo(cx + 36, 102); cap.closePath();
-    ctx.fillStyle = rgba(iron(0.2));
-    ctx.fill(cap);
-    knife(ctx, r, cx - 30, 98, -0.82, 34, 4, iron(0.55), 0.7);
-    dab(ctx, cx, 56, 7, 7, 0, iron(0.3), 1);
+    for (const [x0, x1, w] of [[cx - 46, cx - 30, 6], [cx - 15, cx - 10, 3.5], [cx + 15, cx + 10, 3.5], [cx + 46, cx + 30, 6]]) bar(x0, 128, x1, 234, w, iron(0.15));
+    bar(cx - 30, 234, cx + 30, 234, 6, iron(0.2));
+    // domed cap, crown and finial
+    knife(ctx, r, cx - 54, 126, 0, 108, 12, iron(0.3));
+    const dome = new Path2D();
+    dome.moveTo(cx - 50, 122);
+    dome.bezierCurveTo(cx - 44, 86, cx - 18, 74, cx, 72);
+    dome.bezierCurveTo(cx + 18, 74, cx + 44, 86, cx + 50, 122);
+    dome.closePath();
+    ctx.fillStyle = rgba(iron(0.18));
+    ctx.fill(dome);
+    clipBoth(ctx, dome);
+    for (let n = 0; n < 8; n++) stroke(ctx, r, cx - 40 + r() * 50, 90 + r() * 26, -0.4 + r() * 0.3, 30, 7, iron(0.35 + r() * 0.35), 0.7, 2);
+    unclipBoth(ctx);
+    for (const u of [-14, 0, 14]) dab(ctx, cx + u, 72 - (u ? 2 : 8), 5, 5, 0, iron(0.35), 1); // crown
+    bar(cx, 64, cx, 30, 4, iron(0.3));
+    dab(ctx, cx, 26, 6, 8, 0, iron(0.4), 1);
+    // a little light catching the iron's left edges
+    bar(cx - 11, H - 90, cx - 10, H - 290, 2, iron(0.85));
+    bar(cx - 6, H - 350, cx - 6, 250, 1.5, iron(0.85));
   });
   hx.save(); hx.globalCompositeOperation = "destination-in"; hx.drawImage(cv, 0, 0); hx.restore();
   hx.save(); hx.globalCompositeOperation = "destination-over"; hx.fillStyle = grey(20); hx.fillRect(0, 0, W, H); hx.restore();
@@ -2876,10 +2911,14 @@ if (process.argv.includes("--title")) {
 }
 
 /**
- * The case-study backdrop: a quiet oil-on-canvas page from the same garden.
- * Cream ground and canvas weave, broad low-contrast brushwork, sage and blush
- * washes pooling at the edges, and a few painted stems in two corners — all
- * kept light and away from the middle, where the project content sits.
+ * The case-study backdrop, a page from the painted garden: a warm cream ground
+ * and a calm, open centre for reading, framed at the edges by large, soft fields
+ * of the garden's colours — blush, coral, muted orange, golden yellow, sage and
+ * moss, with a little lavender — laid as glazes, then given brushwork only where
+ * it helps: a few loaded strokes and small impasto passes inside the colour
+ * fields, an organic painted edge where they meet the cream, and a few painted
+ * stems in two corners. Low relief (canvas, not emboss); little texture behind
+ * the text.
  */
 function paintJournal(W, H, portrait) {
   const cv = createCanvas(W, H);
@@ -2888,77 +2927,83 @@ function paintJournal(W, H, portrait) {
   const hx = hcv.getContext("2d");
   primeCanvas(hx, W, H);
   PAINT.hx = hx;
-  const r = rng(1201);
+  const r = rng(1301);
   const k = W / 1600;
-  // ground: warm cream, a touch lighter in the middle
-  const g = ctx.createLinearGradient(0, 0, 0, H);
-  g.addColorStop(0, "#f4ead6");
-  g.addColorStop(1, "#efe2c9");
+  // ground: warm cream, a breath of variation across it
+  const g = ctx.createLinearGradient(0, 0, W, H);
+  g.addColorStop(0, "#f6ecd8");
+  g.addColorStop(0.5, "#f8efdd");
+  g.addColorStop(1, "#f3e6cd");
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, H);
-  // edge distance, 0 in the reading column, 1 at the outer edge
+  // how far a point is from the reading column (0) toward the frame (1)
   const edge = (x, y) => portrait
-    ? clamp(Math.max(Math.abs(y / H - 0.5) * 2 - 0.55, Math.abs(x / W - 0.5) * 2 - 0.8) / 0.45)
-    : clamp((Math.abs(x / W - 0.5) * 2 - 0.42) / 0.58);
-  // broad, thin brushwork everywhere: the paint barely changes colour, so it reads as texture
-  // (richer than before: more visible strokes, with faint sage and blush passes even in the middle)
-  withThickness(0.3, () => {
-    for (let i = 0; i < (W * H) / 1900; i++) {
-      const x = r() * W, y = r() * H, e = edge(x, y);
-      const t = r();
-      const col = t < 0.12 ? mix(hex("#e4e3c4"), hex("#d3dab4"), r()) : t < 0.2 ? mix(hex("#f1dccf"), hex("#ecd0c3"), r()) : mix(hex("#f6eddb"), r() < 0.5 ? hex("#e6d6b8") : hex("#fbf5e8"), 0.35 + r() * 0.5);
-      stroke(ctx, r, x, y, (r() - 0.5) * 0.5 + (r() < 0.5 ? 0 : Math.PI), (60 + r() * 130) * k, (14 + r() * 24) * k, col, 0.32 + e * 0.22, 3);
-    }
-  });
-  // sage and blush washes pooling at the edges
+    ? clamp(Math.max(Math.abs(y / H - 0.5) * 2 - 0.5, Math.abs(x / W - 0.5) * 2 - 0.86) / 0.45)
+    : clamp((Math.abs(x / W - 0.5) * 2 - 0.5) / 0.45);
+  // 1 · large colour fields at the frame, as soft glazes (the richness lives here)
+  const FIELDS = portrait
+    ? [[0.0, 0.0, "#f2a48f"], [0.55, -0.02, "#efc06a"], [1.0, 0.05, "#b8a6d2"], [0.0, 0.97, "#9db682"], [0.6, 1.02, "#f0b4ab"], [1.0, 0.95, "#e9a873"]]
+    : [[-0.02, 0.05, "#f0a28d"], [0.02, 0.38, "#eab074"], [-0.02, 0.7, "#a8bd88"], [0.02, 1.0, "#7f9b63"],
+       [1.02, 0.0, "#efc169"], [0.98, 0.3, "#f1b1aa"], [1.02, 0.62, "#b7a5d0"], [0.98, 0.98, "#9cb57e"]];
   ctx.save();
-  ctx.filter = `blur(${60 * k}px)`;
-  const washes = portrait
-    ? [[0.0, 0.0, "#c9d4ae"], [1.0, 0.08, "#efcfc4"], [0.0, 0.95, "#efd2c6"], [1.0, 1.0, "#c3cfa6"], [0.5, -0.04, "#dfe3c8"], [0.5, 1.04, "#d8dfbf"]]
-    : [[0.0, 0.12, "#c9d4ae"], [0.02, 0.7, "#e9cfc4"], [0.0, 1.0, "#c3cfa6"], [1.0, 0.0, "#efcfc4"], [0.99, 0.45, "#cdd6b2"], [1.0, 0.95, "#e8d3c4"]];
-  for (const [u, v, c] of washes) for (let j = 0; j < 5; j++) glaze(ctx, (u + (r() - 0.5) * 0.08) * W, (v + (r() - 0.5) * 0.18) * H, (0.12 + r() * 0.1) * W, (0.14 + r() * 0.12) * H, hex(c), 0.27);
+  ctx.filter = `blur(${70 * k}px)`;
+  for (const [u, v, c] of FIELDS) for (let j = 0; j < 4; j++) glaze(ctx, (u + (r() - 0.5) * 0.06) * W, (v + (r() - 0.5) * 0.12) * H, (portrait ? 0.34 : 0.17 + r() * 0.06) * W, (0.16 + r() * 0.08) * H, hex(c), 0.42);
   ctx.restore();
-  // stronger brushwork inside the washes, following them
-  withThickness(0.35, () => {
-    // strokes follow a gentle flow field, so they read as one passage of paint, not loose dashes
-    for (let i = 0; i < (W * H) / 1400; i++) {
+  // a very faint, large variation behind the text (no marks, just air)
+  ctx.save();
+  ctx.filter = `blur(${120 * k}px)`;
+  for (const [u, v, c] of [[0.4, 0.25, "#f6e3cf"], [0.6, 0.7, "#eef0dc"], [0.5, 0.48, "#fbf4e6"]]) glaze(ctx, u * W, v * H, 0.25 * W, 0.2 * H, hex(c), 0.5);
+  ctx.restore();
+  // 2 · brushwork, selectively: loaded strokes inside the colour fields, following a gentle flow
+  const fieldAt = (x, y) => {
+    let best = null, bd = 1e9;
+    for (const [u, v, c] of FIELDS) { const d = Math.hypot(x / W - u, (y / H - v) * 0.6); if (d < bd) { bd = d; best = c; } }
+    return hex(best);
+  };
+  withThickness(0.55, () => {
+    for (let i = 0; i < (W * H) / 6000; i++) {
       const x = r() * W, y = r() * H, e = edge(x, y);
-      if (e < 0.2 || r() > e) continue;
-      const flow = -Math.PI / 2 + fbm(x / (500 * k), y / (500 * k), 1207, 3) * 1.6;
-      const tone = fbm(x / (700 * k), y / (700 * k), 1208, 2) > 0 ? mix(hex("#c4d0a6"), hex("#e6e8d2"), r()) : mix(hex("#ecd0c5"), hex("#f6e6dd"), r());
-      stroke(ctx, r, x, y, flow, (50 + r() * 90) * k, (16 + r() * 18) * k, tone, 0.16 + e * 0.26, 3);
+      if (e < 0.4 || r() > e * e) continue;
+      const flow = -Math.PI / 2 + fbm(x / (600 * k), y / (600 * k), 1307, 3) * 1.4;
+      const tone = mix(fieldAt(x, y), r() < 0.5 ? hex("#fff3e2") : hex("#c98f73"), r() * 0.22);
+      stroke(ctx, r, x, y, flow, (80 + r() * 120) * k, (26 + r() * 26) * k, tone, 0.4 + e * 0.32, 3);
     }
   });
-  // a few painted stems: grasses, a cosmos and small blossoms, in two corners
+  // a few small impasto passes: tight clusters of short, thick strokes, lit by the relief
+  withThickness(1, () => {
+    for (let i = 0; i < 9; i++) {
+      const left = r() < 0.5;
+      const x = portrait ? (0.1 + r() * 0.8) * W : (left ? 0.02 + r() * 0.1 : 0.88 + r() * 0.1) * W;
+      const y = portrait ? (r() < 0.5 ? 0.02 + r() * 0.1 : 0.88 + r() * 0.1) * H : (0.05 + r() * 0.9) * H;
+      const base = fieldAt(x, y), ang = -Math.PI / 2 + (r() - 0.5) * 0.8;
+      for (let n = 0; n < 6; n++) stroke(ctx, r, x + (r() - 0.5) * 34 * k, y + (r() - 0.5) * 34 * k, ang + (r() - 0.5) * 0.4, (26 + r() * 22) * k, (12 + r() * 8) * k, mix(base, r() < 0.6 ? hex("#fff4e4") : hex("#b98468"), r() * 0.3), 0.9, 3);
+    }
+  });
+  // 3 · a few painted stems, richer than before, in two corners
   const stems = (x0, y0, dir, n, seed) => {
     const rr = rng(seed);
-    withThickness(0.6, () => {
+    withThickness(0.7, () => {
       for (let i = 0; i < n; i++) {
-        const x = x0 + dir * rr() * 140 * k, h = (120 + rr() * 260) * k, lean = dir * (0.08 + rr() * 0.25);
+        const x = x0 + dir * rr() * 150 * k, h = (140 + rr() * 280) * k, lean = dir * (0.08 + rr() * 0.25);
         const ang = -Math.PI / 2 + lean;
-        stroke(ctx, rr, x, y0, ang, h, (3 + rr() * 3) * k, mix(hex("#8ea476"), hex("#b9c79a"), rr()), 0.55, 1);
+        stroke(ctx, rr, x, y0, ang, h, (3.5 + rr() * 3) * k, mix(hex("#6f8a55"), hex("#a8bd88"), rr()), 0.8, 1);
         const tx = x + Math.cos(ang) * h, ty = y0 + Math.sin(ang) * h;
-        if (rr() < 0.35) {
-          for (let p = 0; p < 7; p++) { const a = (p / 7) * Math.PI * 2; dab(ctx, tx + Math.cos(a) * 9 * k, ty + Math.sin(a) * 9 * k, 8 * k, 4.5 * k, a, mix(hex("#eab3ad"), hex("#f6d9d2"), rr()), 0.75); }
-          dab(ctx, tx, ty, 4 * k, 4 * k, 0, hex("#e3bf73"), 0.85);
-        } else if (rr() < 0.5) {
-          for (let p = 0; p < 4; p++) dab(ctx, tx + (rr() - 0.5) * 12 * k, ty + p * 9 * k, 4 * k, 3 * k, 0, mix(hex("#d9e1c2"), hex("#fbf4ea"), rr()), 0.8);
+        const bloom = rr();
+        if (bloom < 0.45) {
+          const petal = [hex("#f19c8c"), hex("#efc169"), hex("#f4b7b5"), hex("#c3b1db")][Math.floor(rr() * 4)];
+          for (let p = 0; p < 7; p++) { const a = (p / 7) * Math.PI * 2; dab(ctx, tx + Math.cos(a) * 10 * k, ty + Math.sin(a) * 10 * k, 9 * k, 5 * k, a, mix(petal, hex("#fff3ec"), rr() * 0.3), 0.92); }
+          dab(ctx, tx, ty, 4.5 * k, 4.5 * k, 0, hex("#e3a43c"), 0.95);
         }
         for (let l = 0; l < 2; l++) {
           const t = 0.3 + rr() * 0.4, lx = x + Math.cos(ang) * h * t, ly = y0 + Math.sin(ang) * h * t, side = rr() < 0.5 ? -1 : 1;
-          stroke(ctx, rr, lx, ly, ang + side * (0.7 + rr() * 0.4), (26 + rr() * 26) * k, (8 + rr() * 6) * k, mix(hex("#9fb385"), hex("#c6d1a8"), rr()), 0.5, 1);
+          stroke(ctx, rr, lx, ly, ang + side * (0.7 + rr() * 0.4), (28 + rr() * 26) * k, (9 + rr() * 6) * k, mix(hex("#7f9b63"), hex("#b3c792"), rr()), 0.75, 1);
         }
       }
     });
   };
-  if (portrait) {
-    stems(-20 * k, H + 10 * k, 1, 12, 1211);
-    stems(W + 20 * k, H * 0.14, -1, 7, 1212);
-  } else {
-    stems(-10 * k, H + 10 * k, 1, 16, 1211);
-    stems(W + 10 * k, H * 0.36, -1, 9, 1212);
-  }
-  lightRelief(cv, hcv, W, H, 1.05);
+  if (portrait) { stems(-20 * k, H + 10 * k, 1, 10, 1211); stems(W + 20 * k, H * 0.16, -1, 6, 1212); }
+  else { stems(-10 * k, H + 10 * k, 1, 14, 1211); stems(W + 10 * k, H * 0.36, -1, 8, 1212); }
+  lightRelief(cv, hcv, W, H, 0.6);
   PAINT.hx = null;
   return cv;
 }

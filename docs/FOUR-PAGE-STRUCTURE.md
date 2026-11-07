@@ -54,9 +54,10 @@ Removed (all recoverable from the tag): the homepage sections `GardenGate`, `Gar
 ## Copy to edit
 
 The Landing statements live in `src/data/site.ts` → `landingScenes`. Edit them there.
-- **Case studies (Dog Nutrition Tracker, Eliminate Bacteria Pro).** Each is a page from the garden's field
-  journal: a fixed oil-on-canvas backdrop (cream ground, canvas weave, sage and blush washes and painted stems at
-  the edges; `node scripts/paint-landing.mjs --journal`), contents in the margin, sage vines under headings and
+- **Case studies (Dog Nutrition Tracker, Eliminate Bacteria Pro, Little Moments).** Each is a page from the garden's
+  field journal: a fixed oil-painted backdrop (a calm cream reading area framed by large, soft fields of blush,
+  coral, muted orange, golden yellow, sage, moss and a little lavender, with selective brushwork, a few impasto
+  passes and painted stems at the edges; `node scripts/paint-landing.mjs --journal`), contents in the margin, sage vines under headings and
   leaf bullets. Project images sit straight on the page with no card, border or tape; only those with an opaque
   background get a faint, diffused neutral shadow. The images themselves are untouched.
 - **Landing title and cursor.** "A Garden of Ideas" is hand-lettered with a brush in oil, lowercase on two staggered
@@ -68,14 +69,16 @@ The Landing statements live in `src/data/site.ts` → `landingScenes`. Edit them
   Scene 2 settles), back again on the way up. The h1 keeps "A Garden of Ideas" for
   screen readers. On devices with a mouse a small painted butterfly (`--butterfly`) is the cursor on the Landing
   page only, with its head at the click point; over links the normal pointer returns. Touch devices and reduced motion keep the normal cursor.
-- **Night in the garden.** A painted lamppost stands at the end of the cottage's fence in Scene 1 (`--lamp`).
-  Clicking it lights the lantern and slowly turns the garden to night: a moonlit blue wash multiplied into the
-  painting, a soft moon, stars and a few fireflies, a warm pool of lamplight, and the title brightened to read on
-  the night sky. Night is remembered (localStorage, restored before first paint) and carries to the Work garden
-  (moonlit wash, cream labels) and the case studies (dimmed painted backdrop, cream text); About and Contact
-  keep their day look. The palette tokens are registered with `@property` so text and backgrounds fade rather
-  than snap. While it is night a small "Day" lantern switch sits in the header; on the Landing page the cursor
-  becomes a softly glowing firefly at the same click point.
+- **Night in the garden.** A traditional iron streetlamp (`--lamp`: stone plinth, fluted base, scrolled brackets,
+  domed lantern with amber glass) stands in front of the cottage, left of the fountain. Hovering or focusing it
+  brightens the glass, warms a halo and writes a hint ("Light up the garden ✦" / "Return to daylight ✦"); its hit
+  area reaches past the slender post. Clicking runs one coordinated dusk (`night.ts`): the lamp lights, the scenes
+  cross-fade (2.2 s) to pre-painted moonlit versions (`node scripts/night-grade.mjs`), the moon, stars and
+  fireflies appear, and once it is dusk the page's text palette and the cursor follow (the butterfly becomes a
+  small firefly with a glowing tail). Only opacity, transform and a few small filters animate; the night art is
+  loaded with the page. Night is remembered and carries to the Work garden and the case studies (their night
+  paintings and backdrop cross-fade in; project images are never filtered); About and Contact keep their day look.
+  While it is night a small "Day" lantern switch sits in the header.
 - **Typography.** Fraunces is set to its softest (`"SOFT" 100`) everywhere it is used, for rounded, organic
   terminals instead of sharp wedges; DM Sans (body) and Caveat (handwritten labels) are unchanged.
 

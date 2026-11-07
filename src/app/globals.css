@@ -255,36 +255,27 @@ body {
 }
 
 /* ---------- Night in the garden (the lamppost) ---------- */
-/* The palette tokens are registered as colours so they can fade, not snap, between day and night. */
-@property --color-cream { syntax: "<color>"; inherits: true; initial-value: #f6f1e5; }
-@property --color-paper { syntax: "<color>"; inherits: true; initial-value: #fbf7ee; }
-@property --color-ink { syntax: "<color>"; inherits: true; initial-value: #2f3a2c; }
-@property --color-ink-soft { syntax: "<color>"; inherits: true; initial-value: #55604f; }
-@property --color-moss { syntax: "<color>"; inherits: true; initial-value: #6f8a5a; }
-@property --color-forest { syntax: "<color>"; inherits: true; initial-value: #40583c; }
-:is(header, .nightable) {
-  transition: --color-cream 1.6s ease, --color-paper 1.6s ease, --color-ink 1.6s ease, --color-ink-soft 1.6s ease, --color-moss 1.6s ease, --color-forest 1.6s ease;
-}
-/* only pages that opt in (Landing, Work, case studies) turn to night; their header follows */
-html[data-night]:has(.nightable) :is(header, .nightable) {
+/* One coordinated dusk (night.ts): data-lamp → data-night (the prepared night paintings cross-fade in,
+   2.2 s) → data-night-ink (text palette and cursor, once it is dusk). Only opacity, transform and a few
+   small filters animate; no blend modes, blurs or inherited colour transitions run during the fade. */
+:root { --dusk: 2.2s cubic-bezier(0.45, 0.05, 0.35, 1); }
+/* the page's ink: only pages that opt in (Landing, Work, case studies) and their header change */
+html[data-night-ink]:has(.nightable) :is(header, .nightable) {
   --color-cream: #1e2537;
   --color-paper: #283047;
   --color-ink: #efe8d8;
-  --color-ink-soft: #cbc6ba;
-  --color-moss: #b6c99c;
+  --color-ink-soft: #cdc8bc;
+  --color-moss: #b8cb9e;
   --color-forest: #d8e5c2;
 }
-body { transition: background-color 1.6s ease; }
-html[data-night]:has(.nightable) body { background-color: #1e2537; }
+html[data-night-ink]:has(.nightable) body { background-color: #1e2537; }
 .night-switch-slot:empty { display: none; }
 
-/* Landing: a moonlit wash multiplied into the painting, so it is the same garden at night */
-.night-sky { opacity: 0; transition: opacity 1.8s ease; }
+/* Landing: the night paintings, moon, stars and fireflies */
+.night-sky { opacity: 0; transition: opacity var(--dusk); will-change: opacity; }
 html[data-night] .night-sky { opacity: 1; }
-.night-sky__wash {
-  background: linear-gradient(180deg, #34437a 0%, #4a5a88 38%, #51677e 70%, #4a6274 100%);
-  mix-blend-mode: multiply;
-}
+.night-sky__details { opacity: 0; transition: opacity 1.4s ease; }
+html[data-night] .night-sky__details { opacity: 1; transition-delay: 0.9s; }
 .night-sky__moon {
   right: 17%;
   top: 8%;
@@ -292,90 +283,122 @@ html[data-night] .night-sky { opacity: 1; }
   aspect-ratio: 1;
   border-radius: 50%;
   background: radial-gradient(circle at 42% 40%, #fffaf0 0%, #f6efdc 55%, #e9dfc6 100%);
-  box-shadow: 0 0 22px 8px rgb(255 246 220 / 0.35), 0 0 90px 40px rgb(200 214 255 / 0.16);
+  box-shadow: 0 0 22px 8px rgb(255 246 220 / 0.32), 0 0 80px 34px rgb(200 214 255 / 0.14);
 }
-.night-sky__star { background: #fff8e6; box-shadow: 0 0 6px rgb(255 248 230 / 0.8); animation: night-twinkle 5s ease-in-out infinite; }
+.night-sky__star { background: #fff8e6; box-shadow: 0 0 5px rgb(255 248 230 / 0.8); animation: night-twinkle 5s ease-in-out infinite; }
 @keyframes night-twinkle { 0%, 100% { opacity: 0.85; } 50% { opacity: 0.35; } }
-.night-sky__fly {
-  width: 5px;
-  height: 5px;
-  background: #fff4b8;
-  box-shadow: 0 0 8px 3px rgb(255 236 150 / 0.55);
-  animation: night-fly 10s ease-in-out infinite;
-}
+.night-sky__fly { width: 5px; height: 5px; background: #fff4b8; box-shadow: 0 0 8px 3px rgb(255 236 150 / 0.55); animation: night-fly 10s ease-in-out infinite; }
 @keyframes night-fly {
   0%, 100% { translate: 0 0; opacity: 0.15; }
   25% { translate: 14px -10px; opacity: 0.9; }
   50% { translate: 26px 4px; opacity: 0.35; }
   75% { translate: 8px 12px; opacity: 0.85; }
 }
-/* the title, moonlit: brighter paint with the faintest halo so it stays readable on the night sky */
-html[data-night] .pt-paint { filter: brightness(1.4) saturate(0.92) drop-shadow(0 0 10px rgb(255 244 214 / 0.22)); }
-html[data-night] .pt-letter:hover .pt-paint { filter: brightness(1.75) saturate(0.95) drop-shadow(0 0 12px rgb(255 244 214 / 0.32)); }
+/* the painted figures (dogs, sails, water, chair, table) dim into the moonlight alongside the painting */
+.landing-scenes > section > div:not(.night-sky) img { transition: filter var(--dusk); }
+html[data-night] .landing-scenes > section > div:not(.night-sky) img { filter: brightness(0.6) saturate(0.55) hue-rotate(-8deg); }
+/* the title, moonlit: a simple brightness lift (no glow filters to animate) */
+html[data-night] .pt-paint { filter: brightness(1.42) saturate(0.9); }
+html[data-night] .pt-letter:hover .pt-paint { filter: brightness(1.6) saturate(0.95); }
 /* Scene 3 at night: the invitation turns to moonlit cream; the sign settles into the dusk */
-#landing-invitation { transition: color 1.6s ease, text-shadow 1.6s ease; }
-html[data-night] #landing-invitation { color: #f4ecd9; text-shadow: 0 0 14px rgb(20 28 48 / 0.85), 0 1px 2px rgb(20 28 48 / 0.9); }
-.garden-sign__board { transition: filter 1.6s ease; }
-html[data-night] .garden-sign__board { filter: brightness(0.82) saturate(0.85); }
+#landing-invitation { transition: color 0.8s ease; }
+html[data-night-ink] #landing-invitation { color: #f4ecd9; text-shadow: 0 0 14px rgb(20 28 48 / 0.85), 0 1px 2px rgb(20 28 48 / 0.9); }
+.garden-sign__board { transition: filter var(--dusk); }
+html[data-night] .garden-sign__board { filter: brightness(0.8) saturate(0.85); }
 
-/* the lamppost: dark by day; lit, with a warm halo and a pool of light on the grass, at night */
+/* the lamppost: a generous hit area, a clear hover (glass brightens, halo, a handwritten hint), lit at night */
 .lamppost { cursor: pointer; border-radius: 1rem; }
-.lamppost:focus-visible { outline: 3px solid #fbf3e4; outline-offset: 4px; }
-.lamppost img { transition: opacity 1.2s ease, filter 0.3s ease; }
-.lamppost:hover img { filter: brightness(1.12) drop-shadow(0 0 6px rgb(255 240 200 / 0.6)); }
+.lamppost::before { content: ""; position: absolute; inset: -6% -90% -4%; } /* a comfortable hit area round the slender post */
+.lamppost:focus-visible { outline: 3px solid #fbf3e4; outline-offset: 6px; }
+.lamppost img { transition: opacity 0.9s ease, transform 0.35s ease; }
 .lamppost__lit { opacity: 0; }
-html[data-night] .lamppost__lit { opacity: 1; }
-.lamppost__glow, .lamppost__pool { position: absolute; pointer-events: none; opacity: 0; transition: opacity 1.8s ease; mix-blend-mode: screen; border-radius: 50%; }
+.lamppost:is(:hover, :focus-visible) .lamppost__lit { opacity: 0.55; }
+html[data-lamp] .lamppost__lit { opacity: 1; }
+.lamppost:is(:hover, :focus-visible) img { transform: translateY(-1.5%); }
+.lamppost__glow, .lamppost__pool { position: absolute; pointer-events: none; opacity: 0; transition: opacity 1.2s ease; border-radius: 50%; }
 .lamppost__glow {
-  left: 50%; top: 22%;
-  width: 520%; aspect-ratio: 1;
+  left: 50%; top: 21%;
+  width: 380%; aspect-ratio: 1;
   transform: translate(-50%, -50%);
-  background: radial-gradient(closest-side, rgb(255 222 150 / 0.75), rgb(255 200 120 / 0.25) 45%, rgb(255 200 120 / 0));
+  background: radial-gradient(closest-side, rgb(255 218 140 / 0.62), rgb(255 200 120 / 0.2) 50%, rgb(255 200 120 / 0));
 }
 .lamppost__pool {
-  left: 50%; bottom: -4%;
-  width: 760%; aspect-ratio: 3 / 1;
+  left: 50%; bottom: -3%;
+  width: 600%; aspect-ratio: 3 / 1;
   transform: translate(-50%, 50%);
-  background: radial-gradient(closest-side, rgb(255 214 140 / 0.42), rgb(255 214 140 / 0));
+  background: radial-gradient(closest-side, rgb(255 214 140 / 0.36), rgb(255 214 140 / 0));
 }
-html[data-night] :is(.lamppost__glow, .lamppost__pool) { opacity: 1; }
-
-/* the firefly cursor: a small warm glow, breathing softly */
-.butterfly__firefly {
+.lamppost:is(:hover, :focus-visible) .lamppost__glow { opacity: 0.55; }
+html[data-lamp] .lamppost__glow { opacity: 1; }
+html[data-night] .lamppost__pool { opacity: 1; }
+.lamppost__hint {
   position: absolute;
-  width: 9px;
-  height: 9px;
+  left: 115%;
+  top: 14%;
+  white-space: nowrap;
+  font-family: var(--font-caveat), "Segoe Print", cursive;
+  font-size: clamp(1.05rem, 1.5vw, 1.45rem);
+  font-weight: 600;
+  color: #3a2a1c;
+  text-shadow: 0 0 10px rgb(251 245 230 / 0.95), 0 1px 2px rgb(251 245 230 / 0.9);
+  opacity: 0;
+  transform: translateX(-6px) rotate(-3deg);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  pointer-events: none;
+}
+.lamppost:is(:hover, :focus-visible) .lamppost__hint { opacity: 1; transform: translateX(0) rotate(-3deg); }
+html[data-night-ink] .lamppost__hint { color: #fbf0d6; text-shadow: 0 0 10px rgb(18 24 44 / 0.95), 0 1px 2px rgb(18 24 44 / 0.9); }
+
+/* the firefly cursor: a small insect, its tail glowing warm gold, brighter while it flies */
+.butterfly__firefly { position: absolute; width: 16px; transform: translate(-50%, -12%); opacity: 0; transition: opacity 0.8s ease; pointer-events: none; }
+html[data-night-ink] .butterfly__firefly { opacity: 1; }
+.firefly__bug { position: relative; display: block; width: 100%; overflow: visible; }
+.firefly__wing { fill: rgb(236 240 255 / 0.55); stroke: rgb(255 255 255 / 0.5); stroke-width: 0.6; transform-origin: 10px 7px; }
+.butterfly[data-state="moving"] .firefly__wing--l { animation: ff-wing 0.12s ease-in-out infinite alternate; }
+.butterfly[data-state="moving"] .firefly__wing--r { animation: ff-wing 0.12s ease-in-out infinite alternate-reverse; }
+@keyframes ff-wing { from { transform: rotate(-14deg); } to { transform: rotate(10deg); } }
+.firefly__tail { fill: #fff2a8; filter: drop-shadow(0 0 2px #ffe27a); }
+.firefly__halo {
+  position: absolute;
+  left: 50%;
+  top: 72%;
+  width: 34px;
+  aspect-ratio: 1;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  background: radial-gradient(circle, #fffbe0 0%, #ffe98a 45%, #f6cf55 100%);
-  box-shadow: 0 0 10px 4px rgb(255 232 140 / 0.45), 0 0 24px 10px rgb(255 226 120 / 0.14);
-  opacity: 0;
-  transition: opacity 0.6s ease;
+  background: radial-gradient(closest-side, rgb(255 236 150 / 0.75), rgb(255 222 120 / 0.28) 50%, rgb(255 222 120 / 0));
+  opacity: 0.7;
+  transition: opacity 0.4s ease, scale 0.4s ease;
   animation: firefly-breathe 2.8s ease-in-out infinite;
 }
-@keyframes firefly-breathe { 0%, 100% { scale: 1; } 50% { scale: 0.82; } }
-html[data-night] .butterfly__firefly { opacity: 1; }
-.butterfly__perch { transition: transform 0.25s ease, opacity 0.6s ease; }
-html[data-night] .butterfly__perch { opacity: 0; }
+.butterfly[data-state="moving"] .firefly__halo { opacity: 1; scale: 1.2; }
+@keyframes firefly-breathe { 0%, 100% { scale: 1; } 50% { scale: 0.85; } }
+.butterfly__perch { transition: transform 0.25s ease, opacity 0.8s ease; }
+html[data-night-ink] .butterfly__perch { opacity: 0; }
 
-/* Work garden at night: a moonlit wash over the painting, the painted figures dimmed to match */
-.work-night { pointer-events: none; opacity: 0; transition: opacity 1.8s ease; background: linear-gradient(180deg, #2b3866, #3b5066 75%, #34495a); mix-blend-mode: multiply; }
-html[data-night] .work-night { opacity: 0.85; }
+/* Work garden at night: the moonlit painting cross-fades in; figures dim to match; labels turn cream */
+.work-night { pointer-events: none; opacity: 0; transition: opacity var(--dusk); }
+html[data-night] .work-night { opacity: 1; }
 .work-layer, .work-girl img { transition-property: filter, transform, opacity; }
-html[data-night] :is(.work-layer, .work-girl img) { filter: brightness(0.62) saturate(0.75); }
-html[data-night] .work-page::before { filter: blur(36px) brightness(0.4) saturate(0.7); }
-/* labels at night: moonlit cream lettering with a dark halo, badges on dusk-blue */
-.work-label__title, .work-label__badge { transition: color 1.6s ease, background-color 1.6s ease, text-shadow 1.6s ease; }
-html[data-night] .work-label__title { color: #f4ecd9; text-shadow: 0 0 10px rgb(20 28 48 / 0.95), 0 1px 2px rgb(20 28 48 / 0.9); }
-html[data-night] .work-label__badge { background: rgb(36 44 66 / 0.88); box-shadow: none; }
-html[data-night] .work-label__badge--personal { color: #f0b7b1; }
+html[data-night] :is(.work-layer, .work-girl img) { filter: brightness(0.62) saturate(0.6) hue-rotate(-8deg); }
+html[data-night] .work-page::before { opacity: 0.25; }
+html[data-night-ink] .work-label__title { color: #f4ecd9; text-shadow: 0 0 10px rgb(20 28 48 / 0.95), 0 1px 2px rgb(20 28 48 / 0.9); }
+html[data-night-ink] .work-label__badge { background: rgb(36 44 66 / 0.88); box-shadow: none; }
+html[data-night-ink] .work-label__badge--personal { color: #f0b7b1; }
 
-/* case studies at night: the painted page dimmed to a deep blue-green dusk; text turns to moonlit cream */
-.journal-backdrop { transition: filter 1.8s ease; }
-.journal-backdrop::after { content: ""; position: absolute; inset: 0; background: #22305a; mix-blend-mode: multiply; opacity: 0; transition: opacity 1.8s ease; }
-html[data-night] .journal-backdrop { filter: brightness(0.5) saturate(0.7); }
-html[data-night] .journal-backdrop::after { opacity: 0.75; }
-html[data-night] .nightable .category-badge { background: rgb(216 229 194 / 0.14); }
+/* case studies at night: the moonlit backdrop cross-fades in (project images are never filtered) */
+.journal-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("/assets/garden/journal/journal-desktop-night.webp") center / cover no-repeat;
+  opacity: 0;
+  transition: opacity var(--dusk);
+}
+@media (max-aspect-ratio: 3/4) { .journal-backdrop::after { background-image: url("/assets/garden/journal/journal-mobile-night.webp"); } }
+html[data-night] .journal-backdrop::after { opacity: 1; }
+html[data-night-ink] .nightable .category-badge { background: rgb(216 229 194 / 0.14); }
+html[data-night-ink] .nightable .cs-num { background: rgb(216 229 194 / 0.12); }
 
 /* ---------- Landing: the painted title ---------- */
 /* the wind exit is set per letter by PaintedTitle (transform and opacity, from the scroll) */
@@ -713,7 +736,8 @@ html.butterfly-cursor :is(a, button, [role="button"], input, select, textarea, l
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .pt-paint { transition: none; }
-  .night-sky__star, .night-sky__fly, .butterfly__firefly { animation: none !important; }
+  .night-sky__star, .night-sky__fly, .firefly__halo, .firefly__wing { animation: none !important; }
+  .night-sky, .night-sky__details, .work-night, .journal-backdrop::after { transition-duration: 0.01s !important; }
   .sway, .drift, .blades, .bubble, .bloom, .garden-sign__board, .living-dog, .living-tail, .living-ball, .living-rocker, .living-water-a, .living-water-b, .living-drop,
   .pt-rise, .work-glow, .work-cue, .work-layer, .work-girl__body, .work-bubble, .work-heart, .work-ripple,
   .work-landmark, .work-flash, .work-flash::after { animation: none !important; }

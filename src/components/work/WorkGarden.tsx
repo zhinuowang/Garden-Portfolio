@@ -121,8 +121,17 @@ function Stage({ fmt, c, ratio, className }: { fmt: "desktop" | "mobile"; c: Com
             draggable={false}
           />
         </picture>
-        {/* night: a moonlit wash over the painted garden (fades in with the lamp) */}
-        <span aria-hidden="true" className="work-night absolute inset-0" />
+        {/* night: the same garden painted by moonlight (scripts/night-grade.mjs), cross-faded in with the lamp */}
+        {/* eslint-disable-next-line @next/next/no-img-element -- prepared night painting */}
+        <img
+          aria-hidden="true"
+          alt=""
+          src={`/assets/garden/work/garden-${fmt}-${fmt === "desktop" ? 1600 : 720}-night.webp`}
+          srcSet={fmt === "desktop" ? "/assets/garden/work/garden-desktop-1600-night.webp 1600w, /assets/garden/work/garden-desktop-2400-night.webp 2400w" : "/assets/garden/work/garden-mobile-720-night.webp 720w, /assets/garden/work/garden-mobile-1080-night.webp 1080w"}
+          sizes="100vw"
+          className="work-night absolute inset-0 block h-full w-full select-none"
+          draggable={false}
+        />
 
         {/* landmarks: their layers, a soft discoverability glow, the label, and the link over them */}
         {c.landmarks.map((m, i) => {

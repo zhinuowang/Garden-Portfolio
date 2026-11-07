@@ -72,7 +72,16 @@ export default function ButterflyCursor() {
   return createPortal(
     <div ref={ref} aria-hidden="true" className="butterfly" data-state="resting" style={{ width: SIZE, opacity: 0 }}>
       {/* at night the butterfly becomes a firefly: a small warm glow at the very same click point */}
-      <span className="butterfly__firefly" style={{ left: `${HOT[0] * 100}%`, top: `${HOT[1] * 100}%` }} />
+      <span className="butterfly__firefly" style={{ left: `${HOT[0] * 100}%`, top: `${HOT[1] * 100}%` }}>
+        <span className="firefly__halo" />
+        <svg viewBox="0 0 20 30" className="firefly__bug">
+          <ellipse className="firefly__wing firefly__wing--l" cx="6" cy="10" rx="5" ry="7.5" />
+          <ellipse className="firefly__wing firefly__wing--r" cx="14" cy="10" rx="5" ry="7.5" />
+          <ellipse cx="10" cy="11" rx="3" ry="6" fill="#3a3320" />
+          <circle cx="10" cy="3.6" r="2.6" fill="#2a2416" />
+          <ellipse className="firefly__tail" cx="10" cy="21" rx="4" ry="6" />
+        </svg>
+      </span>
       <span className="butterfly__perch block">
         {(["left", "right", "body"] as const).map((part) => (
           // eslint-disable-next-line @next/next/no-img-element -- painted cursor layer

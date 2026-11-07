@@ -49,7 +49,7 @@ const SIZE = { sm: "max-w-sm", md: "max-w-xl", lg: "max-w-none" } as const;
 
 function Num({ n }: { n: number }) {
   return (
-    <span aria-hidden="true" className="flex size-8 shrink-0 items-center justify-center rounded-full border border-moss/40 bg-[#e8eedc] font-serif text-sm font-semibold text-forest">
+    <span aria-hidden="true" className="cs-num flex size-8 shrink-0 items-center justify-center rounded-full border border-moss/40 bg-[#e8eedc] font-serif text-sm font-semibold text-forest">
       {n}
     </span>
   );
