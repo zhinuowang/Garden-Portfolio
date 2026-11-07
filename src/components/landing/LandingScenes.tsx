@@ -9,6 +9,7 @@ import SceneSettle from "./SceneSettle";
 import PaintedTitle from "./PaintedTitle";
 import ButterflyCursor from "./ButterflyCursor";
 import Lamppost from "./Lamppost";
+import Mailbox from "@/components/garden/Mailbox";
 import NightSky from "./NightSky";
 
 // The Landing is one tall garden painting in three scenes, stacked edge to edge
@@ -74,6 +75,15 @@ export default function LandingScenes() {
         <NightSky scene={1} />
         {layers(1)}
         <Lamppost />
+        {/* the way to Contact: a small garden mailbox on the right-hand slope; it opens on hover */}
+        <Link
+          href="/contact"
+          aria-label="Contact: write to Zhinuo"
+          className="mailbox-host mailbox-post absolute -translate-x-1/2 -translate-y-full left-[87.5%] top-[70%] w-[9.5%] portrait-art:left-[90.5%] portrait-art:top-[90%] portrait-art:w-[15%]"
+        >
+          <Mailbox />
+          <span aria-hidden="true" className="mailbox-post__hint">Write to me ✉</span>
+        </Link>
         <PaintedTitle id="landing-title" className="pointer-events-none absolute inset-x-0 top-[min(38svh,38%)] -translate-y-1/2 px-6 portrait-art:top-[min(38svh,38%)]" />
         {/* a quiet, wordless cue at the foot of the first view */}
         <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-[min(calc(100svh-4.5rem),92%)] flex justify-center text-[#33402f]/70">

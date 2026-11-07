@@ -3,6 +3,8 @@
 import Image from "next/image";
 import { useRef } from "react";
 import { contact } from "@/data/site";
+import FloatingFlora from "@/components/garden/FloatingFlora";
+import Mailbox from "@/components/garden/Mailbox";
 
 // The last stop in the garden: three hand-painted contact icons (scripts/paint-landing.mjs --icons)
 // over the painted meadow (--contact). Email and LinkedIn are plain links; WeChat opens a small
@@ -36,7 +38,9 @@ export default function ContactGarden() {
   return (
     <div className="nightable relative isolate flex min-h-[100svh] items-center overflow-x-clip px-4 pt-28 pb-20 sm:px-6">
       <div aria-hidden="true" className="journal-backdrop journal-backdrop--contact" />
+      <FloatingFlora count={5} start={12} end={88} />
 
+      <div className="relative mx-auto grid w-full max-w-6xl items-end gap-6 lg:grid-cols-[minmax(0,1fr)_14rem] lg:gap-4">
       <section aria-labelledby="contact-title" className="garden-mist garden-mist--soft relative mx-auto w-full max-w-4xl text-center">
         <p className="font-hand text-2xl text-moss">the last stop in the garden</p>
         <h1 id="contact-title" className="mt-1 font-serif text-[clamp(2.5rem,6vw,4.2rem)] leading-[1.04] font-medium text-ink">
@@ -66,6 +70,13 @@ export default function ContactGarden() {
           </li>
         </ul>
       </section>
+
+      {/* the same garden mailbox as on the Landing, standing to the right; it opens on hover and writes an email */}
+      <a href={`mailto:${contact.email}`} className="mailbox-host contact-mailbox group mx-auto block w-36 rounded-2xl focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-moss lg:w-full">
+        <span className="sr-only">Write me an email</span>
+        <Mailbox />
+      </a>
+      </div>
 
       {/* WeChat: a small panel; Esc, the close button or a click outside it closes it */}
       <dialog

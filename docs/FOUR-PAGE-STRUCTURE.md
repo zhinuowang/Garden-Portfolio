@@ -12,7 +12,7 @@ Checkpoint before the change: git tag `phase-2-checkpoint`.
 | `/contact` | Contact | "Let's stay in touch." with three hand-painted contact icons: Email, LinkedIn, WeChat |
 | `/work/[slug]` | Case study ×5 | Secondary detail pages, with Back to Work and Next Project |
 
-The persistent nav is Home / About / Work / Contact; the current page is marked with `aria-current`. The brand reads
+The persistent nav is Home / About / Work (Contact is reached through the garden mailbox on the Landing); the current page is marked with `aria-current`. The brand reads
 "A Garden of Ideas" over "Zhinuo Wang".
 
 ## What was preserved
@@ -35,6 +35,13 @@ Removed (all recoverable from the tag): the homepage sections `GardenGate`, `Gar
   flowers (`node scripts/paint-landing.mjs --about`), the content resting on the same faint reading surface as the case
   studies. The taped polaroid portrait (the supplied photo, unaltered), pressed-flower ornaments, case-study-style
   headings with handwritten side notes and a painted vine, a dotted timeline for experience, and skills grouped as tags.
+- **Floating flora (case studies, About, Contact).** `FloatingFlora`: painted flowers, petals, leaves, lavender and a
+  sprig (`node scripts/paint-landing.mjs --flora`) drifting in the margins above the backdrop, about one per 520 px of
+  page. Each drifts at its own depth as the page scrolls (measured against the middle of the window) and sways slowly;
+  where margins are narrow they only peek in at the edges, behind the text. Still with reduced motion; dimmed at night.
+- **Garden mailbox (Landing and Contact).** `Mailbox`: one painting in three layers (`--mailbox`). On the Landing it
+  stands on the right-hand slope of the first scene, balancing the lamppost, and links to Contact; on hover or focus its
+  arched door tips open, the flag lifts and "Write to me ✉" appears. The Contact page has the same mailbox on the right.
 - **Reading surface (case studies, About, Contact).** `.garden-mist`: a semi-transparent layer of light behind the
   content, feathered at every edge, no blur, border or shadow; moonlit slate at night. Project images are untouched.
 - **Work.** One compact painted garden that fits the screen (16:9 on desktop, 9:16 on phones), showing only three
@@ -65,8 +72,9 @@ Removed (all recoverable from the tag): the homepage sections `GardenGate`, `Gar
 
 The Landing statements live in `src/data/site.ts` → `landingScenes`. Edit them there.
 - **Case studies (Dog Nutrition Tracker, Eliminate Bacteria Pro, Little Moments).** Each is a page from the garden's
-  field journal: a fixed oil-painted backdrop of soft sky blue, meadow green and warm white clouds — a continuous sky over a low
-  meadow, with the clouds and grass painted in real pigment and selective impasto, and the sky kept calm behind the text;
+  field journal: a fixed oil-painted backdrop in the palette of the Landing's first scene — a dusty-rose sky warming to peach and
+  cream, long streaky clouds touched with lavender, a hazy line of lavender hills and a sage meadow — painted with
+  real pigment and selective impasto, the sky kept calm behind the text;
   a touch of early autumn — a few muted gold and peach strokes in the grass, small turning trees on the far hills, and
   the odd golden flower
   (moonlit blue and cool green at night; `node scripts/paint-landing.mjs --journal`), contents in the margin, sage vines under headings and

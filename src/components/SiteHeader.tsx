@@ -8,7 +8,8 @@ const links = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About" },
   { href: "/work", label: "Work" },
-  { href: "/contact", label: "Contact" },
+  // Contact is reached through the garden mailbox on the Landing (and the one on the Contact page
+  // itself), so the bar keeps three quiet links
 ];
 
 export default function SiteHeader() {

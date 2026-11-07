@@ -352,6 +352,41 @@ html[data-night] .lamppost__pool { opacity: 1; }
 .lamppost:is(:hover, :focus-visible) .lamppost__hint { opacity: 1; transform: translateX(0) rotate(-3deg); }
 html[data-night-ink] .lamppost__hint { color: #fbf0d6; text-shadow: 0 0 10px rgb(18 24 44 / 0.95), 0 1px 2px rgb(18 24 44 / 0.9); }
 
+/* the garden mailbox (Mailbox.tsx): three painted layers; whatever holds it (.mailbox-host) opens it on
+   hover or focus — the arched door tips forward on its hinge and the little flag lifts */
+.mailbox { position: relative; display: block; width: 100%; aspect-ratio: 400 / 520; transition: transform 0.35s ease; }
+.mailbox img { position: absolute; inset: 0; width: 100%; height: 100%; user-select: none; transition: transform 0.38s cubic-bezier(0.3, 1.35, 0.5, 1), filter var(--dusk); }
+.mailbox__door { transform-origin: 29.5% 50.4%; }
+.mailbox__flag { transform-origin: 82.5% 39.6%; }
+.mailbox-host:is(:hover, :focus-visible) .mailbox { transform: translateY(-1.5%); }
+.mailbox-host:is(:hover, :focus-visible) .mailbox__door { transform: perspective(600px) rotateX(-46deg); }
+.mailbox-host:is(:hover, :focus-visible) .mailbox__flag { transform: rotate(30deg); }
+html[data-night] .mailbox img { filter: brightness(0.55) saturate(0.45) hue-rotate(-10deg); }
+/* on the Landing: a link standing on the right-hand slope, balancing the lamppost; a written hint on hover */
+.mailbox-post { cursor: pointer; border-radius: 1rem; }
+.mailbox-post::before { content: ""; position: absolute; inset: 8% -10% -4%; }
+.mailbox-post:focus-visible { outline: 3px solid #fbf3e4; outline-offset: 4px; }
+.mailbox-post__hint {
+  position: absolute;
+  right: 92%;
+  top: 4%;
+  white-space: nowrap;
+  font-family: var(--font-caveat), "Segoe Print", cursive;
+  font-size: clamp(1.05rem, 1.5vw, 1.45rem);
+  font-weight: 600;
+  color: #3a2a1c;
+  text-shadow: 0 0 10px rgb(251 245 230 / 0.95), 0 1px 2px rgb(251 245 230 / 0.9);
+  opacity: 0;
+  transform: translateX(6px) rotate(3deg);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  pointer-events: none;
+}
+.mailbox-post:is(:hover, :focus-visible) .mailbox-post__hint { opacity: 1; transform: translateX(0) rotate(3deg); }
+html[data-night-ink] .mailbox-post__hint { color: #fbf0d6; text-shadow: 0 0 10px rgb(18 24 44 / 0.95), 0 1px 2px rgb(18 24 44 / 0.9); }
+@media (prefers-reduced-motion: reduce) {
+  .mailbox, .mailbox img { transition: none; }
+}
+
 /* the firefly cursor: a cute little firefly (head on the click point), its plump tail glowing honey-gold
    inside a soft warm halo that breathes, brightening while it flies */
 .butterfly__firefly { position: absolute; width: 24px; transform: translate(-50%, -16%); opacity: 0; transition: opacity 0.8s ease; pointer-events: none; }
@@ -523,6 +558,42 @@ html[data-night-ink] .contact-icon::before { background: radial-gradient(closest
   .contact-icon, .contact-icon::before { transition: none; }
   .contact-card:is(:hover, :focus-visible) .contact-icon { transform: none; }
 }
+
+/* floating foreground flora (FloatingFlora): painted flowers, petals and leaves in the margins above the
+   backdrop; the outer span carries the scroll drift (set from script), the image its slow sway */
+.flora { position: absolute; inset: 0; z-index: 20; overflow: clip; pointer-events: none; }
+.flora__item {
+  --w: clamp(calc(var(--n) * 0.55px), calc(var(--n) * 0.0694vw), calc(var(--n) * 1px));
+  position: absolute;
+  width: var(--w);
+  will-change: transform;
+}
+.flora__item[data-side="l"] { left: calc(var(--x) * 1vw); }
+.flora__item[data-side="r"] { right: calc(var(--x) * 1vw); }
+.flora__item img {
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+  transform: rotate(var(--rot));
+  filter: drop-shadow(0 16px 14px rgb(110 60 70 / 0.24));
+  animation: flora-sway var(--sway) ease-in-out var(--delay) infinite;
+  transition: filter var(--dusk);
+}
+.flora__item img.flora__soft { filter: blur(0.6px) drop-shadow(0 22px 18px rgb(110 60 70 / 0.26)); }
+@keyframes flora-sway {
+  0%, 100% { transform: rotate(var(--rot)) translate(0, 0); }
+  50% { transform: rotate(calc(var(--rot) + 7deg)) translate(5px, -8px); }
+}
+html[data-night] .flora__item img { filter: brightness(0.62) saturate(0.7) drop-shadow(0 12px 10px rgb(10 14 30 / 0.3)); }
+html[data-night] .flora__item img.flora__soft { filter: brightness(0.62) saturate(0.7) blur(0.7px) drop-shadow(0 16px 14px rgb(10 14 30 / 0.3)); }
+/* where the margins are narrow, the flora only peeks in at the edges, behind the text */
+@media (max-width: 1279px) {
+  .flora { z-index: -1; }
+  .flora__item[data-side="l"] { left: calc(var(--w) * -0.4); }
+  .flora__item[data-side="r"] { right: calc(var(--w) * -0.4); }
+}
+@media (prefers-reduced-motion: reduce) { .flora__item img { animation: none; } }
 
 /* an opaque project image settles into the paper with a faint, diffused neutral shadow (no card, no border) */
 .journal-settle { box-shadow: 0 12px 32px -22px rgb(120 128 104 / 0.35); }

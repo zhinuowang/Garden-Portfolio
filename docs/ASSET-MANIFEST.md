@@ -30,6 +30,8 @@ Everything is code-drawn except the Landing painting, which is interim raster ar
 | `public/assets/garden/journal/*` | The case-study page backdrop (wide and tall): decorative artwork rendered by `scripts/paint-landing.mjs --journal`. Not project assets. |
 | `public/assets/garden/about/*`, `public/assets/garden/contact/contact-*.webp` | The About and Contact backdrops (wide and tall), from `--about` and `--contact`: decorative artwork. |
 | `public/assets/garden/contact/icon-{email,linkedin,wechat}.webp` | The three hand-painted contact icons, from `--icons`: decorative artwork (the LinkedIn "in" and WeChat bubbles are drawn as symbols only). |
+| `public/assets/garden/flora/*.webp` | Floating foreground flowers, petals, leaves and a sprig for the inner pages, from `--flora`: decorative artwork. |
+| `public/assets/garden/mailbox/mailbox-{body,door,flag}.webp` | The garden mailbox in three layers (Landing and Contact), from `--mailbox`: decorative artwork. |
 | `public/assets/contact/wechat-qr.jpg` | Zhinuo's WeChat QR card, supplied in chat on 2026-11-07; copied unchanged (888×1131 JPEG). Personal asset, not decorative art. |
 | `public/assets/garden/title/letter-*.webp` | The painted Landing title, one layer per letter (positions in `src/data/title-letters.json`): decorative artwork from `scripts/paint-landing.mjs --title`. |
 | `public/assets/garden/butterfly/*.webp` | The Landing butterfly cursor (left wing, right wing, body): decorative artwork from `--butterfly`. |
