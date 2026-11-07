@@ -3722,9 +3722,34 @@ function paintLoose(kind) {
       }
     }
   });
-  lightRelief(cv, hcv, S, S, 1.1);
+  lightRelief(cv, hcv, S, S, 0.75); // close to the backdrop's relief (0.6): textured, but not glossy
   PAINT.hx = null;
-  return cv;
+  return harmonize(cv, S);
+}
+
+/**
+ * Bring a foreground flower into the backdrop's world: colours drawn a little toward the garden's warm
+ * light (less saturated, a touch of peach and cream, as in the sky and meadow), and the silhouette softened
+ * with a faint halo of its own paint so the edge reads as a brush edge, not a cut-out.
+ */
+function harmonize(cv, S) {
+  const ctx = cv.getContext("2d");
+  const img = ctx.getImageData(0, 0, S, S), d = img.data;
+  const warm = hex("#f3dcc8");
+  for (let i = 0; i < d.length; i += 4) {
+    if (!d[i + 3]) continue;
+    const l = 0.3 * d[i] + 0.59 * d[i + 1] + 0.11 * d[i + 2];
+    for (let c = 0; c < 3; c++) d[i + c] = lerp(lerp(d[i + c], l, 0.14), warm[c], 0.1);
+  }
+  ctx.putImageData(img, 0, 0);
+  const out = createCanvas(S, S), o = out.getContext("2d");
+  o.filter = "blur(2.5px)";
+  o.globalAlpha = 0.55;
+  o.drawImage(cv, 0, 0);
+  o.filter = "none";
+  o.globalAlpha = 1;
+  o.drawImage(cv, 0, 0);
+  return out;
 }
 
 if (process.argv.includes("--loose")) {

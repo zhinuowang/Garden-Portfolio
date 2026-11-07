@@ -12,7 +12,8 @@ import { useEffect, useRef } from "react";
 // The flowers come in small composed clusters (a large bloom with smaller ones tucked behind it, a pair
 // overlapping, a lone blossom with a few drifting petals), placed down the page at uneven intervals and on
 // irregularly alternating sides, with some stretches left empty. A cluster drifts as one; its members differ
-// only very slightly in depth (and sway gently on their own), so the group stays together. Clusters enter
+// only very slightly in depth (a few pixels at most) and sway gently on their own, so the group — and its
+// overlaps — hold together. Clusters enter
 // from the window's edges, partly cropped, and their reach is capped by the content column so they never
 // cover the text. Smaller and fewer on tablets and phones; still with reduced motion.
 
@@ -22,34 +23,37 @@ type Kind = "loose-daisy" | "loose-daisy-half" | "loose-peony" | "loose-peony-re
 type Member = { kind: Kind; x: number; y: number; size: number; rot: number; dz?: number };
 type Cluster = { w: number; h: number; members: Member[] };
 
+// Positions are computed from each painting's measured extent (the paint fills only the middle of its canvas), so
+// neighbouring blossoms genuinely overlap — roughly 15–30% of the smaller one, varied by cluster — with a
+// clear front and back: the dominant bloom in front, supporting ones tucked behind, loose petals on top.
 const CLUSTERS: Record<string, Cluster> = {
-  lilyTrio: { w: 330, h: 320, members: [
-    { kind: "loose-daisy", x: 0, y: 170, size: 150, rot: 22 },
-    { kind: "lily", x: 50, y: 10, size: 240, rot: -12, dz: 0.04 },
-    { kind: "loose-petals", x: 220, y: 220, size: 96, rot: 40, dz: 0.1 },
+  lilyTrio: { w: 291, h: 283, members: [
+    { kind: "loose-daisy", x: 0, y: 113, size: 170, rot: 22 },
+    { kind: "lily", x: 41, y: 0, size: 250, rot: -12, dz: 0.006 },
+    { kind: "loose-petals", x: 177, y: 131, size: 100, rot: 40, dz: 0.01 },
+  ] },
+  rosePair: { w: 257, h: 267, members: [
+    { kind: "loose-peony", x: 0, y: 92, size: 175, rot: 30 },
+    { kind: "rose-lavender", x: 27, y: 0, size: 230, rot: -6, dz: 0.006 },
+  ] },
+  daffodilDaisy: { w: 283, h: 254, members: [
+    { kind: "loose-daisy-half", x: 0, y: 69, size: 185, rot: -40 },
+    { kind: "daffodil", x: 73, y: 0, size: 210, rot: 18, dz: 0.006 },
+  ] },
+  peonyDaisy: { w: 243, h: 239, members: [
+    { kind: "loose-daisy", x: 93, y: 0, size: 150, rot: -14 },
+    { kind: "loose-peony-red", x: 0, y: 24, size: 215, rot: 10, dz: 0.006 },
+  ] },
+  poppyPetal: { w: 200, h: 200, members: [
+    { kind: "loose-poppy", x: 0, y: 0, size: 200, rot: -18, dz: 0.006 },
+    { kind: "loose-petals", x: 93, y: 94, size: 100, rot: 10, dz: 0.008 },
+  ] },
+  petals: { w: 173, h: 164, members: [
+    { kind: "loose-petals", x: 0, y: 0, size: 160, rot: -20, dz: 0.006 },
+    { kind: "loose-petals", x: 53, y: 44, size: 120, rot: 64, dz: 0.008 },
   ] },
   hibiscus: { w: 250, h: 250, members: [{ kind: "hibiscus", x: 0, y: 0, size: 250, rot: 14 }] },
-  rosePair: { w: 310, h: 290, members: [
-    { kind: "loose-peony", x: 0, y: 140, size: 150, rot: 30 },
-    { kind: "rose-lavender", x: 70, y: 30, size: 220, rot: -6, dz: 0.04 },
-  ] },
-  daffodilDaisy: { w: 300, h: 270, members: [
-    { kind: "loose-daisy-half", x: 0, y: 110, size: 170, rot: -40 },
-    { kind: "daffodil", x: 96, y: 20, size: 196, rot: 18, dz: 0.05 },
-  ] },
-  petals: { w: 210, h: 230, members: [
-    { kind: "loose-petals", x: 0, y: 0, size: 160, rot: -20 },
-    { kind: "loose-petals", x: 96, y: 116, size: 110, rot: 64, dz: 0.12 },
-  ] },
-  peonyDaisy: { w: 290, h: 270, members: [
-    { kind: "loose-peony-red", x: 20, y: 70, size: 190, rot: 10 },
-    { kind: "loose-daisy", x: 150, y: 0, size: 136, rot: -14, dz: 0.06 },
-  ] },
   lily: { w: 240, h: 240, members: [{ kind: "lily", x: 0, y: 0, size: 240, rot: 52 }] },
-  poppyPetal: { w: 250, h: 240, members: [
-    { kind: "loose-poppy", x: 0, y: 24, size: 196, rot: -18 },
-    { kind: "loose-petals", x: 150, y: 150, size: 90, rot: 10, dz: 0.1 },
-  ] },
 };
 
 // the walk down a long page: which cluster, which side, how far after the previous one (in window heights:

@@ -41,8 +41,11 @@ Removed (all recoverable from the tag): the homepage sections `GardenGate`, `Gar
   references — a pink lily, a hibiscus, daisies (one only half there), a daffodil, a lavender rose, peonies, a poppy and
   drifting petals; heads only, no stems (`node scripts/paint-landing.mjs --loose`). They come in small composed clusters
   (a large bloom with smaller ones tucked behind, an overlapping pair, a lone blossom with petals) at uneven intervals
-  down the page, on irregularly alternating sides, with some stretches empty; a cluster drifts as one, its members only
-  very slightly apart in depth. In a narrow margin a cluster is painted smaller rather than cropped away. Each is anchored
+  down the page, on irregularly alternating sides, with some stretches empty; members genuinely overlap (positions computed
+  from each painting's measured extent; roughly 15–30% of the smaller bloom, varied), with a clear front and back; a
+  cluster drifts as one, its members at most ~11 px apart in depth over a full pass. The flowers are painted with the
+  backdrop's brushes and relief, then harmonised toward its warm light (slightly less saturated, softened edges), with
+  only a faint warm shadow; at night they cool and dim with the garden. In a narrow margin a cluster is painted smaller rather than cropped away. Each is anchored
   to a point down the page and moves 1.2–1.65× faster than the content as you scroll, with a slight sideways drift and a
   slow sway, entering from the window's edges and partly cropped by them. Its reach is capped by the content column:
   on the right it may just touch an image's outer edge (≈20 px), on the left it stays clear (the contents links stay clear).

@@ -596,8 +596,8 @@ html[data-night-ink] .contact-icon::before { background: radial-gradient(closest
   width: 100%;
   height: auto;
   user-select: none;
-  /* a deep, soft shadow well below the cluster: it reads as closer to the viewer than the page */
-  filter: drop-shadow(0 26px 22px rgb(96 48 58 / 0.24));
+  /* a soft, warm shadow a little below: enough to lift the flowers off the page, never a sticker outline */
+  filter: drop-shadow(0 16px 18px rgb(120 70 60 / 0.14));
   transition: filter var(--dusk);
 }
 /* a cluster: its members placed inside it (back to front); right-hand clusters are mirrored as a whole */
@@ -608,9 +608,10 @@ html[data-night-ink] .contact-icon::before { background: radial-gradient(closest
 .flora-fg__part:nth-child(3) .flora-fg__sway { animation-duration: 9.5s; animation-delay: -2s; }
 @keyframes flora-sway {
   0%, 100% { transform: rotate(var(--rot)); }
-  50% { transform: rotate(calc(var(--rot) + 2deg)); }
+  50% { transform: rotate(calc(var(--rot) + 1.5deg)); }
 }
-html[data-night] .flora-fg__item img { filter: brightness(0.6) saturate(0.7) drop-shadow(0 26px 22px rgb(8 12 28 / 0.4)); }
+/* at night the flowers take the moonlight like the garden: cooler and dimmer, but still clearly there */
+html[data-night] .flora-fg__item img { filter: brightness(0.7) saturate(0.6) hue-rotate(-10deg) drop-shadow(0 16px 18px rgb(8 12 28 / 0.3)); }
 @media (prefers-reduced-motion: reduce) { .flora-fg__sway { animation: none; } }
 
 /* an opaque project image settles into the paper with a faint, diffused neutral shadow (no card, no border) */
