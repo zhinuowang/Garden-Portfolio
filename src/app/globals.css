@@ -484,6 +484,13 @@ html.butterfly-cursor :is(a, button, [role="button"], input, select, textarea, l
 }
 
 /* ---------- Work: the compact project garden ---------- */
+/* the Work page is one painted scene: no site footer beneath it, and the panorama fills the
+   window below the header — a little wider than the window when it must, trimming only the
+   extra trees at its far edges, never stretched */
+html:has(.work-page) body > footer { display: none; }
+.work-wide { width: max(100%, calc((100svh - 4.2rem) * 3000 / 1350)); flex-shrink: 0; }
+@media (max-width: 639px) { .work-wide { width: max(100%, calc((100svh - 7rem) * 3000 / 1350)); } }
+
 .work-page::before {
   content: "";
   position: absolute;

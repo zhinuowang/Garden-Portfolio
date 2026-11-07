@@ -8,7 +8,7 @@ Checkpoint before the change: git tag `phase-2-checkpoint`.
 | --- | --- | --- |
 | `/` | Landing | Three scenes of one painted garden: the title, three thoughts on the hills, and afternoon tea with the Explore My Work sign |
 | `/about` | About | Botanical-journal page: intro, education, experience and skills from the resume, plus Download Resume |
-| `/work` | Work | One compact painted garden with three project landmarks and a small guide, plus a plain list below it |
+| `/work` | Work | One full-width painted garden with three project landmarks and a small guide — the whole page is the scene |
 | `/contact` | Contact | Garden mailbox scene with a visible email link; the envelope reveals a note |
 | `/work/[slug]` | Case study ×5 | Secondary detail pages, with Back to Work and Next Project |
 
@@ -48,7 +48,8 @@ Removed (all recoverable from the tag): the homepage sections `GardenGate`, `Gar
   Landmarks are real links: Enter works, and with reduced motion they open at once. Next Project cycles through the
   three. Nomi & Pudding and the Dyson brochure keep their case-study pages but are no longer linked from Work.
   On wide screens the garden runs full-bleed as a 3000 × 1350 panorama (the landscape extended, not stretched), with
-  the heading painted into the sky; phones get their own tall composition.
+  the heading painted into the sky. It fills the window below the header (a little wider than the window when needed,
+  trimming only the edge trees), and the page has no list or footer beneath it; phones get their own tall composition.
   Code: `src/components/work/WorkGarden.tsx`; art: `node scripts/paint-landing.mjs --work`.
 - **Contact.** A pink sky over painted hills and wildflowers. The email link is always visible. Opening the envelope
   raises the flag on a vine-wrapped garden mailbox and slides out a note.
@@ -58,7 +59,9 @@ Removed (all recoverable from the tag): the homepage sections `GardenGate`, `Gar
 The Landing statements live in `src/data/site.ts` → `landingScenes`. Edit them there.
 - **Case studies (Dog Nutrition Tracker, Eliminate Bacteria Pro, Little Moments).** Each is a page from the garden's
   field journal: a fixed oil-painted backdrop of soft sky blue, meadow green and warm white clouds — a continuous sky over a low
-  meadow, with the clouds and grass painted in real pigment and selective impasto, and the sky kept calm behind the text
+  meadow, with the clouds and grass painted in real pigment and selective impasto, and the sky kept calm behind the text;
+  a touch of early autumn — a few muted gold and peach strokes in the grass, small turning trees on the far hills, and
+  the odd golden flower
   (moonlit blue and cool green at night; `node scripts/paint-landing.mjs --journal`), contents in the margin, sage vines under headings and
   leaf bullets. Project images sit straight on the page with no card, border or tape; only those with an opaque
   background get a faint, diffused neutral shadow. The images themselves are untouched.

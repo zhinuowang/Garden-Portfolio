@@ -3023,16 +3023,47 @@ function paintJournal(W, H, portrait) {
     withThickness(0.5, () => {
       for (let i = 0; i < (W * H) / 30000; i++) {
         const x = r() * W, y = H * (base - 0.2) + r() * H * 0.3;
-        stroke(ctx, r, x, y, (r() - 0.5) * 0.3 + (r() < 0.5 ? 0 : Math.PI), (70 + r() * 90) * k, (16 + r() * 14) * k, mix(hex(col[0]), hex(col[1]), r()), 0.55, 3);
+        const g = mix(hex(col[0]), hex(col[1]), r()), warm = r(); // early autumn: a few strokes of the grass turning
+        stroke(ctx, r, x, y, (r() - 0.5) * 0.3 + (r() < 0.5 ? 0 : Math.PI), (70 + r() * 90) * k, (16 + r() * 14) * k, warm < 0.2 ? mix(g, hex("#d6c88f"), 0.28 + r() * 0.2) : warm < 0.26 ? mix(g, hex("#dfc0a0"), 0.25) : g, 0.55, 3);
       }
     });
     unclipBoth(ctx);
   };
+  ctx.save();
+  ctx.filter = `blur(${120 * k}px)`;
+  for (const u of portrait ? [0.05, 0.95] : [0.06, 0.94]) glaze(ctx, W * u, H * (portrait ? 0.88 : 0.8), W * (portrait ? 0.18 : 0.2), H * (portrait ? 0.04 : 0.1), hex("#f1dfbd"), portrait ? 0.18 : 0.3);
+  ctx.restore();
+  // a small distant tree just beginning to turn: a few soft dabs of sage, muted gold and peach on a thin trunk
+  const tree = (x, y, s, seed, tint) => {
+    const rr = rng(seed);
+    withThickness(0.6, () => {
+      stroke(ctx, rr, x, y + s * 0.1, -Math.PI / 2, s * 1.05, s * 0.1, hex("#9a8670"), 0.7, 1);
+      const cy = y - s * 1.2;
+      ctx.save();
+      ctx.filter = `blur(${s * 0.25}px)`; // a soft body first, so the crown has no hard outline
+      glaze(ctx, x, cy, s * 0.8, s * 0.62, mix(hex("#b7c592"), hex("#d3c08a"), tint * 0.6), 0.8);
+      ctx.restore();
+      for (let d = 0; d < 46; d++) {
+        const a = rr() * Math.PI * 2, rad = s * Math.sqrt(rr()) * 0.72;
+        const ox = x + Math.cos(a) * rad, oy = cy + Math.sin(a) * rad * 0.78;
+        const lit = clamp(0.5 - (oy - cy) / (s * 1.3));
+        const t = rr();
+        const base = t < tint * 0.7 ? mix(hex("#cfbf84"), hex("#d9bb8c"), rr()) : t < tint ? hex("#dcb497") : mix(hex("#a8bd8a"), hex("#bfca95"), rr());
+        dab(ctx, ox, oy, s * (0.12 + rr() * 0.1), s * (0.1 + rr() * 0.08), rr() * Math.PI, mix(base, hex("#f8f0dc"), lit * 0.3), 0.7);
+      }
+    });
+  };
   if (portrait) {
     hill(1411, 0.92, 0.03, ["#b5cf9c", "#cfe0b6"], 0);
+    tree(W * 0.08, H * 0.905, 34 * k, 1431, 0.55);
+    tree(W * 0.93, H * 0.9, 28 * k, 1432, 0.4);
     hill(1412, 0.97, 0.025, ["#93b57c", "#b3cc98"], 0);
   } else {
     hill(1411, 0.9, 0.025, ["#b8d1a0", "#d3e3ba"], 0.2);
+    tree(W * 0.035, H * 0.73, 40 * k, 1431, 0.6);
+    tree(W * 0.085, H * 0.765, 28 * k, 1433, 0.35);
+    tree(W * 0.955, H * 0.725, 44 * k, 1432, 0.5);
+    tree(W * 0.905, H * 0.775, 26 * k, 1434, 0.7);
     hill(1412, 0.97, 0.02, ["#97b880", "#b6cf9a"], 0.14);
   }
   // a few blades and small white-and-blue meadow flowers along the lowest hill, kept small
@@ -3042,7 +3073,7 @@ function paintJournal(W, H, portrait) {
       if (r() > side) continue;
       const y = H * (0.97 - (portrait ? 0 : side * 0.12)) + r() * H * 0.05;
       stroke(ctx, r, x, y, -Math.PI / 2 + (r() - 0.5) * 0.5, (14 + r() * 26) * k, (3 + r() * 2) * k, mix(hex("#7fa66a"), hex("#a9c78d"), r()), 0.85, 1);
-      if (r() < 0.12) dab(ctx, x, y - 22 * k, 4 * k, 4 * k, 0, r() < 0.5 ? hex("#ffffff") : hex("#bcd3ec"), 0.95);
+      if (r() < 0.12) dab(ctx, x, y - 22 * k, 4 * k, 4 * k, 0, [hex("#ffffff"), hex("#bcd3ec"), hex("#e9cf86")][Math.floor(r() * 3)], 0.95);
     }
   });
   // clouds: rounded lobes of white pigment, warm-lit on top, cool-shadowed below, in the upper margins only

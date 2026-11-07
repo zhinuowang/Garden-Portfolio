@@ -238,8 +238,8 @@ export default function WorkGarden() {
   return (
     <>
       {/* a full-width panorama (3000 × 1350) on wide screens; a tall composition on phones */}
-      <Stage fmt="desktop" c={anchors.desktop as Composition} ratio={3000 / 1350} className="portrait-art:hidden" />
-      <Stage fmt="mobile" c={anchors.mobile as Composition} ratio={9 / 16} className="hidden portrait-art:block" />
+      <Stage fmt="desktop" c={anchors.desktop as Composition} ratio={3000 / 1350} className="work-wide portrait-art:hidden" />
+      <Stage fmt="mobile" c={anchors.mobile as Composition} ratio={9 / 16} className="hidden w-full portrait-art:block" />
     </>
   );
 }
