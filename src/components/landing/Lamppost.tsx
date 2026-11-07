@@ -1,6 +1,7 @@
 "use client";
 
 import { setNight, useNight } from "@/components/night/night";
+import { useUi } from "@/i18n/ui";
 
 // The secret path into night: a traditional iron streetlamp standing in front of
 // the cottage, to the left of the fountain (scripts/paint-landing.mjs --lamp).
@@ -11,13 +12,14 @@ import { setNight, useNight } from "@/components/night/night";
 
 export default function Lamppost() {
   const night = useNight();
-  const hint = night ? "Return to daylight ✦" : "Light up the garden ✦";
+  const t = useUi().lamp;
+  const hint = `${night ? t.dark : t.light} ✦`;
   return (
     <button
       type="button"
       onClick={() => setNight(!night)}
       aria-pressed={night}
-      aria-label={night ? "Return to daylight" : "Light up the garden"}
+      aria-label={night ? t.dark : t.light}
       className="lamppost group absolute -translate-x-1/2 -translate-y-full left-[16.5%] top-[65%] w-[4.8%] portrait-art:left-[12%] portrait-art:top-[73%] portrait-art:w-[7.5%]"
     >
       <span aria-hidden="true" className="lamppost__pool" />

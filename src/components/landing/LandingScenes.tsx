@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
-import { landingScenes as copy } from "@/data/site";
+import { useLanding } from "@/i18n/content";
+import { useUi } from "@/i18n/ui";
 import { landingArt as art } from "@/data/landingArt";
 import anchors from "@/data/landing-anchors.json";
 import CurvedNotes from "./CurvedNotes";
@@ -62,6 +65,8 @@ const layers = (scene: number) => (
 );
 
 export default function LandingScenes() {
+  const copy = useLanding();
+  const t = useUi().landing;
   const sd = anchors.desktop.sign;
   const sm = anchors.mobile.sign;
   return (
@@ -78,11 +83,11 @@ export default function LandingScenes() {
         {/* the way to Contact: a small garden mailbox on the right-hand slope; it opens on hover */}
         <Link
           href="/contact"
-          aria-label="Contact: write to Zhinuo"
+          aria-label={t.mailbox}
           className="mailbox-host mailbox-post absolute -translate-x-1/2 -translate-y-full left-[87.5%] top-[70%] w-[9.5%] portrait-art:left-[90.5%] portrait-art:top-[90%] portrait-art:w-[15%]"
         >
           <Mailbox />
-          <span aria-hidden="true" className="mailbox-post__hint">Write to me ✉</span>
+          <span aria-hidden="true" className="mailbox-post__hint">{t.mailboxHint}</span>
         </Link>
         <PaintedTitle id="landing-title" className="pointer-events-none absolute inset-x-0 top-[min(38svh,38%)] -translate-y-1/2 px-6 portrait-art:top-[min(38svh,38%)]" />
         {/* a quiet, wordless cue at the foot of the first view */}
@@ -96,7 +101,7 @@ export default function LandingScenes() {
       </section>
 
       {/* ---- Scene 2 · Thoughts on the hills: notes that curve with the slopes and appear as you scroll ---- */}
-      <section aria-label="Thoughts" className="relative">
+      <section aria-label={t.thoughts} className="relative">
         <SceneArt scene={2} />
         <NightSky scene={2} />
         {layers(2)}

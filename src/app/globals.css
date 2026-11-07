@@ -20,14 +20,26 @@
 
 /* `inline` so the utilities read the next/font variables set on <body>. */
 @theme inline {
-  --font-serif: var(--font-fraunces), Georgia, serif;
-  --font-sans: var(--font-dm-sans), system-ui, sans-serif;
-  --font-hand: var(--font-caveat), "Segoe Print", cursive;
+  /* Chinese characters fall through the Latin faces to the 中文 ones (layout.tsx); Latin keeps its own */
+  --font-serif: var(--font-fraunces), var(--font-zh-serif), "Songti SC", Georgia, serif;
+  --font-sans: var(--font-dm-sans), "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", system-ui, sans-serif;
+  --font-hand: var(--font-caveat), var(--font-zh-hand), "Segoe Print", cursive;
 }
 
 :root {
   color-scheme: light;
 }
+
+/* ---------- 中文 ---------- */
+/* while a remembered 中文 replaces the server's English (a moment after load), the page waits unseen */
+html[data-locale-pending] body { opacity: 0; }
+body { transition: opacity 0.25s ease; }
+/* Chinese has no italic and needs no letter-spacing or capitals: keep the characters upright and evenly set,
+   and give the lines a little more air */
+:lang(zh) .italic { font-style: normal; }
+:lang(zh) :is(.uppercase, [class*="tracking-"]) { letter-spacing: 0.04em; }
+:lang(zh) main :is(p, li) { line-break: strict; }
+:lang(zh) .font-hand { letter-spacing: 0.02em; }
 
 /* Fraunces at its softest: rounded, ink-trap-free terminals instead of sharp wedges, so headings
    feel organic and painted rather than chiselled (the SOFT axis is loaded in layout.tsx). */
@@ -573,6 +585,13 @@ html.butterfly-cursor :is(a, button, [role="button"], input, select, textarea, l
 @media (max-width: 639px) { .garden-mist::before { inset: -2rem -1rem; --feather: 1.75rem; background: rgb(251 248 240 / 0.66); } }
 html[data-night-ink] .nightable .garden-mist::before { background: rgb(26 34 56 / 0.5); }
 .garden-mist--soft::before { background: rgb(251 248 240 / 0.34); }
+/* case studies at night: no mist at all — the moonlit painting (dark and even, luminance ≤ 0.075 across 99% of
+   it) shows through, and the text carries itself: a warm cream for body copy (≈ 6:1 on the painting's brightest
+   areas, 7:1+ for headings) with the faintest shadow so letters stay crisp over the brush texture */
+html[data-night-ink] .nightable .garden-mist--journal::before { background: transparent; }
+html[data-night-ink] .nightable .journal-fold { background: transparent; border-color: rgb(216 229 194 / 0.3); }
+html[data-night-ink] .nightable .garden-mist--journal { --color-ink-soft: #e2dccd; }
+html[data-night-ink] .nightable .garden-mist--journal :is(p, li, h1, h2, h3, dt, dd, summary) { text-shadow: 0 1px 2px rgb(12 18 34 / 0.55); }
 html[data-night-ink] .nightable .garden-mist--soft::before { background: rgb(26 34 56 / 0.28); }
 
 /* About and Contact: the same fixed backdrop, painted as other corners of the garden */
@@ -619,6 +638,11 @@ html[data-night-ink] .contact-icon::before { background: radial-gradient(closest
    own stacking context; the site header stays above it), never taking clicks. Its clusters are placed and
    moved from script; the inner span adds only a slow, slight sway. Right-hand clusters are mirrored. */
 .flora-fg { position: fixed; inset: 0; z-index: 30; overflow: hidden; pointer-events: none; }
+/* night: the layer fades out gently, then rests hidden with its sway paused; at day it fades back in */
+.flora-fg { transition: opacity 1.4s ease; }
+.flora-fg[data-asleep] { opacity: 0; }
+.flora-fg[data-asleep] .flora-fg__item { visibility: hidden !important; transition: visibility 0s 1.4s; }
+.flora-fg[data-asleep] .flora-fg__sway { animation-play-state: paused; }
 .flora-fg__item { position: absolute; top: 0; visibility: hidden; will-change: transform; }
 .flora-fg__sway { display: block; transform: rotate(var(--rot)); animation: flora-sway 11s ease-in-out infinite; }
 .flora-fg__item img {

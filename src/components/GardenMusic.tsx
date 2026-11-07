@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useNight } from "@/components/night/night";
+import { useUi } from "@/i18n/ui";
 
 // Background music for the garden: soft piano with a little nature ambience, OFF by default and never
 // autoplayed. The visitor turns it on with the small painted note in the header; it fades in over ~1.8 s to a
@@ -21,6 +22,7 @@ type Status = "off" | "on" | "unavailable";
 
 export default function GardenMusic() {
   const night = useNight();
+  const t = useUi().music;
   const [status, setStatus] = useState<Status>("off");
   const audio = useRef<HTMLAudioElement | null>(null);
   const fadeTimer = useRef(0);
@@ -81,8 +83,8 @@ export default function GardenMusic() {
     audio.current?.pause();
   }, []);
 
-  const label = status === "on" ? "Turn the music off" : status === "unavailable" ? "Background music coming soon" : "Play soft background music";
-  const hint = status === "on" ? "Music on" : status === "unavailable" ? "Music coming soon" : "Music off";
+  const label = status === "on" ? t.stop : status === "unavailable" ? t.soon : t.play;
+  const hint = status === "on" ? t.on : status === "unavailable" ? t.soonHint : t.off;
 
   return (
     <button

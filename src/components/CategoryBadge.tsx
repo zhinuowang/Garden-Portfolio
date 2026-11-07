@@ -1,7 +1,11 @@
+"use client";
+
 import type { ProjectCategory } from "@/data/projects";
+import { useUi } from "@/i18n/ui";
 
 export default function CategoryBadge({ category }: { category: ProjectCategory }) {
   const personal = category === "personal";
+  const t = useUi().category;
   return (
     <span
       data-category={category}
@@ -10,7 +14,7 @@ export default function CategoryBadge({ category }: { category: ProjectCategory 
       }`}
     >
       <span aria-hidden="true" className={`category-badge__dot size-1.5 rounded-full ${personal ? "bg-[#c4705c]" : "bg-moss"}`} />
-      {personal ? "Personal Project" : "Academic Project"}
+      {personal ? t.personal : t.academic}
     </span>
   );
 }

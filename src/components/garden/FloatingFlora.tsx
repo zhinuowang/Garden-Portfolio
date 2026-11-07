@@ -14,6 +14,10 @@ import { useEffect, useRef } from "react";
 // Each cluster is held to its corner, partly cropped by the window's edges, and reaches inward only as far as the
 // content allows: up to the text column where the margin is clear; while a case study's contents list is
 // beside it, it steps back into the outer margin, drawn smaller but still whole (it eases between the two). Smaller on tablets; on phones it only peeks in.
+//
+// Day only: when the lamp is lit the layer fades out gently and then rests — hidden, its sway paused and the
+// scroll handler doing nothing — and when day returns it is placed where it belongs and fades back in. (Only on
+// the three case studies; About and Contact have no floating layer.)
 
 type Kind = "loose-daisy" | "loose-daisy-half" | "loose-peony" | "loose-peony-red" | "loose-poppy" | "loose-petals" | "lily" | "hibiscus" | "daffodil" | "rose-lavender";
 // a bloom in a cluster, drawn for a cluster entering from the LEFT (the upper-right cluster is mirrored on the
@@ -35,10 +39,6 @@ const GARDENS: Record<string, { ll: Cluster; ur: Cluster }> = {
     ll: { w: 235, h: 285, members: [{ kind: "loose-poppy", x: 54, y: 0, size: 175, rot: 12 }, { kind: "daffodil", x: 0, y: 50, size: 235, rot: -14, dz: 0.006 }, { kind: "loose-petals", x: 132, y: 126, size: 96, rot: 40, dz: 0.008 }] },
     ur: { w: 248, h: 269, members: [{ kind: "lily", x: 63, y: 84, size: 185, rot: -30 }, { kind: "loose-peony", x: 0, y: 0, size: 215, rot: 4, dz: 0.006 }] },
   },
-  "about": {
-    ll: { w: 294, h: 311, members: [{ kind: "loose-peony", x: 68, y: 0, size: 165, rot: 10 }, { kind: "lily", x: 0, y: 56, size: 255, rot: -20, dz: 0.006 }, { kind: "loose-daisy", x: 159, y: 137, size: 135, rot: -10, dz: 0.008 }] },
-    ur: { w: 225, h: 296, members: [{ kind: "hibiscus", x: 52, y: 126, size: 170, rot: 30 }, { kind: "rose-lavender", x: 0, y: 0, size: 225, rot: 10, dz: 0.006 }] },
-  },
 };
 
 export type GardenKey = keyof typeof GARDENS;
@@ -58,7 +58,12 @@ export default function FloatingFlora({ garden }: { garden: string }) {
     let items: Item[] = [];
     let toc: HTMLElement | null = null;
 
+    // night: the layer rests (see the CSS for the fade); nothing is moved while it sleeps
+    const html = document.documentElement;
+    let asleep = html.dataset.night === "1";
+
     const update = () => {
+      if (asleep) return;
       const vh = window.innerHeight, sy = window.scrollY, calm = still.matches;
       // the case studies' contents list (sticky in the left margin), if it is showing
       const t = toc && toc.offsetParent ? toc.getBoundingClientRect() : null;
@@ -96,7 +101,7 @@ export default function FloatingFlora({ garden }: { garden: string }) {
       const tier = vw >= 1280 ? "desktop" : vw >= 768 ? "tablet" : "phone";
       const scale = GROW * (tier === "desktop" ? 1 : tier === "tablet" ? 0.72 : 0.5);
       const page = box.parentElement;
-      toc = page?.querySelector<HTMLElement>("nav[aria-label='Contents']") ?? null;
+      toc = page?.querySelector<HTMLElement>("nav[data-contents]") ?? null;
       const column = page?.querySelector(".garden-mist")?.getBoundingClientRect();
       const text = page?.querySelector("[data-flora-edge]")?.getBoundingClientRect();
       const leftEdge = page?.querySelector("[data-flora-left]")?.getBoundingClientRect(); // a page's content may start further in
@@ -170,13 +175,27 @@ export default function FloatingFlora({ garden }: { garden: string }) {
     const onResize = () => { clearTimeout(resizeT); resizeT = window.setTimeout(build, 120); };
 
     build();
+    fg.toggleAttribute("data-asleep", asleep);
+    // follow the lamp: fade out as dusk falls, and back in (already in place) when the day returns
+    const mood = new MutationObserver(() => {
+      const night = html.dataset.night === "1";
+      if (night === asleep) return;
+      asleep = night;
+      if (!night) update();
+      fg.toggleAttribute("data-asleep", night);
+    });
+    mood.observe(html, { attributes: true, attributeFilter: ["data-night"] });
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onResize);
+    // a change of language reflows the text (and the contents list beside the lower cluster): place them again
+    window.addEventListener("garden-locale", onResize);
     still.addEventListener("change", build);
     return () => {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onResize);
+      window.removeEventListener("garden-locale", onResize);
       still.removeEventListener("change", build);
+      mood.disconnect();
       clearTimeout(resizeT);
     };
   }, [garden]);

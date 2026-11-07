@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useUi } from "@/i18n/ui";
 
 // The journal's contents: a quiet index in the margin on wide screens (marking
 // the section being read), and a folded list at the top on small ones.
 export default function JournalContents({ sections }: { sections: { id: string; heading: string }[] }) {
   const [current, setCurrent] = useState(sections[0]?.id);
+  const t = useUi().cs;
 
   useEffect(() => {
     const els = sections.map((s) => document.getElementById(s.id)).filter((e): e is HTMLElement => !!e);
@@ -48,13 +50,13 @@ export default function JournalContents({ sections }: { sections: { id: string; 
 
   return (
     <>
-      <nav aria-label="Contents" className="sticky top-24 hidden max-h-[calc(100svh-7rem)] self-start overflow-y-auto lg:block">
-        <p className="mb-3 font-hand text-2xl text-moss">contents</p>
+      <nav aria-label={t.contentsLabel} data-contents className="sticky top-24 hidden max-h-[calc(100svh-7rem)] self-start overflow-y-auto lg:block">
+        <p className="mb-3 font-hand text-2xl text-moss">{t.contents}</p>
         {list}
       </nav>
-      <details className="mb-6 rounded-2xl border border-moss/25 bg-paper/80 px-4 py-3 lg:hidden">
-        <summary className="cursor-pointer font-hand text-2xl text-moss">contents</summary>
-        <nav aria-label="Contents" className="mt-2">{list}</nav>
+      <details className="journal-fold mb-6 rounded-2xl border border-moss/25 bg-paper/80 px-4 py-3 lg:hidden">
+        <summary className="cursor-pointer font-hand text-2xl text-moss">{t.contents}</summary>
+        <nav aria-label={t.contentsLabel} className="mt-2">{list}</nav>
       </details>
     </>
   );

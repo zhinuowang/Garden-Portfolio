@@ -7,17 +7,35 @@ type Composition = { viewBox: number[]; noteFont: number; phrases: Phrase[] };
 
 const SMALL_WORDS = new Set(["in", "as", "into", "the", "a", "of", "to", "and"]);
 
-/** Split a sentence into `n` (1 or 2) lines as evenly as possible, preferring a break before a small word. */
+const CJK = /[\u3000-\u9fff\uff00-\uffef]/;
+
+/**
+ * The units a thought is written in, word by word: English words, or — for Chinese, which has no spaces — its
+ * characters, each punctuation mark kept with the character before it.
+ */
+function units(text: string) {
+  if (!CJK.test(text)) return { parts: text.split(" "), gap: " " };
+  const parts: string[] = [];
+  for (const ch of Array.from(text)) {
+    if (/[，。、！？；：”’）]/.test(ch) && parts.length) parts[parts.length - 1] += ch;
+    else parts.push(ch);
+  }
+  return { parts, gap: "" };
+}
+
+/** Split a sentence into `n` (1 or 2) lines as evenly as possible, preferring a break before a small word (or after a Chinese comma). */
 function splitLines(text: string, n: number) {
-  const words = text.split(" ");
-  if (n < 2 || words.length < 2) return [words];
+  const { parts: words, gap } = units(text);
+  const len = (w: string[]) => w.join(gap).length * (gap ? 1 : 2.1); // a Chinese character is about two Latin letters wide
+  if (n < 2 || words.length < 2) return { lines: [words], gap };
   let best = 1, bestScore = Infinity;
   for (let i = 1; i < words.length; i++) {
-    const a = words.slice(0, i).join(" ").length, b = words.slice(i).join(" ").length;
-    const score = Math.max(a, b) - (SMALL_WORDS.has(words[i].toLowerCase()) ? 2.5 : 0);
+    const a = len(words.slice(0, i)), b = len(words.slice(i));
+    const nice = gap ? SMALL_WORDS.has(words[i].toLowerCase()) : /[，、]$/.test(words[i - 1]);
+    const score = Math.max(a, b) - (nice ? 2.5 * (gap ? 1 : 2.1) : 0);
     if (score < bestScore) { bestScore = score; best = i; }
   }
-  return [words.slice(0, best), words.slice(best)];
+  return { lines: [words.slice(0, best), words.slice(best)], gap };
 }
 
 /**
@@ -95,18 +113,18 @@ export default function CurvedNotes({ texts, desktop, mobile }: { texts: string[
           {c.phrases.map((ph, i) => ph.lines.map((d, l) => <path key={`${i}-${l}`} id={`note-${key}-${i}-${l}`} d={d} />))}
         </defs>
         {c.phrases.map((ph, i) => {
-          const lines = splitLines(texts[i] ?? "", ph.lines.length);
+          const { lines, gap } = splitLines(texts[i] ?? "", ph.lines.length);
           return (
             <g key={i} data-note={i} filter={`url(#note-halo-${key})`} className="curved-note">
               {lines.map((words, l) => (
-                <text key={l} fontSize={f} fontWeight={600} fill="#fcf7ea" letterSpacing={f * 0.01} style={{ fontFamily: "var(--font-caveat), cursive" }}>
+                <text key={l} fontSize={f} fontWeight={600} fill="#fcf7ea" letterSpacing={f * 0.01} style={{ fontFamily: "var(--font-caveat), var(--font-zh-hand), cursive" }}>
                   <textPath href={`#note-${key}-${i}-${l}`} startOffset="50%" textAnchor="middle">
                     {words.map((w, j) => (
                       <Fragment key={j}>
                         <tspan className="note-word" style={{ "--word": j } as React.CSSProperties}>
                           {w}
                         </tspan>
-                        {j < words.length - 1 ? " " : ""}
+                        {j < words.length - 1 ? gap : ""}
                       </Fragment>
                     ))}
                   </textPath>
