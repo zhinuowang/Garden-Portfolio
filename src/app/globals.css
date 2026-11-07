@@ -260,7 +260,7 @@ body {
    small filters animate; no blend modes, blurs or inherited colour transitions run during the fade. */
 :root { --dusk: 2.2s cubic-bezier(0.45, 0.05, 0.35, 1); }
 /* the page's ink: only pages that opt in (Landing, Work, case studies) and their header change */
-html[data-night-ink]:has(.nightable) :is(header, .nightable) {
+html[data-night-ink]:has(.nightable) :is(header, footer, .nightable) {
   --color-cream: #1e2537;
   --color-paper: #283047;
   --color-ink: #efe8d8;
@@ -383,8 +383,8 @@ html[data-night] .work-night { opacity: 1; }
 html[data-night] :is(.work-layer, .work-girl img) { filter: brightness(0.62) saturate(0.6) hue-rotate(-8deg); }
 html[data-night] .work-page::before { opacity: 0.25; }
 html[data-night-ink] .work-label__title { color: #f4ecd9; text-shadow: 0 0 10px rgb(20 28 48 / 0.95), 0 1px 2px rgb(20 28 48 / 0.9); }
-html[data-night-ink] .work-label__badge { background: rgb(36 44 66 / 0.88); box-shadow: none; }
-html[data-night-ink] .work-label__badge--personal { color: #f0b7b1; }
+html[data-night-ink] .work-label__badge--academic { background: #2f4636; color: #e3eed2; box-shadow: inset 0 0 0 1px rgb(184 203 158 / 0.35); }
+html[data-night-ink] .work-label__badge--personal { background: #4a3036; color: #f8ddd6; box-shadow: inset 0 0 0 1px rgb(233 164 155 / 0.35); }
 
 /* case studies at night: the moonlit backdrop cross-fades in (project images are never filtered) */
 .journal-backdrop::after {
@@ -397,7 +397,11 @@ html[data-night-ink] .work-label__badge--personal { color: #f0b7b1; }
 }
 @media (max-aspect-ratio: 3/4) { .journal-backdrop::after { background-image: url("/assets/garden/journal/journal-mobile-night.webp"); } }
 html[data-night] .journal-backdrop::after { opacity: 1; }
-html[data-night-ink] .nightable .category-badge { background: rgb(216 229 194 / 0.14); }
+/* tags at night: deep, softly tinted pills with pale lettering — clear, but quiet */
+html[data-night-ink] .nightable :is(.category-badge, .category-pill)[data-category="academic"] { background: #2f4636; color: #e3eed2; box-shadow: inset 0 0 0 1px rgb(184 203 158 / 0.35); }
+html[data-night-ink] .nightable :is(.category-badge, .category-pill)[data-category="personal"] { background: #4a3036; color: #f8ddd6; box-shadow: inset 0 0 0 1px rgb(233 164 155 / 0.35); }
+html[data-night-ink] .nightable .category-badge[data-category="academic"] .category-badge__dot { background: #b8cb9e; }
+html[data-night-ink] .nightable .category-badge[data-category="personal"] .category-badge__dot { background: #eba59a; }
 html[data-night-ink] .nightable .cs-num { background: rgb(216 229 194 / 0.12); }
 
 /* ---------- Landing: the painted title ---------- */

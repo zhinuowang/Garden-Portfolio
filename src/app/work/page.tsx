@@ -27,7 +27,7 @@ export default function WorkPage() {
             <li key={p.slug}>
               <Link href={`/work/${p.slug}`} className="group inline-flex min-h-11 items-center gap-2 font-serif text-lg text-ink hover:text-forest">
                 {p.title}
-                <span className={`rounded-full px-2 py-0.5 font-sans text-[0.68rem] font-semibold tracking-[0.12em] uppercase ${p.category === "academic" ? "bg-[#e3ead2] text-moss" : "bg-[#f6dcd6] text-rose"}`}>
+                <span data-category={p.category} className={`category-pill rounded-full px-2 py-0.5 font-sans text-[0.68rem] font-semibold tracking-[0.12em] uppercase ${p.category === "academic" ? "bg-[#e3ead2] text-moss" : "bg-[#f6dcd6] text-rose"}`}>
                   {p.category === "academic" ? "Academic" : "Personal"}
                 </span>
               </Link>

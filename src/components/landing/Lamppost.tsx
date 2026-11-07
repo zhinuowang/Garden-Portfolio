@@ -18,7 +18,7 @@ export default function Lamppost() {
       onClick={() => setNight(!night)}
       aria-pressed={night}
       aria-label={night ? "Return to daylight" : "Light up the garden"}
-      className="lamppost group absolute -translate-x-1/2 -translate-y-full left-[19.5%] top-[64%] w-[4.8%] portrait-art:left-[11%] portrait-art:top-[75%] portrait-art:w-[7.5%]"
+      className="lamppost group absolute -translate-x-1/2 -translate-y-full left-[16.5%] top-[65%] w-[4.8%] portrait-art:left-[12%] portrait-art:top-[73%] portrait-art:w-[7.5%]"
     >
       <span aria-hidden="true" className="lamppost__pool" />
       <span aria-hidden="true" className="lamppost__glow" />

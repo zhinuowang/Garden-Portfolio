@@ -2872,12 +2872,66 @@ function paintLamp(lit) {
     bar(cx - 11, H - 90, cx - 10, H - 290, 2, iron(0.85));
     bar(cx - 6, H - 350, cx - 6, 250, 1.5, iron(0.85));
   });
+  // repaint it by hand: the drawing above is only the underpainting. Short loaded strokes, each in the
+  // colour beneath it (iron warmed toward brown-black, charcoal and dark bronze), run along the post and
+  // round the lantern; then the silhouette gets a soft, slightly broken painted edge.
+  const under = createCanvas(W, H);
+  under.getContext("2d").drawImage(cv, 0, 0);
+  const ud = under.getContext("2d").getImageData(0, 0, W, H).data;
+  const warm = (c) => {
+    const l = (c[0] * 0.3 + c[1] * 0.59 + c[2] * 0.11) / 255, sat = Math.max(...c) - Math.min(...c);
+    if (l > 0.45 || sat > 60) return c; // stone and amber glass keep their colours
+    return mix(mix(hex("#2b231d"), hex("#6e5a40"), Math.pow(l / 0.45, 0.9)), c, 0.25);
+  };
+  ctx.clearRect(0, 0, W, H);
+  ctx.drawImage(under, 0, 0);
+  // recolour the underpainting's iron too, so no pure black shows between the strokes
+  {
+    const id = ctx.getImageData(0, 0, W, H);
+    for (let p2 = 0; p2 < id.data.length; p2 += 4) if (id.data[p2 + 3] > 0) { const c = warm([id.data[p2], id.data[p2 + 1], id.data[p2 + 2]]); id.data[p2] = c[0]; id.data[p2 + 1] = c[1]; id.data[p2 + 2] = c[2]; }
+    ctx.putImageData(id, 0, 0);
+  }
+  withThickness(0.9, () => {
+    for (let n = 0; n < 2600; n++) {
+      const x = Math.floor(r() * W), y = Math.floor(r() * H), q = (y * W + x) * 4;
+      if (ud[q + 3] < 160) continue;
+      if (y > 126 && y < 236 && Math.abs(x - cx) < 44) continue; // leave the lantern's glass and frame as painted
+      const c = warm([ud[q], ud[q + 1], ud[q + 2]]);
+      const ang = y > 250 && y < H - 70 ? -Math.PI / 2 + (r() - 0.5) * 0.25 : r() * Math.PI;
+      stroke(ctx, r, x, y, ang, 8 + r() * 16, 3 + r() * 4, mix(c, r() < 0.5 ? hex("#8a7356") : hex("#1c1714"), r() * 0.25), 0.9, 2);
+    }
+  });
+  {
+    // a soft, organic edge: the underpainting's shape, lightly blurred and thresholded against noise
+    const mk = createCanvas(W, H), mc = mk.getContext("2d");
+    mc.filter = "blur(1.4px)";
+    mc.drawImage(under, 0, 0);
+    const md = mc.getImageData(0, 0, W, H);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const q = (y * W + x) * 4;
+      const t = 118 + fbm(x / 9, y / 9, 1611, 2) * 70;
+      md.data[q + 3] = clamp((md.data[q + 3] - t) / 30 + 0.5) * 255;
+    }
+    mc.filter = "none";
+    mc.putImageData(md, 0, 0);
+    for (const c of [ctx, hx]) { c.save(); c.globalCompositeOperation = "destination-in"; c.drawImage(mk, 0, 0); c.restore(); }
+  }
   hx.save(); hx.globalCompositeOperation = "destination-in"; hx.drawImage(cv, 0, 0); hx.restore();
   hx.save(); hx.globalCompositeOperation = "destination-over"; hx.fillStyle = grey(20); hx.fillRect(0, 0, W, H); hx.restore();
   const alpha = createCanvas(W, H);
   alpha.getContext("2d").drawImage(cv, 0, 0);
   lightRelief(cv, hcv, W, H, 1);
   ctx.save(); ctx.globalCompositeOperation = "destination-in"; ctx.drawImage(alpha, 0, 0); ctx.restore();
+  // set into the ground: a soft shadow round the plinth and a few blades of grass painted over its foot
+  ctx.save();
+  ctx.globalCompositeOperation = "destination-over";
+  ctx.filter = "blur(6px)";
+  glaze(ctx, cx + 8, H - 10, 84, 12, hex("#3d4a2e"), 0.4);
+  ctx.restore();
+  for (let n = 0; n < 34; n++) {
+    const x = cx + (r() - 0.5) * 130, h2 = 10 + r() * 20;
+    stroke(ctx, r, x, H - 2, -Math.PI / 2 + (r() - 0.5) * 0.9, h2, 2.5 + r() * 2, mix(hex("#6f8a55"), hex("#a8bd88"), r()), 0.9, 1);
+  }
   PAINT.hx = null;
   return cv;
 }
@@ -2931,9 +2985,9 @@ function paintJournal(W, H, portrait) {
   const k = W / 1600;
   // ground: warm cream, a breath of variation across it
   const g = ctx.createLinearGradient(0, 0, W, H);
-  g.addColorStop(0, "#f6ecd8");
-  g.addColorStop(0.5, "#f8efdd");
-  g.addColorStop(1, "#f3e6cd");
+  g.addColorStop(0, "#f2e3c9");
+  g.addColorStop(0.5, "#f4e7d0");
+  g.addColorStop(1, "#efdfc2");
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, H);
   // how far a point is from the reading column (0) toward the frame (1)
@@ -2945,14 +2999,20 @@ function paintJournal(W, H, portrait) {
     ? [[0.0, 0.0, "#f2a48f"], [0.55, -0.02, "#efc06a"], [1.0, 0.05, "#b8a6d2"], [0.0, 0.97, "#9db682"], [0.6, 1.02, "#f0b4ab"], [1.0, 0.95, "#e9a873"]]
     : [[-0.02, 0.05, "#f0a28d"], [0.02, 0.38, "#eab074"], [-0.02, 0.7, "#a8bd88"], [0.02, 1.0, "#7f9b63"],
        [1.02, 0.0, "#efc169"], [0.98, 0.3, "#f1b1aa"], [1.02, 0.62, "#b7a5d0"], [0.98, 0.98, "#9cb57e"]];
+  // each field twice: a wide, faint pass that reaches well toward the centre, then the richer body at the frame,
+  // so the colour thins out gradually instead of stopping at a line
   ctx.save();
-  ctx.filter = `blur(${70 * k}px)`;
-  for (const [u, v, c] of FIELDS) for (let j = 0; j < 4; j++) glaze(ctx, (u + (r() - 0.5) * 0.06) * W, (v + (r() - 0.5) * 0.12) * H, (portrait ? 0.34 : 0.17 + r() * 0.06) * W, (0.16 + r() * 0.08) * H, hex(c), 0.42);
+  ctx.filter = `blur(${150 * k}px)`;
+  for (const [u, v, c] of FIELDS) glaze(ctx, u * W, v * H, (portrait ? 0.6 : 0.42) * W, (portrait ? 0.26 : 0.34) * H, hex(c), 0.2);
   ctx.restore();
-  // a very faint, large variation behind the text (no marks, just air)
   ctx.save();
-  ctx.filter = `blur(${120 * k}px)`;
-  for (const [u, v, c] of [[0.4, 0.25, "#f6e3cf"], [0.6, 0.7, "#eef0dc"], [0.5, 0.48, "#fbf4e6"]]) glaze(ctx, u * W, v * H, 0.25 * W, 0.2 * H, hex(c), 0.5);
+  ctx.filter = `blur(${105 * k}px)`;
+  for (const [u, v, c] of FIELDS) for (let j = 0; j < 4; j++) glaze(ctx, (u + (r() - 0.5) * 0.06) * W, (v + (r() - 0.5) * 0.12) * H, (portrait ? 0.4 : 0.24 + r() * 0.06) * W, (0.18 + r() * 0.08) * H, hex(c), 0.34);
+  ctx.restore();
+  // the centre: no bright slab, but muted tints of the same garden glazed across it — calm, still painted
+  ctx.save();
+  ctx.filter = `blur(${140 * k}px)`;
+  for (const [u, v, c] of [[0.42, 0.18, "#efd2c0"], [0.6, 0.42, "#e4e1c2"], [0.4, 0.66, "#ecd7bd"], [0.58, 0.9, "#dfe2c4"], [0.5, 0.05, "#ecdcb6"]]) glaze(ctx, u * W, v * H, 0.3 * W, 0.2 * H, hex(c), 0.42);
   ctx.restore();
   // 2 · brushwork, selectively: loaded strokes inside the colour fields, following a gentle flow
   const fieldAt = (x, y) => {
@@ -2967,6 +3027,14 @@ function paintJournal(W, H, portrait) {
       const flow = -Math.PI / 2 + fbm(x / (600 * k), y / (600 * k), 1307, 3) * 1.4;
       const tone = mix(fieldAt(x, y), r() < 0.5 ? hex("#fff3e2") : hex("#c98f73"), r() * 0.22);
       stroke(ctx, r, x, y, flow, (80 + r() * 120) * k, (26 + r() * 26) * k, tone, 0.4 + e * 0.32, 3);
+    }
+  });
+  // a few broad, faint strokes across the centre too, so it reads as the same painting, not a gradient
+  withThickness(0.25, () => {
+    for (let i = 0; i < (W * H) / 38000; i++) {
+      const x = (0.2 + r() * 0.6) * W, y = r() * H;
+      const tone = mix(fieldAt(x, y), hex("#f4e7d0"), 0.62 + r() * 0.2);
+      stroke(ctx, r, x, y, (r() - 0.5) * 0.35 + (r() < 0.5 ? 0 : Math.PI), (200 + r() * 160) * k, (50 + r() * 40) * k, tone, 0.16, 3);
     }
   });
   // a few small impasto passes: tight clusters of short, thick strokes, lit by the relief

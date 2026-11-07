@@ -70,8 +70,9 @@ export default function LandingScenes() {
       {/* ---- Scene 1 · A living garden: the title alone, centred in the first view ---- */}
       <section aria-labelledby="landing-title" className="relative">
         <SceneArt scene={1} />
-        {layers(1)}
+        {/* the night painting goes under the living figures, so they stay in the scene at night */}
         <NightSky scene={1} />
+        {layers(1)}
         <Lamppost />
         <PaintedTitle id="landing-title" className="pointer-events-none absolute inset-x-0 top-[min(38svh,38%)] -translate-y-1/2 px-6 portrait-art:top-[min(38svh,38%)]" />
         {/* a quiet, wordless cue at the foot of the first view */}
@@ -87,16 +88,16 @@ export default function LandingScenes() {
       {/* ---- Scene 2 · Thoughts on the hills: notes that curve with the slopes and appear as you scroll ---- */}
       <section aria-label="Thoughts" className="relative">
         <SceneArt scene={2} />
-        {layers(2)}
         <NightSky scene={2} />
+        {layers(2)}
         <CurvedNotes texts={copy.thoughts} desktop={anchors.desktop} mobile={anchors.mobile} />
       </section>
 
       {/* ---- Scene 3 · Afternoon tea in the garden ---- */}
       <section aria-labelledby="landing-invitation" className="relative">
         <SceneArt scene={3} />
-        {layers(3)}
         <NightSky scene={3} />
+        {layers(3)}
         <Reveal className="absolute top-[11%] left-[74%] w-max max-w-[44vw] -translate-x-1/2 -translate-y-1/2 -rotate-2 portrait-art:top-[13%] portrait-art:left-1/2 portrait-art:max-w-[88vw]">
           <h2
             id="landing-invitation"
