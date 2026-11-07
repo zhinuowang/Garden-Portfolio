@@ -9,9 +9,9 @@ import { useEffect, useRef } from "react";
 // Three depths: the painted backdrop is fixed, the content scrolls normally, and this layer — fixed to the
 // window, above the content, never taking pointer events — moves FASTER than the content as you scroll.
 //
-// The flowers come in small composed clusters (a large bloom with smaller ones tucked behind it, a pair
-// overlapping, a lone blossom with a few drifting petals), placed down the page at uneven intervals and on
-// irregularly alternating sides, with some stretches left empty. A cluster drifts as one; its members differ
+// The flowers come in small composed clusters (a large bloom with one or two smaller ones overlapping it, a
+// few drifting petals), placed down each side of the page at uneven intervals, so the margins feel gently
+// full without being crowded. A cluster drifts as one; its members differ
 // only very slightly in depth (a few pixels at most) and sway gently on their own, so the group — and its
 // overlaps — hold together. Clusters enter
 // from the window's edges, partly cropped, and their reach is capped by the content column so they never
@@ -52,22 +52,54 @@ const CLUSTERS: Record<string, Cluster> = {
     { kind: "loose-petals", x: 0, y: 0, size: 160, rot: -20, dz: 0.006 },
     { kind: "loose-petals", x: 53, y: 44, size: 120, rot: 64, dz: 0.008 },
   ] },
-  hibiscus: { w: 250, h: 250, members: [{ kind: "hibiscus", x: 0, y: 0, size: 250, rot: 14 }] },
-  lily: { w: 240, h: 240, members: [{ kind: "lily", x: 0, y: 0, size: 240, rot: 52 }] },
+  hibiscusTrio: { w: 272, h: 240, members: [
+    { kind: "loose-daisy", x: 0, y: 100, size: 140, rot: -18 },
+    { kind: "hibiscus", x: 32, y: 0, size: 240, rot: 14, dz: 0.006 },
+    { kind: "loose-petals", x: 166, y: 115, size: 90, rot: 30, dz: 0.008 },
+  ] },
+  lilyHalf: { w: 248, h: 278, members: [
+    { kind: "loose-daisy-half", x: 88, y: 0, size: 160, rot: -60 },
+    { kind: "lily", x: 0, y: 36, size: 230, rot: 52, dz: 0.006 },
+    { kind: "loose-petals", x: 20, y: 182, size: 96, rot: -20, dz: 0.008 },
+  ] },
+  roseTrio: { w: 212, h: 244, members: [
+    { kind: "loose-peony-red", x: 0, y: 0, size: 140, rot: 20 },
+    { kind: "rose-lavender", x: 10, y: 7, size: 200, rot: -10, dz: 0.006 },
+    { kind: "loose-daisy", x: 92, y: 124, size: 120, rot: 12, dz: 0.008 },
+  ] },
+  daffodilPeony: { w: 245, h: 201, members: [
+    { kind: "loose-peony", x: 0, y: 51, size: 150, rot: 0 },
+    { kind: "daffodil", x: 45, y: 0, size: 200, rot: -12, dz: 0.006 },
+    { kind: "loose-petals", x: 147, y: 95, size: 84, rot: 50, dz: 0.01 },
+  ] },
+  poppyDaisy: { w: 208, h: 228, members: [
+    { kind: "loose-daisy", x: 78, y: 0, size: 130, rot: 30 },
+    { kind: "loose-poppy", x: 6, y: 38, size: 190, rot: 8, dz: 0.006 },
+    { kind: "loose-peony", x: 0, y: 114, size: 110, rot: -10, dz: 0.008 },
+  ] },
 };
 
-// the walk down a long page: which cluster, which side, how far after the previous one (in window heights:
-// deliberately uneven, with a few long empty stretches), how much of it shows, and how near it is
+// the walk down a long page, one lane for each side so neither edge is left bare for long: which cluster, how
+// far after the previous one on that side (in window heights — uneven, but never a long empty stretch), how
+// much of it shows, and how near it is. The two lanes start out of step, so the sides alternate loosely.
 type Beat = { c: keyof typeof CLUSTERS; side: "l" | "r"; gap: number; reach: number; speed: number; drift: number };
-const BEATS: Beat[] = [
-  { c: "lilyTrio", side: "l", gap: 0.55, reach: 0.78, speed: 1.3, drift: 10 },
-  { c: "hibiscus", side: "r", gap: 1.35, reach: 0.78, speed: 1.38, drift: 8 },
-  { c: "petals", side: "r", gap: 0.7, reach: 0.9, speed: 1.6, drift: 16 },
-  { c: "rosePair", side: "l", gap: 1.9, reach: 0.6, speed: 1.26, drift: 8 },
-  { c: "daffodilDaisy", side: "r", gap: 1.1, reach: 0.6, speed: 1.34, drift: 10 },
-  { c: "lily", side: "l", gap: 2.2, reach: 0.78, speed: 1.42, drift: 12 },
-  { c: "peonyDaisy", side: "l", gap: 0.8, reach: 0.6, speed: 1.28, drift: 8 },
-  { c: "poppyPetal", side: "r", gap: 1.6, reach: 0.78, speed: 1.36, drift: 10 },
+const LEFT: Omit<Beat, "side">[] = [
+  { c: "lilyTrio", gap: 0.5, reach: 0.78, speed: 1.3, drift: 10 },
+  { c: "roseTrio", gap: 1.05, reach: 0.78, speed: 1.36, drift: 8 },
+  { c: "daffodilDaisy", gap: 0.85, reach: 0.78, speed: 1.28, drift: 10 },
+  { c: "poppyDaisy", gap: 1.25, reach: 0.78, speed: 1.4, drift: 12 },
+  { c: "petals", gap: 0.7, reach: 0.9, speed: 1.6, drift: 16 },
+  { c: "rosePair", gap: 0.95, reach: 0.78, speed: 1.26, drift: 8 },
+  { c: "lilyHalf", gap: 1.15, reach: 0.78, speed: 1.34, drift: 10 },
+];
+const RIGHT: Omit<Beat, "side">[] = [
+  { c: "hibiscusTrio", gap: 0.95, reach: 0.78, speed: 1.36, drift: 8 },
+  { c: "peonyDaisy", gap: 1.0, reach: 0.78, speed: 1.28, drift: 8 },
+  { c: "petals", gap: 0.75, reach: 0.9, speed: 1.58, drift: 16 },
+  { c: "daffodilPeony", gap: 1.2, reach: 0.78, speed: 1.32, drift: 10 },
+  { c: "lilyHalf", gap: 0.9, reach: 0.78, speed: 1.42, drift: 12 },
+  { c: "poppyPetal", gap: 1.3, reach: 0.78, speed: 1.3, drift: 10 },
+  { c: "roseTrio", gap: 0.85, reach: 0.78, speed: 1.38, drift: 8 },
 ];
 
 // a single-screen page (Contact): three small clusters composed round the window's corners, well clear of
@@ -125,14 +157,16 @@ export default function FloatingFlora({ variant = "long" }: { variant?: "long" |
       if (single) {
         beats = CORNERS.map((b) => ({ ...b, k: b.scale, y: top + vh / 2 + (vh * b.at - vh / 2) / (still.matches ? 1 : b.speed) }));
       } else {
-        const height = box.offsetHeight;
-        let y = 0;
-        for (let i = 0; ; i++) {
-          const b = BEATS[i % BEATS.length];
-          y += b.gap * vh * (tier === "phone" ? 1.5 : tier === "tablet" ? 1.2 : 1);
-          if (y > height - vh * 0.2) break;
-          if (tier === "phone" && i % 2 === 1) continue; // fewer on phones
-          beats.push({ ...b, k: 1, y: top + y });
+        const height = box.offsetHeight, stretch = tier === "phone" ? 1.6 : tier === "tablet" ? 1.2 : 1;
+        for (const [lane, side] of [[LEFT, "l"], [RIGHT, "r"]] as const) {
+          let y = 0;
+          for (let i = 0; ; i++) {
+            const b = lane[i % lane.length];
+            y += b.gap * vh * stretch;
+            if (y > height - vh * 0.2) break;
+            if (tier === "phone" && i % 2 === 1) continue; // fewer on phones
+            beats.push({ ...b, side, k: 1, y: top + y });
+          }
         }
       }
 

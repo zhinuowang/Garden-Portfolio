@@ -40,8 +40,9 @@ Removed (all recoverable from the tag): the homepage sections `GardenGate`, `Gar
   (z 30 inside the page; the header stays above it; no pointer events), holding painted blossoms after Zhinuo's oil-painting
   references — a pink lily, a hibiscus, daisies (one only half there), a daffodil, a lavender rose, peonies, a poppy and
   drifting petals; heads only, no stems (`node scripts/paint-landing.mjs --loose`). They come in small composed clusters
-  (a large bloom with smaller ones tucked behind, an overlapping pair, a lone blossom with petals) at uneven intervals
-  down the page, on irregularly alternating sides, with some stretches empty; members genuinely overlap (positions computed
+  (a large bloom with one or two smaller ones overlapping it, a few drifting petals; thirteen compositions) placed
+  down each side of the page in its own uneven rhythm (0.5–1.3 window-heights apart), so neither edge stays bare for
+  long but no more than about three clusters share the window; members genuinely overlap (positions computed
   from each painting's measured extent; roughly 15–30% of the smaller bloom, varied), with a clear front and back; a
   cluster drifts as one, its members at most ~11 px apart in depth over a full pass. The flowers are painted with the
   backdrop's brushes and relief, then harmonised toward its warm light (slightly less saturated, softened edges), with
