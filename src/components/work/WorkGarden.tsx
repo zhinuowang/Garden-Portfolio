@@ -121,6 +121,8 @@ function Stage({ fmt, c, ratio, className }: { fmt: "desktop" | "mobile"; c: Com
             draggable={false}
           />
         </picture>
+        {/* night: a moonlit wash over the painted garden (fades in with the lamp) */}
+        <span aria-hidden="true" className="work-night absolute inset-0" />
 
         {/* landmarks: their layers, a soft discoverability glow, the label, and the link over them */}
         {c.landmarks.map((m, i) => {

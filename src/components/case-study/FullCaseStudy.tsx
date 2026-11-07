@@ -160,7 +160,7 @@ function Block({ b }: { b: CsBlock }) {
 
 export default function FullCaseStudy({ project, data, next }: { project: Project; data: Data; next: Project }) {
   return (
-    <article className="relative isolate overflow-x-clip px-4 pt-28 pb-24 sm:px-6">
+    <article className="nightable relative isolate overflow-x-clip px-4 pt-28 pb-24 sm:px-6">
       <div aria-hidden="true" className="journal-backdrop" />
       <MarkVisited slug={project.slug} />
       <PressedSprig className="pointer-events-none absolute top-24 -right-3 hidden w-20 rotate-12 opacity-70 md:block" />

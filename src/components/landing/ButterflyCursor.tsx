@@ -10,7 +10,8 @@ import { createPortal } from "react-dom";
 // open when the pointer stops. Over links and other controls the normal
 // pointer comes back and the butterfly perches beside it. Only on devices with
 // a fine, hovering pointer; never with reduced motion; and the normal cursor
-// stays until the artwork has loaded.
+// stays until the artwork has loaded. At night (the lamppost) it becomes a
+// small, softly glowing firefly at the same click point.
 
 const SIZE = 44; // css px wide
 const HOT = [0.5, 0.178]; // the head, as a fraction of the artwork
@@ -70,6 +71,8 @@ export default function ButterflyCursor() {
   // rendered straight into <body>, so no clipped or transformed ancestor can hide it
   return createPortal(
     <div ref={ref} aria-hidden="true" className="butterfly" data-state="resting" style={{ width: SIZE, opacity: 0 }}>
+      {/* at night the butterfly becomes a firefly: a small warm glow at the very same click point */}
+      <span className="butterfly__firefly" style={{ left: `${HOT[0] * 100}%`, top: `${HOT[1] * 100}%` }} />
       <span className="butterfly__perch block">
         {(["left", "right", "body"] as const).map((part) => (
           // eslint-disable-next-line @next/next/no-img-element -- painted cursor layer

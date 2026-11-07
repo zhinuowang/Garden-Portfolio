@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import NightSwitch from "@/components/night/NightSwitch";
 
 const links = [
   { href: "/", label: "Home" },
@@ -33,6 +34,9 @@ export default function SiteHeader() {
           </Link>
         )}
         <ul className={`flex gap-0.5 sm:gap-1 ${overGarden ? "mt-1 rounded-full bg-paper/60 p-1" : ""}`}>
+          <li className="night-switch-slot">
+            <NightSwitch />
+          </li>
           {links.map((l) => {
             const active = isActive(l.href);
             return (

@@ -4,6 +4,7 @@ import { site } from "@/data/site";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import PaintDefs from "@/components/garden/PaintDefs";
+import { NIGHT_BOOT } from "@/components/night/night-boot";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -45,7 +46,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* restore a remembered night before the first paint */}
+        <script dangerouslySetInnerHTML={{ __html: NIGHT_BOOT }} />
+      </head>
       <body className={`${fraunces.variable} ${dmSans.variable} ${caveat.variable} antialiased`}>
         <a
           href="#main"

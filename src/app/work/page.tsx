@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function WorkPage() {
   const projects = workSlugs.map((s) => getProject(s)!);
   return (
-    <div className="work-page relative overflow-hidden px-0 pt-32 pb-10 sm:pt-[5.75rem] sm:px-4">
+    <div className="work-page nightable relative overflow-hidden px-0 pt-32 pb-10 sm:pt-[5.75rem] sm:px-4">
       <section aria-labelledby="work-title" className="relative">
         <h1 id="work-title" className="mx-auto mb-5 max-w-5xl px-4 text-center font-serif text-[clamp(1.6rem,3vw,2.5rem)] leading-tight font-medium text-ink sm:mb-6">
           Choose a place to explore my work.

@@ -8,6 +8,8 @@ import Reveal from "./Reveal";
 import SceneSettle from "./SceneSettle";
 import PaintedTitle from "./PaintedTitle";
 import ButterflyCursor from "./ButterflyCursor";
+import Lamppost from "./Lamppost";
+import NightSky from "./NightSky";
 
 // The Landing is one tall garden painting in three scenes, stacked edge to edge
 // in normal document flow: scrolling simply moves down the painting. Each scene
@@ -62,13 +64,15 @@ export default function LandingScenes() {
   const sd = anchors.desktop.sign;
   const sm = anchors.mobile.sign;
   return (
-    <div className="landing-scenes relative overflow-clip bg-[#9fb574]">
+    <div className="landing-scenes nightable relative overflow-clip bg-[#9fb574]">
       <SceneSettle />
       <ButterflyCursor />
       {/* ---- Scene 1 · A living garden: the title alone, centred in the first view ---- */}
       <section aria-labelledby="landing-title" className="relative">
         <SceneArt scene={1} />
         {layers(1)}
+        <NightSky scene={1} />
+        <Lamppost />
         <PaintedTitle id="landing-title" className="pointer-events-none absolute inset-x-0 top-[min(38svh,38%)] -translate-y-1/2 px-6 portrait-art:top-[min(38svh,38%)]" />
         {/* a quiet, wordless cue at the foot of the first view */}
         <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-[min(calc(100svh-4.5rem),92%)] flex justify-center text-[#33402f]/70">
@@ -84,6 +88,7 @@ export default function LandingScenes() {
       <section aria-label="Thoughts" className="relative">
         <SceneArt scene={2} />
         {layers(2)}
+        <NightSky scene={2} />
         <CurvedNotes texts={copy.thoughts} desktop={anchors.desktop} mobile={anchors.mobile} />
       </section>
 
@@ -91,6 +96,7 @@ export default function LandingScenes() {
       <section aria-labelledby="landing-invitation" className="relative">
         <SceneArt scene={3} />
         {layers(3)}
+        <NightSky scene={3} />
         <Reveal className="absolute top-[11%] left-[74%] w-max max-w-[44vw] -translate-x-1/2 -translate-y-1/2 -rotate-2 portrait-art:top-[13%] portrait-art:left-1/2 portrait-art:max-w-[88vw]">
           <h2
             id="landing-invitation"

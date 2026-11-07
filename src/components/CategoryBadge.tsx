@@ -4,7 +4,7 @@ export default function CategoryBadge({ category }: { category: ProjectCategory 
   const personal = category === "personal";
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold tracking-wide uppercase ${
+      className={`category-badge inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold tracking-wide uppercase ${
         personal ? "bg-[#f7ddd3] text-[#8a4a3c]" : "bg-[#dfe7d2] text-forest"
       }`}
     >

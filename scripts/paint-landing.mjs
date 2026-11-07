@@ -18,6 +18,7 @@
 //   node scripts/paint-landing.mjs --journal         → the case-study page backdrop
 //   node scripts/paint-landing.mjs --title           → the Landing title, one painted layer per letter
 //   node scripts/paint-landing.mjs --butterfly       → the Landing butterfly cursor (wings and body layers)
+//   node scripts/paint-landing.mjs --lamp            → the Scene 1 lamppost (off and lit)
 
 import { createCanvas, Path2D } from "@napi-rs/canvas";
 import fs from "node:fs";
@@ -2725,6 +2726,145 @@ function paintTitle() {
   return { letters, meta: { text: "A Garden of Ideas", lettering: LINES.join(" / "), font: F, chars: letters.map((l) => l.ch), wide: layout, tall: layout } };
 }
 
+/**
+ * The Landing cursor: a tiny painted butterfly seen from above, head at the
+ * top centre (the click point). Left wing, right wing and body are separate
+ * layers on the same canvas so the page can flutter the wings about the body.
+ */
+function paintButterfly() {
+  const W = 200, H = 180, cx = 100, top = 34;
+  const out = {};
+  for (const part of ["left", "right", "body"]) {
+    const cv = createCanvas(W, H), ctx = cv.getContext("2d");
+    const hcv = createCanvas(W, H), hx = hcv.getContext("2d");
+    hx.fillStyle = grey(20);
+    hx.fillRect(0, 0, W, H);
+    PAINT.hx = hx;
+    const r = rng(1400 + (part === "right" ? 1 : 0));
+    withThickness(0.8, () => {
+      if (part === "body") {
+        // a slim olive body, a round head, two fine antennae with knobs
+        for (let i = 0; i < 5; i++) stroke(ctx, r, cx + (r() - 0.5) * 2, top + 18, Math.PI / 2, 78, 9 - i, mix(hex("#5d6b3a"), hex("#8c9a5a"), i / 5), 1, 1);
+        dab(ctx, cx, top + 12, 8, 8, 0, hex("#4f5c33"), 1);
+        for (const side of [-1, 1]) {
+          stroke(ctx, r, cx + side * 2, top + 6, -Math.PI / 2 + side * 0.45, 26, 2.2, hex("#4f5c33"), 1, 0);
+          dab(ctx, cx + side * 13, top - 17, 3.4, 3.4, 0, hex("#4f5c33"), 1);
+        }
+        return;
+      }
+      const d = part === "left" ? -1 : 1;
+      const X = (u) => cx + d * u;
+      const wing = (pts, base, edge, spots) => {
+        const p = new Path2D();
+        p.moveTo(X(pts[0][0]), pts[0][1]);
+        for (let i = 1; i < pts.length; i += 3) p.bezierCurveTo(X(pts[i][0]), pts[i][1], X(pts[i + 1][0]), pts[i + 1][1], X(pts[i + 2][0]), pts[i + 2][1]);
+        p.closePath();
+        ctx.fillStyle = rgba(hex(base));
+        ctx.fill(p);
+        clipBoth(ctx, p);
+        // strokes radiating from the body, cream near the root, blush toward the edge
+        for (let i = 0; i < 150; i++) {
+          const ang = (d < 0 ? Math.PI : 0) + (r() - 0.5) * 2.2, len = 30 + r() * 70;
+          const t = r();
+          stroke(ctx, r, X(4) + Math.cos(ang) * 6, pts[0][1] + 6 + Math.sin(ang) * 6, ang, len, 7 + r() * 6, mix(hex("#fbeee0"), hex(base), 0.35 + t * 0.6), 0.7, 3);
+        }
+        // a painted rim and a few sage dots near the edge
+        for (let i = 0; i < pts.length - 1; i++) {
+          const [ax, ay] = pts[i], [bx, by] = pts[i + 1];
+          stroke(ctx, r, X(ax), ay, Math.atan2(by - ay, X(bx) - X(ax)), Math.hypot(X(bx) - X(ax), by - ay) * 1.1, 6, hex(edge), 0.55, 1);
+        }
+        for (const [u, v, rr] of spots) dab(ctx, X(u), v, rr, rr * 0.85, 0, hex("#9aae7c"), 0.9);
+        unclipBoth(ctx);
+      };
+      // upper wing, then the smaller lower wing
+      wing([[4, top + 22], [30, top - 10], [80, top - 22], [92, top + 2], [98, top + 26], [70, top + 52], [6, top + 50]], "#f2b9b4", "#d98c8a", [[70, top - 6, 5], [80, top + 12, 3.5]]);
+      wing([[4, top + 52], [40, top + 54], [70, top + 70], [66, top + 98], [58, top + 122], [24, top + 118], [6, top + 76]], "#f6d6c4", "#d99f8e", [[48, top + 100, 4]]);
+    });
+    hx.save(); hx.globalCompositeOperation = "destination-in"; hx.drawImage(cv, 0, 0); hx.restore();
+    hx.save(); hx.globalCompositeOperation = "destination-over"; hx.fillStyle = grey(20); hx.fillRect(0, 0, W, H); hx.restore();
+    const alpha = createCanvas(W, H);
+    alpha.getContext("2d").drawImage(cv, 0, 0);
+    lightRelief(cv, hcv, W, H, 1.1);
+    ctx.save(); ctx.globalCompositeOperation = "destination-in"; ctx.drawImage(alpha, 0, 0); ctx.restore();
+    PAINT.hx = null;
+    out[part] = cv;
+  }
+  return { out, hotspot: [cx / W, (top - 2) / H] };
+}
+
+/**
+ * A garden lamppost for Scene 1: a slim dark-green iron post with a little
+ * four-pane lantern. Painted twice on the same canvas — glass dark (off) and
+ * glass glowing warm (lit) — so the page can cross-fade between them.
+ */
+function paintLamp(lit) {
+  const W = 180, H = 560, cx = 90;
+  const cv = createCanvas(W, H), ctx = cv.getContext("2d");
+  const hcv = createCanvas(W, H), hx = hcv.getContext("2d");
+  hx.fillStyle = grey(20);
+  hx.fillRect(0, 0, W, H);
+  PAINT.hx = hx;
+  const r = rng(1600);
+  const iron = (t) => mix(hex("#24302a"), hex("#4f6352"), t);
+  withThickness(0.8, () => {
+    // base and post
+    knife(ctx, r, cx - 26, H - 14, 0, 52, 22, iron(0.2));
+    knife(ctx, r, cx - 17, H - 34, 0, 34, 18, iron(0.35));
+    // the post: straight knife-laid iron, a lighter edge where the light catches it
+    knife(ctx, r, cx - 5, H - 34, -Math.PI / 2, H - 200, 11, iron(0.2));
+    knife(ctx, r, cx - 2, H - 36, -Math.PI / 2, H - 206, 3, iron(0.6), 0.8);
+    // a little collar and the lantern's arms
+    knife(ctx, r, cx - 14, 200, 0, 28, 12, iron(0.4));
+    knife(ctx, r, cx - 30, 176, 0, 60, 6, iron(0.3));
+    // lantern: a tapered body of four panes under a peaked cap
+    const glass = new Path2D();
+    glass.moveTo(cx - 26, 100); glass.lineTo(cx + 26, 100); glass.lineTo(cx + 20, 170); glass.lineTo(cx - 20, 170); glass.closePath();
+    ctx.fillStyle = rgba(lit ? hex("#ffd98a") : hex("#5d6a72"));
+    ctx.fill(glass);
+    clipBoth(ctx, glass);
+    for (let i = 0; i < 18; i++) stroke(ctx, r, cx - 24 + r() * 48, 100 + r() * 70, Math.PI / 2 + (r() - 0.5) * 0.3, 22, 7, lit ? mix(hex("#fff3cf"), hex("#f2b45c"), r()) : mix(hex("#7e8b92"), hex("#3f4a52"), r()), 0.8, 2);
+    if (lit) dab(ctx, cx, 136, 10, 14, 0, hex("#fffbe8"), 0.95); // the flame
+    unclipBoth(ctx);
+    // the lantern's frame: straight mullions and a base rail
+    ctx.strokeStyle = rgba(iron(0.15));
+    ctx.lineCap = "round";
+    for (const [x0, x1, w] of [[cx - 26, cx - 20, 5], [cx, cx, 3.5], [cx + 26, cx + 20, 5]]) { ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(x0, 100); ctx.lineTo(x1, 170); ctx.stroke(); }
+    knife(ctx, r, cx - 24, 172, 0, 48, 7, iron(0.3));
+    const cap = new Path2D();
+    cap.moveTo(cx - 36, 102); cap.lineTo(cx, 62); cap.lineTo(cx + 36, 102); cap.closePath();
+    ctx.fillStyle = rgba(iron(0.2));
+    ctx.fill(cap);
+    knife(ctx, r, cx - 30, 98, -0.82, 34, 4, iron(0.55), 0.7);
+    dab(ctx, cx, 56, 7, 7, 0, iron(0.3), 1);
+  });
+  hx.save(); hx.globalCompositeOperation = "destination-in"; hx.drawImage(cv, 0, 0); hx.restore();
+  hx.save(); hx.globalCompositeOperation = "destination-over"; hx.fillStyle = grey(20); hx.fillRect(0, 0, W, H); hx.restore();
+  const alpha = createCanvas(W, H);
+  alpha.getContext("2d").drawImage(cv, 0, 0);
+  lightRelief(cv, hcv, W, H, 1);
+  ctx.save(); ctx.globalCompositeOperation = "destination-in"; ctx.drawImage(alpha, 0, 0); ctx.restore();
+  PAINT.hx = null;
+  return cv;
+}
+
+if (process.argv.includes("--lamp")) {
+  const dir = path.resolve("public/assets/garden/lamp");
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, "lamp-off.webp"), paintLamp(false).toBuffer("image/webp", 92));
+  fs.writeFileSync(path.join(dir, "lamp-lit.webp"), paintLamp(true).toBuffer("image/webp", 92));
+  console.log("lamp: off + lit");
+  process.exit(0);
+}
+
+if (process.argv.includes("--butterfly")) {
+  const dir = path.resolve("public/assets/garden/butterfly");
+  fs.mkdirSync(dir, { recursive: true });
+  const { out, hotspot } = paintButterfly();
+  for (const [k, cv] of Object.entries(out)) fs.writeFileSync(path.join(dir, `butterfly-${k}.webp`), cv.toBuffer("image/webp", 92));
+  console.log("butterfly hotspot", hotspot.map((v) => v.toFixed(3)).join(", "));
+  process.exit(0);
+}
+
 if (process.argv.includes("--title")) {
   const dir = path.resolve("public/assets/garden/title");
   fs.mkdirSync(dir, { recursive: true });
@@ -2752,8 +2892,8 @@ function paintJournal(W, H, portrait) {
   const k = W / 1600;
   // ground: warm cream, a touch lighter in the middle
   const g = ctx.createLinearGradient(0, 0, 0, H);
-  g.addColorStop(0, "#f6f0e2");
-  g.addColorStop(1, "#f3ecdc");
+  g.addColorStop(0, "#f4ead6");
+  g.addColorStop(1, "#efe2c9");
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, H);
   // edge distance, 0 in the reading column, 1 at the outer edge
@@ -2761,11 +2901,13 @@ function paintJournal(W, H, portrait) {
     ? clamp(Math.max(Math.abs(y / H - 0.5) * 2 - 0.55, Math.abs(x / W - 0.5) * 2 - 0.8) / 0.45)
     : clamp((Math.abs(x / W - 0.5) * 2 - 0.42) / 0.58);
   // broad, thin brushwork everywhere: the paint barely changes colour, so it reads as texture
-  withThickness(0.18, () => {
-    for (let i = 0; i < (W * H) / 2600; i++) {
+  // (richer than before: more visible strokes, with faint sage and blush passes even in the middle)
+  withThickness(0.3, () => {
+    for (let i = 0; i < (W * H) / 1900; i++) {
       const x = r() * W, y = r() * H, e = edge(x, y);
-      const col = mix(hex("#f7f1e4"), r() < 0.5 ? hex("#ece2cd") : hex("#fbf7ee"), 0.35 + r() * 0.4);
-      stroke(ctx, r, x, y, (r() - 0.5) * 0.5 + (r() < 0.5 ? 0 : Math.PI), (60 + r() * 120) * k, (14 + r() * 22) * k, col, 0.22 + e * 0.2, 3);
+      const t = r();
+      const col = t < 0.12 ? mix(hex("#e4e3c4"), hex("#d3dab4"), r()) : t < 0.2 ? mix(hex("#f1dccf"), hex("#ecd0c3"), r()) : mix(hex("#f6eddb"), r() < 0.5 ? hex("#e6d6b8") : hex("#fbf5e8"), 0.35 + r() * 0.5);
+      stroke(ctx, r, x, y, (r() - 0.5) * 0.5 + (r() < 0.5 ? 0 : Math.PI), (60 + r() * 130) * k, (14 + r() * 24) * k, col, 0.32 + e * 0.22, 3);
     }
   });
   // sage and blush washes pooling at the edges
@@ -2774,7 +2916,7 @@ function paintJournal(W, H, portrait) {
   const washes = portrait
     ? [[0.0, 0.0, "#c9d4ae"], [1.0, 0.08, "#efcfc4"], [0.0, 0.95, "#efd2c6"], [1.0, 1.0, "#c3cfa6"], [0.5, -0.04, "#dfe3c8"], [0.5, 1.04, "#d8dfbf"]]
     : [[0.0, 0.12, "#c9d4ae"], [0.02, 0.7, "#e9cfc4"], [0.0, 1.0, "#c3cfa6"], [1.0, 0.0, "#efcfc4"], [0.99, 0.45, "#cdd6b2"], [1.0, 0.95, "#e8d3c4"]];
-  for (const [u, v, c] of washes) for (let j = 0; j < 5; j++) glaze(ctx, (u + (r() - 0.5) * 0.08) * W, (v + (r() - 0.5) * 0.18) * H, (0.12 + r() * 0.1) * W, (0.14 + r() * 0.12) * H, hex(c), 0.17);
+  for (const [u, v, c] of washes) for (let j = 0; j < 5; j++) glaze(ctx, (u + (r() - 0.5) * 0.08) * W, (v + (r() - 0.5) * 0.18) * H, (0.12 + r() * 0.1) * W, (0.14 + r() * 0.12) * H, hex(c), 0.27);
   ctx.restore();
   // stronger brushwork inside the washes, following them
   withThickness(0.35, () => {
@@ -2784,7 +2926,7 @@ function paintJournal(W, H, portrait) {
       if (e < 0.2 || r() > e) continue;
       const flow = -Math.PI / 2 + fbm(x / (500 * k), y / (500 * k), 1207, 3) * 1.6;
       const tone = fbm(x / (700 * k), y / (700 * k), 1208, 2) > 0 ? mix(hex("#c4d0a6"), hex("#e6e8d2"), r()) : mix(hex("#ecd0c5"), hex("#f6e6dd"), r());
-      stroke(ctx, r, x, y, flow, (50 + r() * 90) * k, (16 + r() * 18) * k, tone, 0.1 + e * 0.16, 3);
+      stroke(ctx, r, x, y, flow, (50 + r() * 90) * k, (16 + r() * 18) * k, tone, 0.16 + e * 0.26, 3);
     }
   });
   // a few painted stems: grasses, a cosmos and small blossoms, in two corners
@@ -2816,7 +2958,7 @@ function paintJournal(W, H, portrait) {
     stems(-10 * k, H + 10 * k, 1, 16, 1211);
     stems(W + 10 * k, H * 0.36, -1, 9, 1212);
   }
-  lightRelief(cv, hcv, W, H, 0.7);
+  lightRelief(cv, hcv, W, H, 1.05);
   PAINT.hx = null;
   return cv;
 }

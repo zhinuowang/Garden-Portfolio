@@ -68,3 +68,14 @@ The Landing statements live in `src/data/site.ts` → `landingScenes`. Edit them
   Scene 2 settles), back again on the way up. The h1 keeps "A Garden of Ideas" for
   screen readers. On devices with a mouse a small painted butterfly (`--butterfly`) is the cursor on the Landing
   page only, with its head at the click point; over links the normal pointer returns. Touch devices and reduced motion keep the normal cursor.
+- **Night in the garden.** A painted lamppost stands at the end of the cottage's fence in Scene 1 (`--lamp`).
+  Clicking it lights the lantern and slowly turns the garden to night: a moonlit blue wash multiplied into the
+  painting, a soft moon, stars and a few fireflies, a warm pool of lamplight, and the title brightened to read on
+  the night sky. Night is remembered (localStorage, restored before first paint) and carries to the Work garden
+  (moonlit wash, cream labels) and the case studies (dimmed painted backdrop, cream text); About and Contact
+  keep their day look. The palette tokens are registered with `@property` so text and backgrounds fade rather
+  than snap. While it is night a small "Day" lantern switch sits in the header; on the Landing page the cursor
+  becomes a softly glowing firefly at the same click point.
+- **Typography.** Fraunces is set to its softest (`"SOFT" 100`) everywhere it is used, for rounded, organic
+  terminals instead of sharp wedges; DM Sans (body) and Caveat (handwritten labels) are unchanged.
+
