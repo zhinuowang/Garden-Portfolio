@@ -8,10 +8,9 @@ import { useNight } from "@/components/night/night";
 // low volume (a little lower at night), loops, and fades out before pausing. The control lives in the site
 // header, which stays mounted across page changes, so the music carries on uninterrupted between pages.
 //
-// THE TRACK: place a licensed or original audio file at
-//   public/audio/garden-music.mp3
-// (a seamless loop, ideally ~2–4 min, mastered quietly). Until that file exists the button says "Music coming
-// soon" and nothing plays — no external or commercial audio is used.
+// THE TRACK: public/audio/garden-music.mp3, a calm solo-piano piece supplied by Zhinuo (Clavier Music,
+// "Calming Piano — Soft and Peaceful", 1:48, 256 kbps). To change it, replace that file. If it is missing or
+// the browser refuses to play it, the button says "Music coming soon" and nothing plays.
 
 export const MUSIC_SRC = "/audio/garden-music.mp3";
 
@@ -24,22 +23,25 @@ export default function GardenMusic() {
   const night = useNight();
   const [status, setStatus] = useState<Status>("off");
   const audio = useRef<HTMLAudioElement | null>(null);
-  const fadeRaf = useRef(0);
+  const fadeTimer = useRef(0);
 
-  // ease the volume to `to` over `ms`, then run `done`
+  // ease the volume to `to` over `ms`, then run `done`. A timer (not requestAnimationFrame) drives it, so the
+  // fade still completes if the visitor switches to another tab while the music keeps playing.
   const fade = (to: number, ms: number, done?: () => void) => {
     const a = audio.current;
     if (!a) return;
-    cancelAnimationFrame(fadeRaf.current);
+    window.clearInterval(fadeTimer.current);
     const from = a.volume, start = performance.now();
-    const step = (now: number) => {
-      const t = Math.min(1, (now - start) / ms);
+    const step = () => {
+      const t = Math.min(1, (performance.now() - start) / ms);
       const eased = t * t * (3 - 2 * t);
       a.volume = Math.max(0, Math.min(1, from + (to - from) * eased));
-      if (t < 1) fadeRaf.current = requestAnimationFrame(step);
-      else done?.();
+      if (t >= 1) {
+        window.clearInterval(fadeTimer.current);
+        done?.();
+      }
     };
-    fadeRaf.current = requestAnimationFrame(step);
+    fadeTimer.current = window.setInterval(step, 30);
   };
 
   const turnOn = async () => {
@@ -75,7 +77,7 @@ export default function GardenMusic() {
   }, [night]);
 
   useEffect(() => () => {
-    cancelAnimationFrame(fadeRaf.current);
+    window.clearInterval(fadeTimer.current);
     audio.current?.pause();
   }, []);
 

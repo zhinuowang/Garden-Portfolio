@@ -51,9 +51,9 @@ Removed (all recoverable from the tag): the homepage sections `GardenGate`, `Gar
 - **Background music.** `GardenMusic` in the site header (so it survives page changes): a small painted note, off by
   default and never autoplayed. On click the track fades in over ~1.8 s to a low volume (0.22 by day, 0.15 at night,
   eased without restarting when the lamp is lit), loops, and on the second click fades out over ~1.5 s before
-  pausing. It plays from `public/audio/garden-music.mp3` — **not yet supplied**: add a licensed or original track
-  there (soft piano, quiet nature ambience, seamless loop). Until then the button reads "Background music coming
-  soon" and nothing plays. `aria-pressed`, an accessible label and a handwritten hint on hover or focus; the sound
+  pausing. It plays `public/audio/garden-music.mp3`, a calm solo-piano track supplied by Zhinuo (1:48, looped);
+  replace that file to change the music. If the file is missing or playback is refused, the button reads
+  "Background music coming soon" and nothing plays. The fade runs on a timer, so it completes even in a background tab. `aria-pressed`, an accessible label and a handwritten hint on hover or focus; the sound
   curls hold still with reduced motion.
 - **Garden mailbox (Landing and Contact).** `Mailbox`: one painting in layers (`--mailbox`, drawn at 2× so it stays
   crisp when large): body, envelope, flag, door, and on Contact a small patch of daisies and pink flowers at its foot.
