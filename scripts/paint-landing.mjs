@@ -3471,6 +3471,84 @@ if (process.argv.includes("--foreground")) {
   process.exit(0);
 }
 
+/**
+ * Stemless flower heads for the Contact page's foreground: an anemone (white), a garden rose (blush), a
+ * ranunculus (soft red) and one loose petal. Seen a little from the side, painted loosely petal by petal
+ * with soft tonal shading, a lit rim and impasto in the lights, so they read as oil paint, not icons.
+ */
+function paintHead(kind) {
+  const S = kind === "head-petal" ? 240 : 420;
+  const cv = createCanvas(S, S), ctx = cv.getContext("2d");
+  const hcv = createCanvas(S, S), hx = hcv.getContext("2d");
+  hx.fillStyle = grey(20);
+  hx.fillRect(0, 0, S, S);
+  PAINT.hx = hx;
+  const r = rng(2300 + kind.charCodeAt(5) * 3 + kind.length);
+  const c = S / 2, squash = 0.84; // a slight three-quarter view
+  // a cupped petal: a soft body, a shaded base toward the centre, bristle strokes along it and a lit rim
+  const petal = (ang, d, len, w, col, shade, light) => {
+    const x = c + Math.cos(ang) * d, y = c + Math.sin(ang) * d * squash;
+    const tx = c + Math.cos(ang) * (d + len * 0.5), ty = c + Math.sin(ang) * (d + len * 0.5) * squash;
+    ctx.save(); ctx.filter = "blur(1.2px)"; dab(ctx, tx, ty, len * 0.55, w * 0.5, ang, col, 0.96); ctx.restore();
+    dab(ctx, tx, ty, len * 0.5, w * 0.44, ang, col, 0.9);
+    dab(ctx, x + Math.cos(ang) * len * 0.1, y + Math.sin(ang) * len * 0.1 * squash, len * 0.24, w * 0.3, ang, shade, 0.5);
+    // a few soft bristle marks that stay inside the petal, and a lit rim toward its outer edge
+    for (let i = 0; i < 4; i++) {
+      const o = (r() - 0.5) * w * 0.4;
+      stroke(ctx, r, x + Math.cos(ang) * len * 0.15 - Math.sin(ang) * o, y + (Math.sin(ang) * len * 0.15 + Math.cos(ang) * o) * squash, ang + (r() - 0.5) * 0.12, len * (0.4 + r() * 0.2), w * 0.1, mix(col, i % 2 ? light : shade, 0.2 + r() * 0.15), 0.4, 2);
+    }
+    const ex = c + Math.cos(ang) * (d + len * 0.78), ey = c + Math.sin(ang) * (d + len * 0.78) * squash;
+    if (r() < 0.6) dab(ctx, ex + (r() - 0.5) * w * 0.2, ey, len * (0.1 + r() * 0.12), w * (0.14 + r() * 0.16), ang + Math.PI / 2 + (r() - 0.5) * 0.5, light, 0.22 + r() * 0.25);
+  };
+  withThickness(0.85, () => {
+    if (kind === "head-white") {
+      // an anemone: broad white petals, cool grey-violet in the shadows, a dark velvet heart ringed with stamens
+      const n = 6;
+      for (let i = 0; i < n; i++) petal((i / n) * Math.PI * 2 + 0.3 + (r() - 0.5) * 0.15, 12, 150, 132, mix(hex("#fbf7f0"), hex("#f1ece6"), r()), hex("#c9c3cf"), hex("#fffdf8"));
+      for (let i = 0; i < n; i++) petal((i / n) * Math.PI * 2 + 0.3 + Math.PI / n, 8, 120, 104, mix(hex("#fdfaf4"), hex("#f4eee8"), r()), hex("#d4cdd6"), hex("#ffffff"));
+      dab(ctx, c, c, 30, 27, 0, hex("#3e3a3c"), 1);
+      for (let i = 0; i < 36; i++) { const a = r() * Math.PI * 2, d2 = 26 + r() * 14; dab(ctx, c + Math.cos(a) * d2, c + Math.sin(a) * d2 * squash, 3.2, 3.2, 0, r() < 0.8 ? hex("#2f2b2d") : hex("#d9b25a"), 0.95); }
+      dab(ctx, c - 8, c - 9, 9, 7, 0, hex("#6a6466"), 0.8);
+    } else if (kind === "head-blush" || kind === "head-red") {
+      // a garden rose (blush) or a ranunculus (soft red): rings of cupped petals deepening to a rolled heart
+      const red = kind === "head-red";
+      const base = red ? hex("#d9675c") : hex("#f0aab2"), deep = red ? hex("#a8433d") : hex("#cf7c8a"), lite = red ? hex("#f4b3a3") : hex("#fde3e3");
+      const rings = red ? [12, 11, 10, 9, 8, 7, 6] : [8, 7, 6, 5, 5, 4];
+      rings.forEach((n, k) => {
+        const t = k / rings.length, len = (red ? 150 : 165) * (1 - t * 0.72), w = len * (red ? 0.8 : 1.0);
+        for (let i = 0; i < n; i++) {
+          const a = (i / n) * Math.PI * 2 + k * 0.55 + (r() - 0.5) * 0.2;
+          petal(a, 4 + (1 - t) * 6, len, w, mix(mix(base, lite, 0.35 - t * 0.2 + r() * 0.15), deep, t * 0.45), mix(deep, hex("#6e2a2c"), 0.2), mix(lite, hex("#ffffff"), 0.3));
+        }
+      });
+      dab(ctx, c, c, 16, 14, 0.3, red ? hex("#8e9a5a") : deep, 0.9);
+      for (let i = 0; i < 4; i++) stroke(ctx, r, c - 12 + i * 5, c - 4 + i * 3, 0.4 + i * 0.6, 22, 5, mix(deep, lite, r() * 0.3), 0.8, 2);
+    } else {
+      // a single petal, curling a little, soft red with a pale edge
+      const p = new Path2D();
+      p.moveTo(40, 170); p.bezierCurveTo(60, 60, 180, 30, 210, 70); p.bezierCurveTo(200, 140, 120, 200, 40, 170); p.closePath();
+      ctx.save(); ctx.filter = "blur(1.2px)"; ctx.fillStyle = rgba(hex("#e07a6c")); ctx.fill(p); ctx.restore();
+      clipBoth(ctx, p);
+      for (let i = 0; i < 18; i++) stroke(ctx, r, 50 + r() * 40, 150 + r() * 20, -0.7 + (r() - 0.5) * 0.3, 120 + r() * 60, 10, mix(hex("#e07a6c"), r() < 0.5 ? hex("#f6c2b4") : hex("#b5524a"), 0.3 + r() * 0.3), 0.6, 2);
+      unclipBoth(ctx);
+      dab(ctx, 160, 80, 26, 8, -0.4, hex("#fbd8cc"), 0.6);
+    }
+  });
+  lightRelief(cv, hcv, S, S, 1);
+  PAINT.hx = null;
+  return cv;
+}
+
+if (process.argv.includes("--heads")) {
+  const dir = path.resolve("public/assets/garden/flora");
+  fs.mkdirSync(dir, { recursive: true });
+  for (const kind of ["head-white", "head-blush", "head-red", "head-petal"]) {
+    fs.writeFileSync(path.join(dir, `${kind}.webp`), paintHead(kind).toBuffer("image/webp", 90));
+    console.log(kind);
+  }
+  process.exit(0);
+}
+
 /** v: "journal" (case studies), "about" (a quiet corner of the garden) or "contact" (the last stop). */
 function paintJournal(W, H, portrait, v = "journal") {
   const cv = createCanvas(W, H);

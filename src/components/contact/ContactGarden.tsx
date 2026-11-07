@@ -29,8 +29,9 @@ function Label({ title, sub }: { title: string; sub: React.ReactNode }) {
   );
 }
 
+// each method reads from its left edge, in line with the title above
 const card =
-  "contact-card group flex min-h-11 w-full flex-col items-center rounded-3xl px-1 pt-4 pb-5 text-center sm:px-3 focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-moss";
+  "contact-card group flex min-h-11 w-full flex-col items-start rounded-3xl pt-2 pb-3 text-left focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-moss";
 
 export default function ContactGarden() {
   const dialog = useRef<HTMLDialogElement>(null);
@@ -47,19 +48,15 @@ export default function ContactGarden() {
       <div aria-hidden="true" className="journal-backdrop journal-backdrop--contact" />
       <FloatingFlora variant="single" />
 
-      {/* one composition: the title centred over everything; below it the three ways to reach me as one
-          group, and to their right — a little in from the edge — the larger garden mailbox in its flowers */}
-      <section aria-labelledby="contact-title" className="garden-mist garden-mist--soft relative mx-auto w-full max-w-6xl">
-        <div className="text-center">
-          <p className="font-hand text-2xl text-moss">the last stop in the garden</p>
-          <h1 id="contact-title" className="mt-1 font-serif text-[clamp(2.5rem,6vw,4.2rem)] leading-[1.04] font-medium text-ink">
+      {/* one composition: a left-aligned block — the title and the three ways to reach me — and, on the
+          right, the garden mailbox in its flowers as the page's visual anchor */}
+      <section aria-labelledby="contact-title" className="garden-mist garden-mist--soft relative mx-auto grid w-full max-w-6xl items-center gap-10 lg:grid-cols-[minmax(0,1fr)_21rem] lg:gap-12 lg:pr-[3vw] xl:pr-[4vw]">
+        <div className="lg:pb-6">
+          <h1 id="contact-title" className="font-serif text-[clamp(2.6rem,5.6vw,4.6rem)] leading-[1.04] font-medium text-ink">
             Let&rsquo;s stay in touch.
           </h1>
-          <p className="mx-auto mt-4 max-w-md text-lg text-ink-soft">For opportunities, collaborations, or a friendly hello.</p>
-        </div>
 
-        <div className="mt-8 grid items-end gap-4 lg:mt-2 lg:grid-cols-[minmax(0,1fr)_21rem] lg:gap-6 lg:pr-[3vw] xl:pr-[5vw]">
-          <ul className="mx-auto grid w-full max-w-2xl grid-cols-3 gap-1 sm:gap-6 lg:mr-0 lg:mb-10">
+          <ul className="mt-10 grid max-w-2xl grid-cols-3 gap-3 sm:mt-12 sm:gap-10">
             <li style={{ ["--tilt" as string]: "-3deg" }}>
               <a href={`mailto:${contact.email}`} className={card}>
                 <Icon kind="email" />
@@ -80,10 +77,11 @@ export default function ContactGarden() {
               </button>
             </li>
           </ul>
+        </div>
 
           {/* the Landing's mailbox, larger, in its own patch of flowers: it opens on hover; a click opens it
               and leaves a small thank-you note (this page is already where it leads) */}
-          <div className="relative mx-auto w-44 sm:w-56 lg:-mt-28 lg:w-full">
+          <div className="relative mr-2 ml-auto w-44 sm:w-56 lg:mr-0 lg:w-full">
             <button
               type="button"
               aria-expanded={note}
@@ -99,7 +97,6 @@ export default function ContactGarden() {
               {note ? "Thanks for stopping by my garden!" : ""}
             </p>
           </div>
-        </div>
       </section>
 
       {/* WeChat: a small panel; Esc, the close button or a click outside it closes it */}

@@ -9,7 +9,7 @@ Checkpoint before the change: git tag `phase-2-checkpoint`.
 | `/` | Landing | Three scenes of one painted garden: the title, three thoughts on the hills, and afternoon tea with the Explore My Work sign |
 | `/about` | About | Botanical-journal page: intro, education, experience and skills from the resume, plus Download Resume |
 | `/work` | Work | One full-width painted garden with three project landmarks and a small guide — the whole page is the scene |
-| `/contact` | Contact | "Let's stay in touch." with three hand-painted contact icons: Email, LinkedIn, WeChat |
+| `/contact` | Contact | "Let's stay in touch." and three hand-painted contact icons (Email, LinkedIn, WeChat) as one left-aligned block; the garden mailbox on the right |
 | `/work/[slug]` | Case study ×5 | Secondary detail pages, with Back to Work and Next Project |
 
 The persistent nav is Home / About / Work (Contact is reached through the garden mailbox on the Landing); the current page is marked with `aria-current`. The brand reads
@@ -44,6 +44,8 @@ Removed (all recoverable from the tag): the homepage sections `GardenGate`, `Gar
   on the right it may touch an image's outer edge (≈36 px), on the left barely at all (the contents links stay clear).
   Smaller and fewer on tablets; on phones they only peek in (≤ 22 px) and move more gently. With reduced motion they
   stay put on the page. Clicks always reach the content beneath.
+  On Contact the foreground is lighter: five small stemless flower heads (an anemone, a garden rose, a ranunculus and a
+  loose petal; `--heads`) composed round the window's corners and kept about 40 px clear of the content.
 - **Garden mailbox (Landing and Contact).** `Mailbox`: one painting in layers (`--mailbox`, drawn at 2× so it stays
   crisp when large): body, envelope, flag, door, and on Contact a small patch of daisies and pink flowers at its foot.
   On hover or focus the arched door tips open, the flag lifts and a little envelope slides out (≈ 0.4 s). On the
@@ -70,7 +72,8 @@ Removed (all recoverable from the tag): the homepage sections `GardenGate`, `Gar
   the heading painted into the sky. It fills the window below the header (a little wider than the window when needed,
   trimming only the edge trees), and the page has no list or footer beneath it; phones get their own tall composition.
   Code: `src/components/work/WorkGarden.tsx`; art: `node scripts/paint-landing.mjs --work`.
-- **Contact.** The last stop in the garden: an oil-painted sky over a meadow with blush flowers
+- **Contact.** The last stop in the garden: a left-aligned block ("Let's stay in touch." and the three methods) with the
+  garden mailbox on the right, over an oil-painted sky over a meadow with blush flowers
   (`node scripts/paint-landing.mjs --contact`) and three hand-painted icons as one set (`--icons`), each with a written
   label. Email opens a `mailto:` link; LinkedIn opens the profile in a new tab; WeChat opens a small panel with Zhinuo's own
   QR card (`public/assets/contact/wechat-qr.jpg`, served unmodified; `contact.wechatQr` in `src/data/site.ts`). On hover or focus an

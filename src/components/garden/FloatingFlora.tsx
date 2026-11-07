@@ -16,7 +16,7 @@ import { useEffect, useRef } from "react";
 // Smaller and fewer on tablets; on phones they only peek in at the edges, slower. With reduced motion they
 // simply stay put on the page.
 
-type Kind = "fg-cosmos" | "fg-daisies" | "fg-rose" | "fg-leaves" | "fg-petals";
+type Kind = "fg-cosmos" | "fg-daisies" | "fg-rose" | "fg-leaves" | "fg-petals" | "head-white" | "head-blush" | "head-red" | "head-petal";
 type Spec = { kind: Kind; side: "l" | "r"; size: number; reach: number; speed: number; rot: number; drift: number };
 
 // one editorial sequence, repeated down long pages: big clusters alternate sides, with a few loose petals
@@ -33,17 +33,20 @@ const SEQUENCE: Spec[] = [
   { kind: "fg-rose", side: "l", size: 300, reach: 0.9, speed: 1.34, rot: 8, drift: 10 },
 ];
 
-// a single-screen page (Contact): a few clusters composed round the corners of the window
+// a single-screen page (Contact): a few small, stemless flower heads drifting round the corners of the
+// window, kept well clear of the text (they stop short of the content column instead of overlapping it)
 const CORNERS: (Spec & { at: number })[] = [
-  { kind: "fg-daisies", side: "l", size: 340, reach: 0.85, speed: 1.3, rot: 6, drift: 6, at: 0.82 },
-  { kind: "fg-leaves", side: "r", size: 360, reach: 0.8, speed: 1.4, rot: 160, drift: 6, at: 0.16 },
-  { kind: "fg-petals", side: "l", size: 130, reach: 0.95, speed: 1.6, rot: -20, drift: 12, at: 0.3 },
+  { kind: "head-blush", side: "r", size: 128, reach: 0.62, speed: 1.35, rot: -12, drift: 8, at: 0.15 },
+  { kind: "head-white", side: "l", size: 116, reach: 0.6, speed: 1.3, rot: 10, drift: 8, at: 0.86 },
+  { kind: "head-red", side: "r", size: 88, reach: 0.7, speed: 1.45, rot: 18, drift: 10, at: 0.9 },
+  { kind: "head-petal", side: "l", size: 54, reach: 0.95, speed: 1.6, rot: -24, drift: 14, at: 0.2 },
+  { kind: "head-white", side: "r", size: 62, reach: 0.8, speed: 1.55, rot: -30, drift: 12, at: 0.52 },
 ];
 
 const SPACING = 640; // page pixels between clusters on desktop
 
 // where each painting ends, as a fraction of its canvas measured from the stem side (the rest is empty canvas)
-const INK: Record<Kind, number> = { "fg-cosmos": 0.74, "fg-daisies": 0.8, "fg-rose": 0.78, "fg-leaves": 0.97, "fg-petals": 0.98 };
+const INK: Record<Kind, number> = { "fg-cosmos": 0.74, "fg-daisies": 0.8, "fg-rose": 0.78, "fg-leaves": 0.97, "fg-petals": 0.98, "head-white": 0.95, "head-blush": 0.95, "head-red": 0.95, "head-petal": 0.92 };
 
 export default function FloatingFlora({ variant = "long" }: { variant?: "long" | "single" }) {
   const anchor = useRef<HTMLDivElement>(null);
@@ -75,8 +78,10 @@ export default function FloatingFlora({ variant = "long" }: { variant?: "long" |
       const scale = tier === "desktop" ? 1 : tier === "tablet" ? 0.62 : 0.42;
       // how far a painting may reach past the content's edge: a little onto an image's outer edge on the right,
       // barely at all on the left, where the case studies keep their contents links
-      const overlapR = tier === "desktop" ? 36 : tier === "tablet" ? 16 : 6;
-      const overlapL = tier === "desktop" ? 12 : tier === "tablet" ? 10 : 6;
+      // (on a single-screen page the heads stop well short of the content instead: negative overlap)
+      const single = variant === "single";
+      const overlapR = single ? (tier === "phone" ? -2 : -40) : tier === "desktop" ? 36 : tier === "tablet" ? 16 : 6;
+      const overlapL = single ? (tier === "phone" ? -2 : -40) : tier === "desktop" ? 12 : tier === "tablet" ? 10 : 6;
       const top = box.getBoundingClientRect().top + window.scrollY;
       // the content's outer edges: the reading column on the left (its links stay clear), and on the right the
       // text-and-image column where a page marks one (data-flora-edge), so a cluster can just touch an image's edge
@@ -87,13 +92,14 @@ export default function FloatingFlora({ variant = "long" }: { variant?: "long" |
       const marginR = edge && tier === "desktop" ? Math.max(0, vw - edge.right) : column ? Math.max(0, vw - column.right) : 24;
       let specs: (Spec & { y: number })[];
       if (variant === "single") {
-        specs = CORNERS.map((s) => ({ ...s, y: top + vh * s.at }));
+        // composed for the unscrolled window: a head starts exactly at `at` of the window's height, then drifts
+        specs = CORNERS.map((s) => ({ ...s, y: top + vh / 2 + (vh * s.at - vh / 2) / (still.matches ? 1 : s.speed) }));
       } else {
         const height = box.offsetHeight, step = SPACING * (tier === "phone" ? 1.5 : tier === "tablet" ? 1.2 : 1);
         specs = [];
         for (let i = 0, y = vh * 0.55; y < height - vh * 0.2; i++, y += step) specs.push({ ...SEQUENCE[i % SEQUENCE.length], y: top + y });
       }
-      if (tier !== "desktop") specs = specs.filter((s) => s.kind !== "fg-petals");
+      if (tier !== "desktop") specs = specs.filter((s) => s.kind !== "fg-petals" && s.size >= 80);
       fg.replaceChildren();
       items = specs.map((spec) => {
         const w = Math.round(spec.size * scale);
@@ -112,7 +118,7 @@ export default function FloatingFlora({ variant = "long" }: { variant?: "long" |
         const img = document.createElement("img");
         img.src = `/assets/garden/flora/${spec.kind}.webp`;
         img.alt = "";
-        img.width = spec.kind === "fg-petals" ? 360 : 640;
+        img.width = spec.kind === "fg-petals" ? 360 : spec.kind === "head-petal" ? 240 : spec.kind.startsWith("head-") ? 420 : 640;
         img.height = img.width;
         img.decoding = "async";
         img.draggable = false;
