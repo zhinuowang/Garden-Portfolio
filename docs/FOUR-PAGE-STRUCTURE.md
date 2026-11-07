@@ -57,8 +57,8 @@ Removed (all recoverable from the tag): the homepage sections `GardenGate`, `Gar
   Code: `src/components/work/WorkGarden.tsx`; art: `node scripts/paint-landing.mjs --work`.
 - **Contact.** The last stop in the garden: an oil-painted sky over a meadow with blush flowers
   (`node scripts/paint-landing.mjs --contact`) and three hand-painted icons as one set (`--icons`), each with a written
-  label. Email opens a `mailto:` link; LinkedIn opens the profile in a new tab; WeChat opens a small panel that will hold
-  the QR code (`contact.wechatQr` in `src/data/site.ts`; a labelled placeholder until it is supplied). On hover or focus an
+  label. Email opens a `mailto:` link; LinkedIn opens the profile in a new tab; WeChat opens a small panel with Zhinuo's own
+  QR card (`public/assets/contact/wechat-qr.jpg`, served unmodified; `contact.wechatQr` in `src/data/site.ts`). On hover or focus an
   icon lifts, tilts a little and catches a soft light (300 ms; none with reduced motion).
 
 ## Copy to edit

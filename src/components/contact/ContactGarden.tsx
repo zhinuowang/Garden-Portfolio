@@ -78,7 +78,14 @@ export default function ContactGarden() {
           <h2 id="wechat-title" className="font-serif text-2xl font-medium text-ink">WeChat</h2>
           {contact.wechatQr ? (
             <>
-              <Image src={contact.wechatQr} alt="Zhinuo Wang's WeChat QR code" width={480} height={480} className="mx-auto mt-4 w-56 rounded-xl" />
+              <Image
+                src={contact.wechatQr.src}
+                alt="Zhinuo Wang's WeChat QR code (WeChat name 小诺., Toronto, Canada)"
+                width={contact.wechatQr.width}
+                height={contact.wechatQr.height}
+                unoptimized
+                className="mx-auto mt-4 h-auto w-60 rounded-xl"
+              />
               <p className="mt-3 text-sm text-ink-soft">Scan with WeChat to add me.</p>
             </>
           ) : (

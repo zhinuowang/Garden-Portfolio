@@ -95,7 +95,7 @@ export const about = {
 export const contact = {
   email: "zhinuowang0601@gmail.com", // from Resume.pdf
   linkedin: "https://www.linkedin.com/in/zhinuo-wang-81a6b4271", // supplied by Zhinuo in chat (2026-11-06)
-  // Zhinuo's real WeChat QR code goes here once supplied (e.g. "/assets/contact/wechat-qr.png").
-  // Until then the WeChat panel shows a clearly labelled placeholder: never a made-up code.
-  wechatQr: null as string | null,
+  // Zhinuo's own WeChat QR card, supplied in chat (2026-11-07), shown exactly as supplied.
+  // Set to null to fall back to the labelled placeholder: never a made-up code.
+  wechatQr: { src: "/assets/contact/wechat-qr.jpg", width: 888, height: 1131 } as { src: string; width: number; height: number } | null,
 };
