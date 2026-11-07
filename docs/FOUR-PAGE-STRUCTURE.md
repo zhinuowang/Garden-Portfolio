@@ -55,9 +55,9 @@ Removed (all recoverable from the tag): the homepage sections `GardenGate`, `Gar
 
 The Landing statements live in `src/data/site.ts` → `landingScenes`. Edit them there.
 - **Case studies (Dog Nutrition Tracker, Eliminate Bacteria Pro, Little Moments).** Each is a page from the garden's
-  field journal: a fixed oil-painted backdrop (a calm cream reading area framed by large, soft fields of blush,
-  coral, muted orange, golden yellow, sage, moss and a little lavender, with selective brushwork, a few impasto
-  passes and painted stems at the edges; `node scripts/paint-landing.mjs --journal`), contents in the margin, sage vines under headings and
+  field journal: a fixed oil-painted backdrop in three colours — blush rose, sage and soft lavender — blending
+  gradually into a calm, faintly brushed ivory reading area, with selective brushwork, a few impasto passes and
+  painted stems at the edges; `node scripts/paint-landing.mjs --journal`), contents in the margin, sage vines under headings and
   leaf bullets. Project images sit straight on the page with no card, border or tape; only those with an opaque
   background get a faint, diffused neutral shadow. The images themselves are untouched.
 - **Landing title and cursor.** "A Garden of Ideas" is hand-lettered with a brush in oil, lowercase on two staggered
@@ -75,7 +75,8 @@ The Landing statements live in `src/data/site.ts` → `landingScenes`. Edit them
   area reaches past the slender post. Clicking runs one coordinated dusk (`night.ts`): the lamp lights, the scenes
   cross-fade (2.2 s) to pre-painted moonlit versions (`node scripts/night-grade.mjs`), the moon, stars and
   fireflies appear, and once it is dusk the page's text palette and the cursor follow (the butterfly becomes a
-  small firefly with a glowing tail). Only opacity, transform and a few small filters animate; the night art is
+  small, cute firefly — round head with bright eyes and curled antennae, veined wings that flutter in flight,
+  and a plump honey-gold tail glowing in a soft halo); the loose grass clumps of Scene 2 fade away at night. Only opacity, transform and a few small filters animate; the night art is
   loaded with the page. Night is remembered and carries to the Work garden and the case studies (their night
   paintings and backdrop cross-fade in; project images are never filtered); About and Contact keep their day look.
   While it is night a small "Day" lantern switch sits in the header.

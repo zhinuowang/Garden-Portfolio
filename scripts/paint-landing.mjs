@@ -2985,9 +2985,10 @@ function paintJournal(W, H, portrait) {
   const k = W / 1600;
   // ground: warm cream, a breath of variation across it
   const g = ctx.createLinearGradient(0, 0, W, H);
-  g.addColorStop(0, "#f2e3c9");
-  g.addColorStop(0.5, "#f4e7d0");
-  g.addColorStop(1, "#efdfc2");
+  // a clean, faintly rosy ivory (no yellow cast)
+  g.addColorStop(0, "#f6ede7");
+  g.addColorStop(0.5, "#f8f1ec");
+  g.addColorStop(1, "#f3ebe4");
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, H);
   // how far a point is from the reading column (0) toward the frame (1)
@@ -2995,10 +2996,12 @@ function paintJournal(W, H, portrait) {
     ? clamp(Math.max(Math.abs(y / H - 0.5) * 2 - 0.5, Math.abs(x / W - 0.5) * 2 - 0.86) / 0.45)
     : clamp((Math.abs(x / W - 0.5) * 2 - 0.5) / 0.45);
   // 1 · large colour fields at the frame, as soft glazes (the richness lives here)
+  // three colours only: blush rose, sage and soft lavender
+  const ROSE = "#eeb0ae", SAGE = "#a6bc92", LAV = "#bcaad6";
   const FIELDS = portrait
-    ? [[0.0, 0.0, "#f2a48f"], [0.55, -0.02, "#efc06a"], [1.0, 0.05, "#b8a6d2"], [0.0, 0.97, "#9db682"], [0.6, 1.02, "#f0b4ab"], [1.0, 0.95, "#e9a873"]]
-    : [[-0.02, 0.05, "#f0a28d"], [0.02, 0.38, "#eab074"], [-0.02, 0.7, "#a8bd88"], [0.02, 1.0, "#7f9b63"],
-       [1.02, 0.0, "#efc169"], [0.98, 0.3, "#f1b1aa"], [1.02, 0.62, "#b7a5d0"], [0.98, 0.98, "#9cb57e"]];
+    ? [[0.0, 0.0, ROSE], [0.55, -0.02, LAV], [1.0, 0.05, ROSE], [0.0, 0.97, SAGE], [0.6, 1.02, ROSE], [1.0, 0.95, SAGE]]
+    : [[-0.02, 0.05, ROSE], [0.02, 0.38, LAV], [-0.02, 0.7, SAGE], [0.02, 1.0, SAGE],
+       [1.02, 0.0, LAV], [0.98, 0.3, ROSE], [1.02, 0.62, LAV], [0.98, 0.98, SAGE]];
   // each field twice: a wide, faint pass that reaches well toward the centre, then the richer body at the frame,
   // so the colour thins out gradually instead of stopping at a line
   ctx.save();
@@ -3012,7 +3015,7 @@ function paintJournal(W, H, portrait) {
   // the centre: no bright slab, but muted tints of the same garden glazed across it — calm, still painted
   ctx.save();
   ctx.filter = `blur(${140 * k}px)`;
-  for (const [u, v, c] of [[0.42, 0.18, "#efd2c0"], [0.6, 0.42, "#e4e1c2"], [0.4, 0.66, "#ecd7bd"], [0.58, 0.9, "#dfe2c4"], [0.5, 0.05, "#ecdcb6"]]) glaze(ctx, u * W, v * H, 0.3 * W, 0.2 * H, hex(c), 0.42);
+  for (const [u, v, c] of [[0.42, 0.18, "#f1d9d8"], [0.6, 0.42, "#e3e7da"], [0.4, 0.66, "#e9e0ee"], [0.58, 0.9, "#e1e8d9"], [0.5, 0.05, "#f0dcde"]]) glaze(ctx, u * W, v * H, 0.3 * W, 0.2 * H, hex(c), 0.42);
   ctx.restore();
   // 2 · brushwork, selectively: loaded strokes inside the colour fields, following a gentle flow
   const fieldAt = (x, y) => {
@@ -3025,7 +3028,7 @@ function paintJournal(W, H, portrait) {
       const x = r() * W, y = r() * H, e = edge(x, y);
       if (e < 0.4 || r() > e * e) continue;
       const flow = -Math.PI / 2 + fbm(x / (600 * k), y / (600 * k), 1307, 3) * 1.4;
-      const tone = mix(fieldAt(x, y), r() < 0.5 ? hex("#fff3e2") : hex("#c98f73"), r() * 0.22);
+      const tone = mix(fieldAt(x, y), r() < 0.5 ? hex("#fbf4f1") : hex("#8f7f8a"), r() * 0.2);
       stroke(ctx, r, x, y, flow, (80 + r() * 120) * k, (26 + r() * 26) * k, tone, 0.4 + e * 0.32, 3);
     }
   });
@@ -3033,7 +3036,7 @@ function paintJournal(W, H, portrait) {
   withThickness(0.25, () => {
     for (let i = 0; i < (W * H) / 38000; i++) {
       const x = (0.2 + r() * 0.6) * W, y = r() * H;
-      const tone = mix(fieldAt(x, y), hex("#f4e7d0"), 0.62 + r() * 0.2);
+      const tone = mix(fieldAt(x, y), hex("#f6eeea"), 0.62 + r() * 0.2);
       stroke(ctx, r, x, y, (r() - 0.5) * 0.35 + (r() < 0.5 ? 0 : Math.PI), (200 + r() * 160) * k, (50 + r() * 40) * k, tone, 0.16, 3);
     }
   });
@@ -3044,7 +3047,7 @@ function paintJournal(W, H, portrait) {
       const x = portrait ? (0.1 + r() * 0.8) * W : (left ? 0.02 + r() * 0.1 : 0.88 + r() * 0.1) * W;
       const y = portrait ? (r() < 0.5 ? 0.02 + r() * 0.1 : 0.88 + r() * 0.1) * H : (0.05 + r() * 0.9) * H;
       const base = fieldAt(x, y), ang = -Math.PI / 2 + (r() - 0.5) * 0.8;
-      for (let n = 0; n < 6; n++) stroke(ctx, r, x + (r() - 0.5) * 34 * k, y + (r() - 0.5) * 34 * k, ang + (r() - 0.5) * 0.4, (26 + r() * 22) * k, (12 + r() * 8) * k, mix(base, r() < 0.6 ? hex("#fff4e4") : hex("#b98468"), r() * 0.3), 0.9, 3);
+      for (let n = 0; n < 6; n++) stroke(ctx, r, x + (r() - 0.5) * 34 * k, y + (r() - 0.5) * 34 * k, ang + (r() - 0.5) * 0.4, (26 + r() * 22) * k, (12 + r() * 8) * k, mix(base, r() < 0.6 ? hex("#fbf4f1") : hex("#8f7f8a"), r() * 0.3), 0.9, 3);
     }
   });
   // 3 · a few painted stems, richer than before, in two corners
@@ -3058,9 +3061,9 @@ function paintJournal(W, H, portrait) {
         const tx = x + Math.cos(ang) * h, ty = y0 + Math.sin(ang) * h;
         const bloom = rr();
         if (bloom < 0.45) {
-          const petal = [hex("#f19c8c"), hex("#efc169"), hex("#f4b7b5"), hex("#c3b1db")][Math.floor(rr() * 4)];
-          for (let p = 0; p < 7; p++) { const a = (p / 7) * Math.PI * 2; dab(ctx, tx + Math.cos(a) * 10 * k, ty + Math.sin(a) * 10 * k, 9 * k, 5 * k, a, mix(petal, hex("#fff3ec"), rr() * 0.3), 0.92); }
-          dab(ctx, tx, ty, 4.5 * k, 4.5 * k, 0, hex("#e3a43c"), 0.95);
+          const petal = [hex("#ee9fa3"), hex("#f4b9b8"), hex("#c3b1db")][Math.floor(rr() * 3)];
+          for (let p = 0; p < 7; p++) { const a = (p / 7) * Math.PI * 2; dab(ctx, tx + Math.cos(a) * 10 * k, ty + Math.sin(a) * 10 * k, 9 * k, 5 * k, a, mix(petal, hex("#fff6f4"), rr() * 0.3), 0.92); }
+          dab(ctx, tx, ty, 4.5 * k, 4.5 * k, 0, hex("#d98591"), 0.95);
         }
         for (let l = 0; l < 2; l++) {
           const t = 0.3 + rr() * 0.4, lx = x + Math.cos(ang) * h * t, ly = y0 + Math.sin(ang) * h * t, side = rr() < 0.5 ? -1 : 1;

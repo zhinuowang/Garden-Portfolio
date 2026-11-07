@@ -297,6 +297,9 @@ html[data-night] .night-sky__details { opacity: 1; transition-delay: 0.9s; }
 /* the painted figures (dogs, sails, water, chair, table) dim into the moonlight alongside the painting */
 .landing-scenes > section > div:not(.night-sky) img { transition: filter var(--dusk); }
 html[data-night] .landing-scenes > section > div:not(.night-sky) img { filter: brightness(0.6) saturate(0.55) hue-rotate(-8deg); }
+/* the loose grass clumps don't belong to the quiet night: they fade away with the dusk and return by day */
+.landing-scenes .living-tuft { transition: opacity 1.4s ease, filter var(--dusk); }
+html[data-night] .landing-scenes .living-tuft { opacity: 0; }
 /* the title, moonlit: a simple brightness lift (no glow filters to animate) */
 html[data-night] .pt-paint { filter: brightness(1.42) saturate(0.9); }
 html[data-night] .pt-letter:hover .pt-paint { filter: brightness(1.6) saturate(0.95); }
@@ -349,30 +352,33 @@ html[data-night] .lamppost__pool { opacity: 1; }
 .lamppost:is(:hover, :focus-visible) .lamppost__hint { opacity: 1; transform: translateX(0) rotate(-3deg); }
 html[data-night-ink] .lamppost__hint { color: #fbf0d6; text-shadow: 0 0 10px rgb(18 24 44 / 0.95), 0 1px 2px rgb(18 24 44 / 0.9); }
 
-/* the firefly cursor: a small insect, its tail glowing warm gold, brighter while it flies */
-.butterfly__firefly { position: absolute; width: 16px; transform: translate(-50%, -12%); opacity: 0; transition: opacity 0.8s ease; pointer-events: none; }
+/* the firefly cursor: a cute little firefly (head on the click point), its plump tail glowing honey-gold
+   inside a soft warm halo that breathes, brightening while it flies */
+.butterfly__firefly { position: absolute; width: 24px; transform: translate(-50%, -16%); opacity: 0; transition: opacity 0.8s ease; pointer-events: none; }
 html[data-night-ink] .butterfly__firefly { opacity: 1; }
-.firefly__bug { position: relative; display: block; width: 100%; overflow: visible; }
-.firefly__wing { fill: rgb(236 240 255 / 0.55); stroke: rgb(255 255 255 / 0.5); stroke-width: 0.6; transform-origin: 10px 7px; }
-.butterfly[data-state="moving"] .firefly__wing--l { animation: ff-wing 0.12s ease-in-out infinite alternate; }
-.butterfly[data-state="moving"] .firefly__wing--r { animation: ff-wing 0.12s ease-in-out infinite alternate-reverse; }
-@keyframes ff-wing { from { transform: rotate(-14deg); } to { transform: rotate(10deg); } }
-.firefly__tail { fill: #fff2a8; filter: drop-shadow(0 0 2px #ffe27a); }
+.firefly__bug { position: relative; display: block; width: 100%; overflow: visible; filter: drop-shadow(0 0 1px rgb(255 248 220 / 0.6)); }
+.firefly__wing { transform-box: fill-box; transition: transform 0.2s ease; }
+.firefly__wing--l { transform-origin: 100% 30%; }
+.firefly__wing--r { transform-origin: 0% 30%; }
+.butterfly[data-state="moving"] .firefly__wing--l { animation: ff-wing-l 0.11s ease-in-out infinite alternate; }
+.butterfly[data-state="moving"] .firefly__wing--r { animation: ff-wing-r 0.11s ease-in-out infinite alternate; }
+@keyframes ff-wing-l { from { transform: rotate(8deg) scaleX(1); } to { transform: rotate(-16deg) scaleX(0.7); } }
+@keyframes ff-wing-r { from { transform: rotate(-8deg) scaleX(1); } to { transform: rotate(16deg) scaleX(0.7); } }
 .firefly__halo {
   position: absolute;
   left: 50%;
-  top: 72%;
-  width: 34px;
+  top: 69%;
+  width: 46px;
   aspect-ratio: 1;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  background: radial-gradient(closest-side, rgb(255 236 150 / 0.75), rgb(255 222 120 / 0.28) 50%, rgb(255 222 120 / 0));
-  opacity: 0.7;
+  background: radial-gradient(closest-side, rgb(255 244 170 / 0.9), rgb(255 226 120 / 0.42) 42%, rgb(255 214 100 / 0.12) 72%, rgb(255 214 100 / 0));
+  opacity: 0.8;
   transition: opacity 0.4s ease, scale 0.4s ease;
-  animation: firefly-breathe 2.8s ease-in-out infinite;
+  animation: firefly-breathe 2.6s ease-in-out infinite;
 }
-.butterfly[data-state="moving"] .firefly__halo { opacity: 1; scale: 1.2; }
-@keyframes firefly-breathe { 0%, 100% { scale: 1; } 50% { scale: 0.85; } }
+.butterfly[data-state="moving"] .firefly__halo { opacity: 1; scale: 1.15; }
+@keyframes firefly-breathe { 0%, 100% { scale: 1; } 50% { scale: 0.86; } }
 .butterfly__perch { transition: transform 0.25s ease, opacity 0.8s ease; }
 html[data-night-ink] .butterfly__perch { opacity: 0; }
 
@@ -741,6 +747,7 @@ html.butterfly-cursor :is(a, button, [role="button"], input, select, textarea, l
   html { scroll-behavior: auto; }
   .pt-paint { transition: none; }
   .night-sky__star, .night-sky__fly, .firefly__halo, .firefly__wing { animation: none !important; }
+  .landing-scenes .living-tuft { transition: none; }
   .night-sky, .night-sky__details, .work-night, .journal-backdrop::after { transition-duration: 0.01s !important; }
   .sway, .drift, .blades, .bubble, .bloom, .garden-sign__board, .living-dog, .living-tail, .living-ball, .living-rocker, .living-water-a, .living-water-b, .living-drop,
   .pt-rise, .work-glow, .work-cue, .work-layer, .work-girl__body, .work-bubble, .work-heart, .work-ripple,
