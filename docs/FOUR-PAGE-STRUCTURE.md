@@ -47,6 +47,8 @@ Removed (all recoverable from the tag): the homepage sections `GardenGate`, `Gar
   structures never float.
   Landmarks are real links: Enter works, and with reduced motion they open at once. Next Project cycles through the
   three. Nomi & Pudding and the Dyson brochure keep their case-study pages but are no longer linked from Work.
+  On wide screens the garden runs full-bleed as a 3000 × 1350 panorama (the landscape extended, not stretched), with
+  the heading painted into the sky; phones get their own tall composition.
   Code: `src/components/work/WorkGarden.tsx`; art: `node scripts/paint-landing.mjs --work`.
 - **Contact.** A pink sky over painted hills and wildflowers. The email link is always visible. Opening the envelope
   raises the flag on a vine-wrapped garden mailbox and slides out a note.
@@ -55,9 +57,9 @@ Removed (all recoverable from the tag): the homepage sections `GardenGate`, `Gar
 
 The Landing statements live in `src/data/site.ts` → `landingScenes`. Edit them there.
 - **Case studies (Dog Nutrition Tracker, Eliminate Bacteria Pro, Little Moments).** Each is a page from the garden's
-  field journal: a fixed oil-painted backdrop in three colours — blush rose, sage and soft lavender — blending
-  gradually into a calm, faintly brushed ivory reading area, with selective brushwork, a few impasto passes and
-  painted stems at the edges; `node scripts/paint-landing.mjs --journal`), contents in the margin, sage vines under headings and
+  field journal: a fixed oil-painted backdrop of soft sky blue, meadow green and warm white clouds — a continuous sky over a low
+  meadow, with the clouds and grass painted in real pigment and selective impasto, and the sky kept calm behind the text
+  (moonlit blue and cool green at night; `node scripts/paint-landing.mjs --journal`), contents in the margin, sage vines under headings and
   leaf bullets. Project images sit straight on the page with no card, border or tape; only those with an opaque
   background get a faint, diffused neutral shadow. The images themselves are untouched.
 - **Landing title and cursor.** "A Garden of Ideas" is hand-lettered with a brush in oil, lowercase on two staggered

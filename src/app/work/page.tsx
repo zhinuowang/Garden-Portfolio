@@ -11,9 +11,10 @@ export const metadata: Metadata = {
 export default function WorkPage() {
   const projects = workSlugs.map((s) => getProject(s)!);
   return (
-    <div className="work-page nightable relative overflow-hidden px-0 pt-32 pb-10 sm:pt-[5.75rem] sm:px-4">
+    <div className="work-page nightable relative overflow-hidden px-0 pt-28 pb-10 sm:pt-[4.2rem]">
       <section aria-labelledby="work-title" className="relative">
-        <h1 id="work-title" className="mx-auto mb-5 max-w-5xl px-4 text-center font-serif text-[clamp(1.6rem,3vw,2.5rem)] leading-tight font-medium text-ink sm:mb-6">
+        {/* the heading sits in the garden's open sky, so the garden itself begins right under the site header */}
+        <h1 id="work-title" className="pointer-events-none absolute inset-x-0 top-[3.5%] z-10 mx-auto max-w-5xl px-4 text-center font-serif text-[clamp(1.6rem,3vw,2.5rem)] leading-tight font-medium text-ink [text-shadow:0_0_18px_rgb(251_243_236/0.7)] portrait-art:top-[2.5%]">
           Choose a place to explore my work.
         </h1>
         <WorkGarden />

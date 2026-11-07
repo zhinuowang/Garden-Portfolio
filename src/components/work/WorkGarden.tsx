@@ -113,8 +113,8 @@ function Stage({ fmt, c, ratio, className }: { fmt: "desktop" | "mobile"; c: Com
       >
         <picture>
           <img
-            src={`/assets/garden/work/garden-${fmt}-${fmt === "desktop" ? 1600 : 720}.webp`}
-            srcSet={fmt === "desktop" ? "/assets/garden/work/garden-desktop-1600.webp 1600w, /assets/garden/work/garden-desktop-2400.webp 2400w" : "/assets/garden/work/garden-mobile-720.webp 720w, /assets/garden/work/garden-mobile-1080.webp 1080w"}
+            src={`/assets/garden/work/garden-${fmt}-${fmt === "desktop" ? 2000 : 720}.webp`}
+            srcSet={fmt === "desktop" ? "/assets/garden/work/garden-desktop-2000.webp 2000w, /assets/garden/work/garden-desktop-3000.webp 3000w" : "/assets/garden/work/garden-mobile-720.webp 720w, /assets/garden/work/garden-mobile-1080.webp 1080w"}
             sizes="100vw"
             alt=""
             className="absolute inset-0 block h-full w-full select-none"
@@ -126,8 +126,8 @@ function Stage({ fmt, c, ratio, className }: { fmt: "desktop" | "mobile"; c: Com
         <img
           aria-hidden="true"
           alt=""
-          src={`/assets/garden/work/garden-${fmt}-${fmt === "desktop" ? 1600 : 720}-night.webp`}
-          srcSet={fmt === "desktop" ? "/assets/garden/work/garden-desktop-1600-night.webp 1600w, /assets/garden/work/garden-desktop-2400-night.webp 2400w" : "/assets/garden/work/garden-mobile-720-night.webp 720w, /assets/garden/work/garden-mobile-1080-night.webp 1080w"}
+          src={`/assets/garden/work/garden-${fmt}-${fmt === "desktop" ? 2000 : 720}-night.webp`}
+          srcSet={fmt === "desktop" ? "/assets/garden/work/garden-desktop-2000-night.webp 2000w, /assets/garden/work/garden-desktop-3000-night.webp 3000w" : "/assets/garden/work/garden-mobile-720-night.webp 720w, /assets/garden/work/garden-mobile-1080-night.webp 1080w"}
           sizes="100vw"
           className="work-night absolute inset-0 block h-full w-full select-none"
           draggable={false}
@@ -237,7 +237,8 @@ function Stage({ fmt, c, ratio, className }: { fmt: "desktop" | "mobile"; c: Com
 export default function WorkGarden() {
   return (
     <>
-      <Stage fmt="desktop" c={anchors.desktop as Composition} ratio={16 / 9} className="portrait-art:hidden" />
+      {/* a full-width panorama (3000 × 1350) on wide screens; a tall composition on phones */}
+      <Stage fmt="desktop" c={anchors.desktop as Composition} ratio={3000 / 1350} className="portrait-art:hidden" />
       <Stage fmt="mobile" c={anchors.mobile as Composition} ratio={9 / 16} className="hidden portrait-art:block" />
     </>
   );

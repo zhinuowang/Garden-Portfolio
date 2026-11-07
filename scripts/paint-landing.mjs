@@ -2965,14 +2965,13 @@ if (process.argv.includes("--title")) {
 }
 
 /**
- * The case-study backdrop, a page from the painted garden: a warm cream ground
- * and a calm, open centre for reading, framed at the edges by large, soft fields
- * of the garden's colours — blush, coral, muted orange, golden yellow, sage and
- * moss, with a little lavender — laid as glazes, then given brushwork only where
- * it helps: a few loaded strokes and small impasto passes inside the colour
- * fields, an organic painted edge where they meet the cream, and a few painted
- * stems in two corners. Low relief (canvas, not emboss); little texture behind
- * the text.
+ * The case-study backdrop: a quiet painted landscape in three colour families —
+ * soft sky blue, painted white clouds and meadow green. An open sky fills the
+ * page; a few cumulus clouds, laid with real lobes of white pigment and a little
+ * impasto, drift in the upper margins; gentle green hills rise at the foot of
+ * the frame. The reading column stays clear, pale sky (no cloud behind the
+ * text), and the colour moves from blue to green gradually — one continuous
+ * painting, no panels. Light canvas relief; brushwork only where it helps.
  */
 function paintJournal(W, H, portrait) {
   const cv = createCanvas(W, H);
@@ -2981,99 +2980,118 @@ function paintJournal(W, H, portrait) {
   const hx = hcv.getContext("2d");
   primeCanvas(hx, W, H);
   PAINT.hx = hx;
-  const r = rng(1301);
+  const r = rng(1401);
   const k = W / 1600;
-  // ground: warm cream, a breath of variation across it
-  const g = ctx.createLinearGradient(0, 0, W, H);
-  // a clean, faintly rosy ivory (no yellow cast)
-  g.addColorStop(0, "#f6ede7");
-  g.addColorStop(0.5, "#f8f1ec");
-  g.addColorStop(1, "#f3ebe4");
-  ctx.fillStyle = g;
+  // the sky: deeper blue at the top, paling toward the horizon (a little paler in the reading column)
+  const sky = ctx.createLinearGradient(0, 0, 0, H);
+  sky.addColorStop(0, "#a9cbe6");
+  sky.addColorStop(0.45, "#cfe2ef");
+  sky.addColorStop(0.8, "#e6eff1");
+  sky.addColorStop(1, "#eaf1ea");
+  ctx.fillStyle = sky;
   ctx.fillRect(0, 0, W, H);
-  // how far a point is from the reading column (0) toward the frame (1)
-  const edge = (x, y) => portrait
-    ? clamp(Math.max(Math.abs(y / H - 0.5) * 2 - 0.5, Math.abs(x / W - 0.5) * 2 - 0.86) / 0.45)
-    : clamp((Math.abs(x / W - 0.5) * 2 - 0.5) / 0.45);
-  // 1 · large colour fields at the frame, as soft glazes (the richness lives here)
-  // three colours only: blush rose, sage and soft lavender
-  const ROSE = "#eeb0ae", SAGE = "#a6bc92", LAV = "#bcaad6";
-  const FIELDS = portrait
-    ? [[0.0, 0.0, ROSE], [0.55, -0.02, LAV], [1.0, 0.05, ROSE], [0.0, 0.97, SAGE], [0.6, 1.02, ROSE], [1.0, 0.95, SAGE]]
-    : [[-0.02, 0.05, ROSE], [0.02, 0.38, LAV], [-0.02, 0.7, SAGE], [0.02, 1.0, SAGE],
-       [1.02, 0.0, LAV], [0.98, 0.3, ROSE], [1.02, 0.62, LAV], [0.98, 0.98, SAGE]];
-  // each field twice: a wide, faint pass that reaches well toward the centre, then the richer body at the frame,
-  // so the colour thins out gradually instead of stopping at a line
   ctx.save();
-  ctx.filter = `blur(${150 * k}px)`;
-  for (const [u, v, c] of FIELDS) glaze(ctx, u * W, v * H, (portrait ? 0.6 : 0.42) * W, (portrait ? 0.26 : 0.34) * H, hex(c), 0.2);
+  ctx.filter = `blur(${160 * k}px)`;
+  glaze(ctx, W / 2, H * 0.55, W * (portrait ? 0.5 : 0.32), H * 0.6, hex("#eaf2f5"), 0.55); // calm light behind the text
   ctx.restore();
-  ctx.save();
-  ctx.filter = `blur(${105 * k}px)`;
-  for (const [u, v, c] of FIELDS) for (let j = 0; j < 4; j++) glaze(ctx, (u + (r() - 0.5) * 0.06) * W, (v + (r() - 0.5) * 0.12) * H, (portrait ? 0.4 : 0.24 + r() * 0.06) * W, (0.18 + r() * 0.08) * H, hex(c), 0.34);
-  ctx.restore();
-  // the centre: no bright slab, but muted tints of the same garden glazed across it — calm, still painted
-  ctx.save();
-  ctx.filter = `blur(${140 * k}px)`;
-  for (const [u, v, c] of [[0.42, 0.18, "#f1d9d8"], [0.6, 0.42, "#e3e7da"], [0.4, 0.66, "#e9e0ee"], [0.58, 0.9, "#e1e8d9"], [0.5, 0.05, "#f0dcde"]]) glaze(ctx, u * W, v * H, 0.3 * W, 0.2 * H, hex(c), 0.42);
-  ctx.restore();
-  // 2 · brushwork, selectively: loaded strokes inside the colour fields, following a gentle flow
-  const fieldAt = (x, y) => {
-    let best = null, bd = 1e9;
-    for (const [u, v, c] of FIELDS) { const d = Math.hypot(x / W - u, (y / H - v) * 0.6); if (d < bd) { bd = d; best = c; } }
-    return hex(best);
-  };
-  withThickness(0.55, () => {
-    for (let i = 0; i < (W * H) / 6000; i++) {
-      const x = r() * W, y = r() * H, e = edge(x, y);
-      if (e < 0.4 || r() > e * e) continue;
-      const flow = -Math.PI / 2 + fbm(x / (600 * k), y / (600 * k), 1307, 3) * 1.4;
-      const tone = mix(fieldAt(x, y), r() < 0.5 ? hex("#fbf4f1") : hex("#8f7f8a"), r() * 0.2);
-      stroke(ctx, r, x, y, flow, (80 + r() * 120) * k, (26 + r() * 26) * k, tone, 0.4 + e * 0.32, 3);
+  // long, soft horizontal strokes in the sky: it should read as paint, not a gradient
+  withThickness(0.22, () => {
+    for (let i = 0; i < (W * H) / 26000; i++) {
+      const x = r() * W, y = r() * H * 0.85;
+      const t = clamp(y / H);
+      const col = mix(mix(hex("#b2d0e8"), hex("#e6f0f5"), t), hex("#ffffff"), 0.25 + r() * 0.35);
+      stroke(ctx, r, x, y, (r() - 0.5) * 0.12 + (r() < 0.5 ? 0 : Math.PI), (180 + r() * 220) * k, (26 + r() * 30) * k, col, 0.16, 3);
     }
   });
-  // a few broad, faint strokes across the centre too, so it reads as the same painting, not a gradient
-  withThickness(0.25, () => {
-    for (let i = 0; i < (W * H) / 38000; i++) {
-      const x = (0.2 + r() * 0.6) * W, y = r() * H;
-      const tone = mix(fieldAt(x, y), hex("#f6eeea"), 0.62 + r() * 0.2);
-      stroke(ctx, r, x, y, (r() - 0.5) * 0.35 + (r() < 0.5 ? 0 : Math.PI), (200 + r() * 160) * k, (50 + r() * 40) * k, tone, 0.16, 3);
+  // the meadow: soft green hills rising along the foot of the frame, highest at the sides
+  const hill = (seed, base, amp, col, lift) => {
+    const p = new Path2D();
+    p.moveTo(-20, H + 20);
+    for (let x = -20; x <= W + 20; x += 8) {
+      const u = x / W, side = portrait ? 0.35 : Math.pow(Math.abs(u - 0.5) * 2, 1.6);
+      const y = H * (base - side * lift) - amp * H * (0.5 + fbm(u * 3, seed * 0.1, seed, 3));
+      p.lineTo(x, y);
     }
-  });
-  // a few small impasto passes: tight clusters of short, thick strokes, lit by the relief
-  withThickness(1, () => {
-    for (let i = 0; i < 9; i++) {
-      const left = r() < 0.5;
-      const x = portrait ? (0.1 + r() * 0.8) * W : (left ? 0.02 + r() * 0.1 : 0.88 + r() * 0.1) * W;
-      const y = portrait ? (r() < 0.5 ? 0.02 + r() * 0.1 : 0.88 + r() * 0.1) * H : (0.05 + r() * 0.9) * H;
-      const base = fieldAt(x, y), ang = -Math.PI / 2 + (r() - 0.5) * 0.8;
-      for (let n = 0; n < 6; n++) stroke(ctx, r, x + (r() - 0.5) * 34 * k, y + (r() - 0.5) * 34 * k, ang + (r() - 0.5) * 0.4, (26 + r() * 22) * k, (12 + r() * 8) * k, mix(base, r() < 0.6 ? hex("#fbf4f1") : hex("#8f7f8a"), r() * 0.3), 0.9, 3);
-    }
-  });
-  // 3 · a few painted stems, richer than before, in two corners
-  const stems = (x0, y0, dir, n, seed) => {
-    const rr = rng(seed);
-    withThickness(0.7, () => {
-      for (let i = 0; i < n; i++) {
-        const x = x0 + dir * rr() * 150 * k, h = (140 + rr() * 280) * k, lean = dir * (0.08 + rr() * 0.25);
-        const ang = -Math.PI / 2 + lean;
-        stroke(ctx, rr, x, y0, ang, h, (3.5 + rr() * 3) * k, mix(hex("#6f8a55"), hex("#a8bd88"), rr()), 0.8, 1);
-        const tx = x + Math.cos(ang) * h, ty = y0 + Math.sin(ang) * h;
-        const bloom = rr();
-        if (bloom < 0.45) {
-          const petal = [hex("#ee9fa3"), hex("#f4b9b8"), hex("#c3b1db")][Math.floor(rr() * 3)];
-          for (let p = 0; p < 7; p++) { const a = (p / 7) * Math.PI * 2; dab(ctx, tx + Math.cos(a) * 10 * k, ty + Math.sin(a) * 10 * k, 9 * k, 5 * k, a, mix(petal, hex("#fff6f4"), rr() * 0.3), 0.92); }
-          dab(ctx, tx, ty, 4.5 * k, 4.5 * k, 0, hex("#d98591"), 0.95);
-        }
-        for (let l = 0; l < 2; l++) {
-          const t = 0.3 + rr() * 0.4, lx = x + Math.cos(ang) * h * t, ly = y0 + Math.sin(ang) * h * t, side = rr() < 0.5 ? -1 : 1;
-          stroke(ctx, rr, lx, ly, ang + side * (0.7 + rr() * 0.4), (28 + rr() * 26) * k, (9 + rr() * 6) * k, mix(hex("#7f9b63"), hex("#b3c792"), rr()), 0.75, 1);
-        }
+    p.lineTo(W + 20, H + 20);
+    p.closePath();
+    ctx.save();
+    ctx.filter = `blur(${10 * k}px)`;
+    ctx.fillStyle = rgba(hex(col[0]), 0.9);
+    ctx.fill(p);
+    ctx.restore();
+    clipBoth(ctx, p);
+    withThickness(0.5, () => {
+      for (let i = 0; i < (W * H) / 30000; i++) {
+        const x = r() * W, y = H * (base - 0.2) + r() * H * 0.3;
+        stroke(ctx, r, x, y, (r() - 0.5) * 0.3 + (r() < 0.5 ? 0 : Math.PI), (70 + r() * 90) * k, (16 + r() * 14) * k, mix(hex(col[0]), hex(col[1]), r()), 0.55, 3);
       }
     });
+    unclipBoth(ctx);
   };
-  if (portrait) { stems(-20 * k, H + 10 * k, 1, 10, 1211); stems(W + 20 * k, H * 0.16, -1, 6, 1212); }
-  else { stems(-10 * k, H + 10 * k, 1, 14, 1211); stems(W + 10 * k, H * 0.36, -1, 8, 1212); }
+  if (portrait) {
+    hill(1411, 0.92, 0.03, ["#b5cf9c", "#cfe0b6"], 0);
+    hill(1412, 0.97, 0.025, ["#93b57c", "#b3cc98"], 0);
+  } else {
+    hill(1411, 0.9, 0.025, ["#b8d1a0", "#d3e3ba"], 0.2);
+    hill(1412, 0.97, 0.02, ["#97b880", "#b6cf9a"], 0.14);
+  }
+  // a few blades and small white-and-blue meadow flowers along the lowest hill, kept small
+  withThickness(0.7, () => {
+    for (let i = 0; i < (portrait ? 70 : 110); i++) {
+      const u = r(), x = u * W, side = portrait ? 1 : Math.pow(Math.abs(u - 0.5) * 2, 0.8);
+      if (r() > side) continue;
+      const y = H * (0.97 - (portrait ? 0 : side * 0.12)) + r() * H * 0.05;
+      stroke(ctx, r, x, y, -Math.PI / 2 + (r() - 0.5) * 0.5, (14 + r() * 26) * k, (3 + r() * 2) * k, mix(hex("#7fa66a"), hex("#a9c78d"), r()), 0.85, 1);
+      if (r() < 0.12) dab(ctx, x, y - 22 * k, 4 * k, 4 * k, 0, r() < 0.5 ? hex("#ffffff") : hex("#bcd3ec"), 0.95);
+    }
+  });
+  // clouds: rounded lobes of white pigment, warm-lit on top, cool-shadowed below, in the upper margins only
+  const cloud = (cx, cy, w, seed) => {
+    const rr = rng(seed);
+    // two tiers of rounded lobes: a broad base and a few billows on top
+    const lobes = [];
+    const n = 8 + Math.floor(rr() * 4);
+    for (let i = 0; i < n; i++) {
+      const t = (i + 0.5) / n;
+      lobes.push([cx - w / 2 + t * w + (rr() - 0.5) * w * 0.06, cy + (rr() - 0.5) * w * 0.03, w * (0.07 + Math.sin(Math.PI * t) * 0.05) * (0.85 + rr() * 0.3)]);
+    }
+    for (let i = 0; i < 4 + Math.floor(rr() * 2); i++) {
+      const t = 0.2 + rr() * 0.6;
+      lobes.push([cx - w / 2 + t * w, cy - w * (0.07 + Math.sin(Math.PI * t) * 0.06), w * (0.07 + rr() * 0.06)]);
+    }
+    // a soft, cool shadowed underside and a hazy body, blurred so the cloud has no outline
+    ctx.save();
+    ctx.filter = `blur(${12 * k}px)`;
+    glaze(ctx, cx, cy + w * 0.05, w * 0.5, w * 0.07, hex("#c9d8e6"), 0.75);
+    for (const [x, y, rad] of lobes) glaze(ctx, x, y, rad * 1.05, rad * 0.9, hex("#f3f6f8"), 0.9);
+    ctx.restore();
+    // pigment: overlapping soft round dabs, lighter toward the tops, cooler below; then a few short,
+    // nearly level strokes on the brightest tops for the feel of the brush, and a little thick paint
+    withThickness(0.7, () => {
+      const top = Math.min(...lobes.map(([, y, rad]) => y - rad)), bottom = Math.max(...lobes.map(([, y, rad]) => y + rad));
+      for (const [x, y, rad] of lobes) {
+        for (let d = 0; d < 9; d++) {
+          const ox = x + (rr() - 0.5) * rad * 0.9, oy = y + (rr() - 0.6) * rad * 0.7, dr = rad * (0.35 + rr() * 0.4);
+          const lit = clamp(1 - (oy - top) / (bottom - top));
+          dab(ctx, ox, oy, dr, dr * 0.85, rr() * Math.PI, mix(hex("#dfe8f0"), mix(hex("#ffffff"), hex("#fff6ea"), rr() * 0.6), 0.35 + lit * 0.65), 0.75);
+        }
+      }
+      for (let s2 = 0; s2 < lobes.length * 2; s2++) {
+        const [x, y, rad] = lobes[Math.floor(rr() * lobes.length)];
+        stroke(ctx, rr, x - rad * 0.5, y - rad * (0.2 + rr() * 0.4), (rr() - 0.5) * 0.3, rad * (0.6 + rr() * 0.5), rad * 0.16, mix(hex("#ffffff"), hex("#fff3e4"), rr()), 0.7, 3);
+      }
+      for (let s2 = 0; s2 < 4; s2++) { const [x, y, rad] = lobes[n + Math.floor(rr() * (lobes.length - n))] ?? lobes[0]; knife(ctx, rr, x - rad * 0.3, y - rad * 0.55, -0.15 + rr() * 0.3, rad * 0.55, rad * 0.14, hex("#fffaf2"), 0.65); }
+    });
+  };
+  if (portrait) {
+    cloud(W * 0.2, H * 0.07, W * 0.5, 1421);
+    cloud(W * 0.84, H * 0.15, W * 0.4, 1422);
+  } else {
+    cloud(W * 0.1, H * 0.13, W * 0.26, 1421);
+    cloud(W * 0.9, H * 0.1, W * 0.28, 1422);
+    cloud(W * 0.94, H * 0.45, W * 0.15, 1423);
+    cloud(W * 0.05, H * 0.52, W * 0.13, 1424);
+  }
   lightRelief(cv, hcv, W, H, 0.6);
   PAINT.hx = null;
   return cv;
@@ -3089,17 +3107,57 @@ if (process.argv.includes("--journal")) {
   process.exit(0);
 }
 
+/**
+ * The Work garden as a full-width panorama (3000 × 1350): the same scene, not
+ * stretched. The landscape (sky, clouds, hills) is painted across the new width;
+ * every object — landmarks, path, trees, flowers, the girl's start and stand
+ * points — keeps its exact pixel size and is re-placed around the centre with a
+ * little more room between the landmarks; new trees and flowers fill the sides.
+ */
+const WORK_WIDE = (() => {
+  const W0 = WORK_DESKTOP.W, W1 = 3000, size = W0 / W1, spread = 1.12;
+  const X = (x) => +(0.5 + (x - 0.5) * size * spread).toFixed(4);
+  const L = WORK_DESKTOP.layout;
+  return {
+    ...WORK_DESKTOP,
+    W: W1,
+    layout: {
+      ...L,
+      trails: L.trails.map(([a, c, b, w0, w1]) => [[X(a[0]), a[1]], [X(c[0]), c[1]], [X(b[0]), b[1]], w0 * size, w1 * size]),
+      trees: [
+        ...L.trees.map(([x, y, sz, kind]) => [X(x), y, sz * size, kind]),
+        [0.025, 0.62, 0.05, "turning"], [0.985, 0.6, 0.05, "autumn"], [0.2, 0.47, 0.014, "green"], [0.84, 0.46, 0.013, "green"],
+      ],
+      clusters: [
+        ...L.clusters.map((c) => ({ ...c, x: X(c.x), rx: c.rx * size })),
+        { seed: 904, x: 0.04, y: 0.93, rx: 0.05, ry: 0.025, n: 26, size: [9, 15], kinds: ["daisy", "cosmos", "tiny"], foliage: true, stems: true },
+        { seed: 905, x: 0.965, y: 0.93, rx: 0.05, ry: 0.025, n: 26, size: [9, 15], kinds: ["daisy", "tiny"], foliage: true, stems: true },
+      ],
+      start: [X(L.start[0]), L.start[1]],
+      landmarks: L.landmarks.map((m) => ({
+        ...m,
+        x: X(m.x),
+        ...(m.w ? { w: m.w * size } : {}),
+        ...(m.h ? { h: m.h * size } : {}),
+        ...(m.puppy ? { puppy: [X(m.puppy[0]), m.puppy[1], m.puppy[2] * size] } : {}),
+        stand: [X(m.stand[0]), m.stand[1]],
+        label: [X(m.label[0]), m.label[1]],
+      })),
+    },
+  };
+})();
+
 if (process.argv.includes("--work")) {
   const WORK_ANCHORS = path.resolve("src/data/work-anchors.json");
   const out = {};
-  for (const F of [WORK_DESKTOP, WORK_MOBILE]) {
+  for (const F of [WORK_WIDE, WORK_MOBILE]) {
     const t0 = Date.now();
     const { cv, anchors, sprites } = paint(F);
     const fmt = F.name.replace("work-", "");
     out[fmt] = { ...anchors.work, sprites: anchors.sprites };
     const dir = path.resolve("public/assets/garden/work");
     fs.mkdirSync(path.join(dir, "sprites"), { recursive: true });
-    const widths = fmt === "desktop" ? [2400, 1600] : [1080, 720];
+    const widths = fmt === "desktop" ? [3000, 2000] : [1080, 720];
     for (const w of widths) {
       const h = Math.round((F.H * w) / F.W);
       const o = createCanvas(w, h);
@@ -3109,7 +3167,7 @@ if (process.argv.includes("--work")) {
       fs.writeFileSync(path.join(dir, `garden-${fmt}-${w}.webp`), o.toBuffer("image/webp", 88));
     }
     for (const sp of sprites) {
-      const scale = fmt === "desktop" ? 1600 / 2400 : 1;
+      const scale = fmt === "desktop" ? 2000 / 3000 : 1;
       const w = Math.max(2, Math.round(sp.canvas.width * scale)), h = Math.max(2, Math.round(sp.canvas.height * scale));
       const o = createCanvas(w, h);
       const oc = o.getContext("2d");

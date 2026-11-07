@@ -26,7 +26,7 @@ Everything is code-drawn except the Landing painting, which is interim raster ar
 | Component | What it draws |
 | --- | --- |
 | `public/assets/garden/landing/*.webp` | The Landing painting and the wooden sign: interim raster artwork rendered by `scripts/paint-landing.mjs` (spec: `docs/LANDING-ART-SPEC.md`) |
-| `public/assets/garden/work/*.webp`, `public/assets/garden/work/sprites/*.webp` | The Work garden, its landmark layers and the guide's poses: decorative artwork rendered by `scripts/paint-landing.mjs --work` (positions in `src/data/work-anchors.json`). Not project assets. |
+| `public/assets/garden/work/*.webp`, `public/assets/garden/work/sprites/*.webp` | The Work garden, its landmark layers and the guide's poses: decorative artwork rendered by `scripts/paint-landing.mjs --work` (desktop panorama `garden-desktop-2000/3000`, phones `garden-mobile-720/1080`; positions in `src/data/work-anchors.json`). Not project assets. |
 | `public/assets/garden/journal/*` | The case-study page backdrop (wide and tall): decorative artwork rendered by `scripts/paint-landing.mjs --journal`. Not project assets. |
 | `public/assets/garden/title/letter-*.webp` | The painted Landing title, one layer per letter (positions in `src/data/title-letters.json`): decorative artwork from `scripts/paint-landing.mjs --title`. |
 | `public/assets/garden/butterfly/*.webp` | The Landing butterfly cursor (left wing, right wing, body): decorative artwork from `--butterfly`. |

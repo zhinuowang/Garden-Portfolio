@@ -40,6 +40,6 @@ for (const s of [1, 2, 3]) {
     for (const w of widths) await night(`${pub}/landing/scene-${s}-${fmt}-${w}.webp`, s === 1 ? { sky: 0.22, skyTo: 0.5 } : { sky: 0, depth: 0.95 });
   }
 }
-for (const f of ["garden-desktop-1600", "garden-desktop-2400", "garden-mobile-720", "garden-mobile-1080"]) await night(`${pub}/work/${f}.webp`, { sky: 0.2, skyTo: 0.45 });
+for (const f of ["garden-desktop-2000", "garden-desktop-3000", "garden-mobile-720", "garden-mobile-1080"]) await night(`${pub}/work/${f}.webp`, { sky: 0.2, skyTo: 0.45 });
 for (const f of ["journal-desktop", "journal-mobile"]) await night(`${pub}/journal/${f}.webp`, { sky: 0, depth: 0.56 });
 fs.existsSync(pub);
