@@ -1,103 +1,156 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
-// Painted flowers, petals and leaves (scripts/paint-landing.mjs --flora) floating in the page margins,
-// above the painted backdrop. Each has its own depth: as the page scrolls it drifts a little faster or
-// slower than the content (measured against the middle of the window, so the drift stays small on long
-// pages), and sways gently on its own. They stay in the margins, never take pointer events, and keep
-// still with reduced motion. On narrow screens they only peek in at the edges, behind the text.
+// The foreground layer of the inner pages: large painted flower clusters (scripts/paint-landing.mjs
+// --foreground) between the viewer and the page.
+//
+// Three depths: the painted backdrop is fixed (it barely moves), the content scrolls normally, and this
+// layer — fixed to the window, above the content, never taking pointer events — moves FASTER than the
+// content as you scroll, so the flowers pass in front of it like stems close to the eye. Each cluster is
+// anchored to a point down the page and sits exactly there when that point is mid-window; elsewhere it is
+// ahead of (or behind) the page by its own speed, with a slight sideways drift.
+//
+// Clusters enter from the window's edges and are partly cropped by it. How far one reaches inward is capped
+// by the content column (`.garden-mist`): it may overlap that column's outer edge a little, never the text.
+// Smaller and fewer on tablets; on phones they only peek in at the edges, slower. With reduced motion they
+// simply stay put on the page.
 
-type Kind = "cosmos" | "daisy" | "lavender" | "sprig" | "petal-pink" | "petal-peach" | "leaf-sage" | "leaf-autumn";
-type Item = { kind: Kind; side: "l" | "r"; x: number; size: number; depth: number; rot: number; sway: number; blur?: boolean };
+type Kind = "fg-cosmos" | "fg-daisies" | "fg-rose" | "fg-leaves" | "fg-petals";
+type Spec = { kind: Kind; side: "l" | "r"; size: number; reach: number; speed: number; rot: number; drift: number };
 
-// one gently varied pattern, repeated down the page as needed: near (large, faster, a touch soft) and far
-// (small, slower) pieces alternate sides so the margins never mirror each other
-const PATTERN: Item[] = [
-  { kind: "cosmos", side: "l", x: -1.4, size: 150, depth: 0.22, rot: -14, sway: 9, blur: true },
-  { kind: "petal-pink", side: "r", x: 3.4, size: 54, depth: -0.08, rot: 30, sway: 7 },
-  { kind: "leaf-autumn", side: "r", x: -0.8, size: 126, depth: 0.16, rot: 20, sway: 10 },
-  { kind: "daisy", side: "l", x: 3.2, size: 74, depth: -0.05, rot: 8, sway: 8 },
-  { kind: "sprig", side: "r", x: -1.2, size: 172, depth: 0.12, rot: -6, sway: 11 },
-  { kind: "petal-peach", side: "l", x: 1.6, size: 50, depth: 0.3, rot: -40, sway: 6 },
-  { kind: "cosmos", side: "r", x: 0.6, size: 96, depth: 0.2, rot: 22, sway: 10 },
-  { kind: "lavender", side: "l", x: -0.6, size: 136, depth: 0.1, rot: 12, sway: 12 },
-  { kind: "leaf-sage", side: "r", x: 2.6, size: 80, depth: -0.06, rot: -28, sway: 9 },
-  { kind: "daisy", side: "l", x: 0.2, size: 118, depth: 0.24, rot: -20, sway: 9, blur: true },
-  { kind: "petal-pink", side: "r", x: 4.4, size: 44, depth: 0.26, rot: 60, sway: 7 },
+// one editorial sequence, repeated down long pages: big clusters alternate sides, with a few loose petals
+const SEQUENCE: Spec[] = [
+  { kind: "fg-cosmos", side: "l", size: 360, reach: 0.92, speed: 1.32, rot: -6, drift: 10 },
+  { kind: "fg-petals", side: "r", size: 150, reach: 0.95, speed: 1.6, rot: 8, drift: 18 },
+  { kind: "fg-leaves", side: "r", size: 400, reach: 0.8, speed: 1.24, rot: 14, drift: 8 },
+  { kind: "fg-daisies", side: "l", size: 330, reach: 0.9, speed: 1.38, rot: 4, drift: 12 },
+  { kind: "fg-rose", side: "r", size: 340, reach: 0.9, speed: 1.3, rot: -8, drift: 10 },
+  { kind: "fg-petals", side: "l", size: 120, reach: 0.95, speed: 1.65, rot: -30, drift: 20 },
+  { kind: "fg-leaves", side: "l", size: 360, reach: 0.8, speed: 1.22, rot: -10, drift: 8 },
+  { kind: "fg-cosmos", side: "r", size: 310, reach: 0.92, speed: 1.42, rot: 10, drift: 12 },
+  { kind: "fg-daisies", side: "r", size: 290, reach: 0.9, speed: 1.3, rot: -4, drift: 10 },
+  { kind: "fg-rose", side: "l", size: 300, reach: 0.9, speed: 1.34, rot: 8, drift: 10 },
 ];
 
-export default function FloatingFlora({ count = 8, start = 3, end = 96, every = 520 }: { count?: number; start?: number; end?: number; every?: number }) {
-  const root = useRef<HTMLDivElement>(null);
-  // about one piece per `every` pixels of page, so long case studies keep a few in view
-  const [n, setN] = useState(count);
-  useEffect(() => {
-    const box = root.current;
-    if (!box) return;
-    const fit = () => setN(Math.max(count, Math.round(box.offsetHeight / every)));
-    fit();
-    const ro = new ResizeObserver(fit);
-    ro.observe(box);
-    return () => ro.disconnect();
-  }, [count, every]);
+// a single-screen page (Contact): a few clusters composed round the corners of the window
+const CORNERS: (Spec & { at: number })[] = [
+  { kind: "fg-daisies", side: "l", size: 340, reach: 0.85, speed: 1.3, rot: 6, drift: 6, at: 0.82 },
+  { kind: "fg-leaves", side: "r", size: 360, reach: 0.8, speed: 1.4, rot: 160, drift: 6, at: 0.16 },
+  { kind: "fg-petals", side: "l", size: 130, reach: 0.95, speed: 1.6, rot: -20, drift: 12, at: 0.3 },
+];
+
+const SPACING = 640; // page pixels between clusters on desktop
+
+// where each painting ends, as a fraction of its canvas measured from the stem side (the rest is empty canvas)
+const INK: Record<Kind, number> = { "fg-cosmos": 0.74, "fg-daisies": 0.8, "fg-rose": 0.78, "fg-leaves": 0.97, "fg-petals": 0.98 };
+
+export default function FloatingFlora({ variant = "long" }: { variant?: "long" | "single" }) {
+  const anchor = useRef<HTMLDivElement>(null);
+  const layer = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const box = root.current;
-    if (!box || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const els = [...box.querySelectorAll<HTMLElement>("[data-depth]")];
-    let mids: number[] = [];
-    const measure = () => {
-      const top = box.getBoundingClientRect().top + window.scrollY;
-      mids = els.map((el) => top + el.offsetTop + el.offsetHeight / 2);
-    };
-    let raf = 0;
+    const box = anchor.current, fg = layer.current;
+    if (!box || !fg) return;
+    const still = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let items: { el: HTMLElement; spec: Spec; y: number; h: number; speed: number }[] = [];
     const update = () => {
-      raf = 0;
-      const centre = window.scrollY + window.innerHeight / 2;
-      els.forEach((el, i) => {
-        const d = Number(el.dataset.depth);
-        el.style.transform = `translate3d(0, ${((centre - mids[i]) * d).toFixed(1)}px, 0)`;
-      });
+      const vh = window.innerHeight, sy = window.scrollY;
+      for (const it of items) {
+        // the cluster's centre on screen: exactly at its page point when that point is mid-window, and
+        // `speed` times as far from the middle elsewhere — so it moves faster than the content
+        const cy = vh / 2 + (it.y - sy - vh / 2) * it.speed;
+        const visible = cy > -it.h && cy < vh + it.h;
+        it.el.style.visibility = visible ? "visible" : "hidden";
+        if (!visible) continue;
+        const dx = still.matches ? 0 : Math.sin((cy / vh) * Math.PI) * it.spec.drift * (it.spec.side === "l" ? 1 : -1);
+        it.el.style.transform = `translate3d(${dx.toFixed(1)}px, ${(cy - it.h / 2).toFixed(1)}px, 0)`;
+      }
     };
-    const onScroll = () => { if (!raf) raf = requestAnimationFrame(update); };
-    const onResize = () => { measure(); onScroll(); };
-    measure();
-    update();
+
+    // lay the clusters out for the current page length and window size
+    const build = () => {
+      const vw = window.innerWidth, vh = window.innerHeight;
+      const tier = vw >= 1280 ? "desktop" : vw >= 768 ? "tablet" : "phone";
+      const scale = tier === "desktop" ? 1 : tier === "tablet" ? 0.62 : 0.42;
+      // how far a painting may reach past the content's edge: a little onto an image's outer edge on the right,
+      // barely at all on the left, where the case studies keep their contents links
+      const overlapR = tier === "desktop" ? 36 : tier === "tablet" ? 16 : 6;
+      const overlapL = tier === "desktop" ? 12 : tier === "tablet" ? 10 : 6;
+      const top = box.getBoundingClientRect().top + window.scrollY;
+      // the content's outer edges: the reading column on the left (its links stay clear), and on the right the
+      // text-and-image column where a page marks one (data-flora-edge), so a cluster can just touch an image's edge
+      const page = box.parentElement;
+      const column = (page?.querySelector(".garden-mist") as HTMLElement | null)?.getBoundingClientRect();
+      const edge = (page?.querySelector("[data-flora-edge]") as HTMLElement | null)?.getBoundingClientRect();
+      const marginL = column ? Math.max(0, column.left) : 24;
+      const marginR = edge && tier === "desktop" ? Math.max(0, vw - edge.right) : column ? Math.max(0, vw - column.right) : 24;
+      let specs: (Spec & { y: number })[];
+      if (variant === "single") {
+        specs = CORNERS.map((s) => ({ ...s, y: top + vh * s.at }));
+      } else {
+        const height = box.offsetHeight, step = SPACING * (tier === "phone" ? 1.5 : tier === "tablet" ? 1.2 : 1);
+        specs = [];
+        for (let i = 0, y = vh * 0.55; y < height - vh * 0.2; i++, y += step) specs.push({ ...SEQUENCE[i % SEQUENCE.length], y: top + y });
+      }
+      if (tier !== "desktop") specs = specs.filter((s) => s.kind !== "fg-petals");
+      fg.replaceChildren();
+      items = specs.map((spec) => {
+        const w = Math.round(spec.size * scale);
+        const limit = spec.side === "l" ? marginL + overlapL : marginR + overlapR;
+        const ink = w * INK[spec.kind];
+        const inner = Math.min(ink * spec.reach, limit); // where the painting's inner edge falls in the window
+        const shown = inner + (w - ink); // the same, measured to the element's inner edge
+        const el = document.createElement("span");
+        el.className = "flora-fg__item";
+        el.dataset.side = spec.side;
+        el.style.width = `${w}px`;
+        el.style[spec.side === "l" ? "left" : "right"] = `${Math.round(shown - w)}px`;
+        el.style.setProperty("--rot", `${spec.rot}deg`);
+        const sway = document.createElement("span");
+        sway.className = "flora-fg__sway";
+        const img = document.createElement("img");
+        img.src = `/assets/garden/flora/${spec.kind}.webp`;
+        img.alt = "";
+        img.width = spec.kind === "fg-petals" ? 360 : 640;
+        img.height = img.width;
+        img.decoding = "async";
+        img.draggable = false;
+        sway.append(img);
+        el.append(sway);
+        fg.append(el);
+        const speed = still.matches ? 1 : tier === "phone" ? 1 + (spec.speed - 1) * 0.35 : spec.speed;
+        return { el, spec, y: spec.y, h: w, speed };
+      });
+      update();
+    };
+
+    // scroll events already arrive once per frame, so the layer is updated right in step with the page
+    const onScroll = update;
+    let resizeT = 0;
+    const onResize = () => { clearTimeout(resizeT); resizeT = window.setTimeout(build, 120); };
+
+    build();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onResize);
-    const ro = new ResizeObserver(onResize);
+    const ro = new ResizeObserver(onResize); // the page grows as images load
     ro.observe(box);
+    still.addEventListener("change", build);
     return () => {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onResize);
+      still.removeEventListener("change", build);
       ro.disconnect();
-      cancelAnimationFrame(raf);
+      clearTimeout(resizeT);
     };
-  }, [n]);
-
-  const items = Array.from({ length: n }, (_, i) => ({ ...PATTERN[i % PATTERN.length], top: start + ((end - start) * (i + 0.5)) / n }));
+  }, [variant]);
 
   return (
-    <div ref={root} aria-hidden="true" className="flora">
-      {items.map((it, i) => (
-        <span
-          key={i}
-          data-depth={it.depth}
-          className="flora__item"
-          data-side={it.side}
-          style={{
-            top: `${it.top}%`,
-            ["--x" as string]: it.x,
-            ["--n" as string]: it.size,
-            ["--rot" as string]: `${it.rot}deg`,
-            ["--sway" as string]: `${it.sway}s`,
-            ["--delay" as string]: `${-(i * 1.7) % it.sway}s`,
-          }}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element -- small decorative painted sprite */}
-          <img src={`/assets/garden/flora/${it.kind}.webp`} alt="" width={it.kind === "sprig" ? 360 : 260} height={it.kind === "sprig" ? 360 : 260} loading="lazy" decoding="async" draggable={false} className={it.blur ? "flora__soft" : ""} />
-        </span>
-      ))}
-    </div>
+    <>
+      {/* measures the page: where it starts and how long it is */}
+      <div ref={anchor} aria-hidden="true" className="pointer-events-none absolute inset-0" />
+      {/* the foreground itself, fixed to the window and above the content */}
+      <div ref={layer} aria-hidden="true" className="flora-fg" />
+    </>
   );
 }

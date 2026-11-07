@@ -357,11 +357,37 @@ html[data-night-ink] .lamppost__hint { color: #fbf0d6; text-shadow: 0 0 10px rgb
 .mailbox { position: relative; display: block; width: 100%; aspect-ratio: 400 / 520; transition: transform 0.35s ease; }
 .mailbox img { position: absolute; inset: 0; width: 100%; height: 100%; user-select: none; transition: transform 0.38s cubic-bezier(0.3, 1.35, 0.5, 1), filter var(--dusk); }
 .mailbox__door { transform-origin: 29.5% 50.4%; }
-.mailbox__flag { transform-origin: 82.5% 39.6%; }
-.mailbox-host:is(:hover, :focus-visible) .mailbox { transform: translateY(-1.5%); }
-.mailbox-host:is(:hover, :focus-visible) .mailbox__door { transform: perspective(600px) rotateX(-46deg); }
-.mailbox-host:is(:hover, :focus-visible) .mailbox__flag { transform: rotate(30deg); }
+.mailbox__flag { transform-origin: 78% 39.6%; }
+.mailbox__envelope { transform-origin: 30% 43%; }
+.mailbox-host:is(:hover, :focus-visible, [data-open="true"]) .mailbox { transform: translateY(-1%); }
+.mailbox-host:is(:hover, :focus-visible, [data-open="true"]) .mailbox__door { transform: perspective(900px) rotateX(-62deg); }
+.mailbox-host:is(:hover, :focus-visible, [data-open="true"]) .mailbox__flag { transform: rotate(30deg); }
+/* the little letter slides up out of the open mouth, a beat after the door */
+.mailbox__envelope { transition-delay: 0s; }
+.mailbox-host:is(:hover, :focus-visible, [data-open="true"]) .mailbox__envelope { transform: translate(-5%, -7%) rotate(-9deg); transition-delay: 0.08s; }
 html[data-night] .mailbox img { filter: brightness(0.55) saturate(0.45) hue-rotate(-10deg); }
+/* on Contact: a small handwritten thank-you note that rises beside the open mailbox */
+.mailbox-note {
+  position: absolute;
+  left: 24%;
+  top: 7%;
+  max-width: 13rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 0.9rem 0.9rem 0.9rem 0.2rem;
+  background: rgb(253 248 238 / 0.94);
+  box-shadow: 0 10px 24px -14px rgb(96 60 60 / 0.4);
+  font-family: var(--font-caveat), "Segoe Print", cursive;
+  font-size: 1.3rem;
+  line-height: 1.15;
+  color: #3a2a1c;
+  opacity: 0;
+  transform: translateY(8px) rotate(-3deg);
+  transition: opacity 0.35s ease, transform 0.4s ease;
+  pointer-events: none;
+}
+.mailbox-note:empty { padding: 0; }
+.mailbox-note--shown { opacity: 1; transform: translateY(0) rotate(-3deg); }
+html[data-night-ink] .mailbox-note { background: rgb(40 48 71 / 0.94); color: #f4ecd9; }
 /* on the Landing: a link standing on the right-hand slope, balancing the lamppost; a written hint on hover */
 .mailbox-post { cursor: pointer; border-radius: 1rem; }
 .mailbox-post::before { content: ""; position: absolute; inset: 8% -10% -4%; }
@@ -559,41 +585,30 @@ html[data-night-ink] .contact-icon::before { background: radial-gradient(closest
   .contact-card:is(:hover, :focus-visible) .contact-icon { transform: none; }
 }
 
-/* floating foreground flora (FloatingFlora): painted flowers, petals and leaves in the margins above the
-   backdrop; the outer span carries the scroll drift (set from script), the image its slow sway */
-.flora { position: absolute; inset: 0; z-index: 20; overflow: clip; pointer-events: none; }
-.flora__item {
-  --w: clamp(calc(var(--n) * 0.55px), calc(var(--n) * 0.0694vw), calc(var(--n) * 1px));
-  position: absolute;
-  width: var(--w);
-  will-change: transform;
-}
-.flora__item[data-side="l"] { left: calc(var(--x) * 1vw); }
-.flora__item[data-side="r"] { right: calc(var(--x) * 1vw); }
-.flora__item img {
+/* the foreground layer (FloatingFlora): fixed to the window, above the page content (z 30 inside the page's
+   own stacking context; the site header stays above it), never taking clicks. Its clusters are placed and
+   moved from script; the inner span adds only a slow, slight sway. Right-hand clusters are mirrored. */
+.flora-fg { position: fixed; inset: 0; z-index: 30; overflow: hidden; pointer-events: none; }
+.flora-fg__item { position: absolute; top: 0; visibility: hidden; will-change: transform; }
+.flora-fg__sway { display: block; transform: rotate(var(--rot)); animation: flora-sway 11s ease-in-out infinite; }
+.flora-fg__item:nth-child(2n) .flora-fg__sway { animation-duration: 13s; animation-delay: -4s; }
+.flora-fg__item:nth-child(3n) .flora-fg__sway { animation-duration: 9s; animation-delay: -7s; }
+.flora-fg__item img {
   display: block;
   width: 100%;
   height: auto;
   user-select: none;
-  transform: rotate(var(--rot));
-  filter: drop-shadow(0 16px 14px rgb(110 60 70 / 0.24));
-  animation: flora-sway var(--sway) ease-in-out var(--delay) infinite;
+  /* a deep, soft shadow well below the cluster: it reads as closer to the viewer than the page */
+  filter: drop-shadow(0 26px 22px rgb(96 48 58 / 0.24));
   transition: filter var(--dusk);
 }
-.flora__item img.flora__soft { filter: blur(0.6px) drop-shadow(0 22px 18px rgb(110 60 70 / 0.26)); }
+.flora-fg__item[data-side="r"] img { transform: scaleX(-1); }
 @keyframes flora-sway {
-  0%, 100% { transform: rotate(var(--rot)) translate(0, 0); }
-  50% { transform: rotate(calc(var(--rot) + 7deg)) translate(5px, -8px); }
+  0%, 100% { transform: rotate(var(--rot)); }
+  50% { transform: rotate(calc(var(--rot) + 2.5deg)); }
 }
-html[data-night] .flora__item img { filter: brightness(0.62) saturate(0.7) drop-shadow(0 12px 10px rgb(10 14 30 / 0.3)); }
-html[data-night] .flora__item img.flora__soft { filter: brightness(0.62) saturate(0.7) blur(0.7px) drop-shadow(0 16px 14px rgb(10 14 30 / 0.3)); }
-/* where the margins are narrow, the flora only peeks in at the edges, behind the text */
-@media (max-width: 1279px) {
-  .flora { z-index: -1; }
-  .flora__item[data-side="l"] { left: calc(var(--w) * -0.4); }
-  .flora__item[data-side="r"] { right: calc(var(--w) * -0.4); }
-}
-@media (prefers-reduced-motion: reduce) { .flora__item img { animation: none; } }
+html[data-night] .flora-fg__item img { filter: brightness(0.6) saturate(0.7) drop-shadow(0 26px 22px rgb(8 12 28 / 0.4)); }
+@media (prefers-reduced-motion: reduce) { .flora-fg__sway { animation: none; } }
 
 /* an opaque project image settles into the paper with a faint, diffused neutral shadow (no card, no border) */
 .journal-settle { box-shadow: 0 12px 32px -22px rgb(120 128 104 / 0.35); }

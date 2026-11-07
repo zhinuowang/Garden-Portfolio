@@ -35,13 +35,21 @@ Removed (all recoverable from the tag): the homepage sections `GardenGate`, `Gar
   flowers (`node scripts/paint-landing.mjs --about`), the content resting on the same faint reading surface as the case
   studies. The taped polaroid portrait (the supplied photo, unaltered), pressed-flower ornaments, case-study-style
   headings with handwritten side notes and a painted vine, a dotted timeline for experience, and skills grouped as tags.
-- **Floating flora (case studies, About, Contact).** `FloatingFlora`: painted flowers, petals, leaves, lavender and a
-  sprig (`node scripts/paint-landing.mjs --flora`) drifting in the margins above the backdrop, about one per 520 px of
-  page. Each drifts at its own depth as the page scrolls (measured against the middle of the window) and sways slowly;
-  where margins are narrow they only peek in at the edges, behind the text. Still with reduced motion; dimmed at night.
-- **Garden mailbox (Landing and Contact).** `Mailbox`: one painting in three layers (`--mailbox`). On the Landing it
-  stands on the right-hand slope of the first scene, balancing the lamppost, and links to Contact; on hover or focus its
-  arched door tips open, the flag lifts and "Write to me ✉" appears. The Contact page has the same mailbox on the right.
+- **Three depths (case studies, About, Contact).** Background: the painted backdrop, fixed (it moves least).
+  Content: the page, scrolling normally. Foreground: `FloatingFlora`, a layer fixed to the window above the content
+  (z 30 inside the page; the header stays above it; no pointer events), holding a few large painted clusters (cosmos,
+  daisies, a garden rose, a leaf spray and loose petals; `node scripts/paint-landing.mjs --foreground`). Each is anchored
+  to a point down the page and moves 1.2–1.65× faster than the content as you scroll, with a slight sideways drift and a
+  slow sway, entering from the window's edges and partly cropped by them. Its reach is capped by the content column:
+  on the right it may touch an image's outer edge (≈36 px), on the left barely at all (the contents links stay clear).
+  Smaller and fewer on tablets; on phones they only peek in (≤ 22 px) and move more gently. With reduced motion they
+  stay put on the page. Clicks always reach the content beneath.
+- **Garden mailbox (Landing and Contact).** `Mailbox`: one painting in layers (`--mailbox`, drawn at 2× so it stays
+  crisp when large): body, envelope, flag, door, and on Contact a small patch of daisies and pink flowers at its foot.
+  On hover or focus the arched door tips open, the flag lifts and a little envelope slides out (≈ 0.4 s). On the
+  Landing it stands on the right-hand slope of the first scene, balancing the lamppost, says "Write to me ✉" and links
+  to Contact. On Contact it is larger (about 1.5×), a little in from the right beside the three contact methods; a click
+  keeps it open and shows "Thanks for stopping by my garden!" for a few seconds.
 - **Reading surface (case studies, About, Contact).** `.garden-mist`: a semi-transparent layer of light behind the
   content, feathered at every edge, no blur, border or shadow; moonlit slate at night. Project images are untouched.
 - **Work.** One compact painted garden that fits the screen (16:9 on desktop, 9:16 on phones), showing only three

@@ -163,7 +163,7 @@ export default function FullCaseStudy({ project, data, next }: { project: Projec
   return (
     <article className="nightable relative isolate overflow-x-clip px-4 pt-28 pb-24 sm:px-6">
       <div aria-hidden="true" className="journal-backdrop" />
-      <FloatingFlora count={12} />
+      <FloatingFlora />
       <MarkVisited slug={project.slug} />
       <PressedSprig className="pointer-events-none absolute top-24 -right-3 hidden w-20 rotate-12 opacity-70 md:block" />
       <PressedBlossom className="pointer-events-none absolute top-[46rem] -left-10 hidden w-24 -rotate-12 opacity-60 xl:block" />
@@ -190,7 +190,7 @@ export default function FullCaseStudy({ project, data, next }: { project: Projec
         <div className="mt-12 lg:grid lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-14">
           <JournalContents sections={data.sections.map((s) => ({ id: s.id, heading: s.heading }))} />
 
-          <div className="min-w-0 max-w-3xl">
+          <div data-flora-edge className="min-w-0 max-w-3xl">
             {data.sections.map((s, i) => (
               <section key={s.id} id={s.id} aria-labelledby={`h-${s.id}`} className="journal-section scroll-mt-28 pt-12 first:pt-2">
                 <p aria-hidden="true" className="font-serif text-sm tracking-[0.2em] text-moss">{pad(i + 1)}</p>

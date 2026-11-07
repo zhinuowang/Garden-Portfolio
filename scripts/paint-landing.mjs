@@ -3197,8 +3197,14 @@ if (process.argv.includes("--flora")) {
  * at its back end). All three share one 400 × 520 canvas, so they stack exactly.
  */
 function paintMailbox() {
-  const W = 400, H = 520;
-  const make = () => { const cv = createCanvas(W, H), hcv = createCanvas(W, H), hx = hcv.getContext("2d"); hx.fillStyle = grey(20); hx.fillRect(0, 0, W, H); return { cv, ctx: cv.getContext("2d"), hcv, hx }; };
+  // drawn in 400 × 520 units at twice the resolution, so the larger Contact mailbox stays crisp
+  const W = 400, H = 520, SC = 2;
+  const make = () => {
+    const cv = createCanvas(W * SC, H * SC), hcv = createCanvas(W * SC, H * SC), hx = hcv.getContext("2d"), ctx = cv.getContext("2d");
+    hx.fillStyle = grey(20); hx.fillRect(0, 0, W * SC, H * SC);
+    ctx.scale(SC, SC); hx.scale(SC, SC);
+    return { cv, ctx, hcv, hx };
+  };
   const r = rng(1900);
   const C = { rose: hex("#e2a59c"), roseL: hex("#f0bfb4"), roseD: hex("#c98a82"), cream: hex("#f7eedd"), creamD: hex("#e6d4b8"), mouth: hex("#5a3f37"), wood: hex("#a7805f"), woodD: hex("#7f604a"), woodL: hex("#c49e7a"), sage: hex("#8eab78"), sageD: hex("#6f8a5a"), blush: hex("#efb4ae"), flag: hex("#cf7a6b") };
   const fillPaint = (ctx, p, base, tones, ang, n, w, area) => {
@@ -3234,12 +3240,13 @@ function paintMailbox() {
     const ctx = B.ctx;
     glaze(ctx, 214, 500, 130, 13, hex("#7f9a66"), 0.4);
     // post and bracket
-    fillPaint(ctx, toPath([[190, 256], [222, 256], [224, 504], [188, 504]]), C.wood, [C.woodL, C.woodD, C.wood], Math.PI / 2, 26, 9, [184, 250, 228, 508]);
+    fillPaint(ctx, toPath([[185, 256], [227, 256], [229, 504], [183, 504]]), C.wood, [C.woodL, C.woodD, C.wood], Math.PI / 2, 34, 10, [180, 250, 232, 508]);
+    withThickness(0.6, () => { for (let i = 0; i < 5; i++) stroke(ctx, r, 214 + r() * 10, 280 + r() * 200, Math.PI / 2, 40, 5, C.woodD, 0.45, 2); }); // the shaded side of the post
     fillPaint(ctx, toPath([[150, 252], [262, 250], [262, 266], [150, 268]]), C.woodD, [C.wood, C.woodD], 0, 10, 7, [146, 246, 266, 270]);
     // the side of the box, lit from the upper left, with a cream band at its foot
     const side = new Path2D();
-    side.moveTo(F[0], F[1] - FR); side.lineTo(318, 134); side.arc(318, 190, 56, -Math.PI / 2, 0); side.lineTo(374, 250); side.lineTo(F[0], FB); side.closePath();
-    fillPaint(ctx, side, C.rose, [C.roseL, C.rose, C.roseD, C.rose], -0.03, 70, 16, [110, 128, 380, 266]);
+    side.moveTo(F[0], F[1] - FR); side.lineTo(300, 134); side.arc(300, 190, 56, -Math.PI / 2, 0); side.lineTo(356, 250); side.lineTo(F[0], FB); side.closePath();
+    fillPaint(ctx, side, C.rose, [C.roseL, C.rose, C.roseD, C.rose], -0.03, 70, 16, [110, 128, 362, 266]);
     clipBoth(ctx, side);
     withThickness(0.85, () => {
       for (let i = 0; i < 9; i++) stroke(ctx, r, 140 + r() * 160, 148 + r() * 8, -0.03, 70 + r() * 50, 7, mix(C.roseL, hex("#fff2ea"), 0.35 + r() * 0.3), 0.75, 2);
@@ -3249,8 +3256,8 @@ function paintMailbox() {
     // a soft darker edge along the back and a cream band at the foot, painted inside the shape so nothing spills
     clipBoth(ctx, side);
     withThickness(0.6, () => {
-      for (let i = 0; i < 10; i++) stroke(ctx, r, 340 + r() * 20, 150 + r() * 90, Math.PI / 2 + (r() - 0.5) * 0.3, 40, 9, mix(C.roseD, hex("#a87470"), r() * 0.4), 0.5, 2);
-      for (let i = 0; i < 10; i++) stroke(ctx, r, F[0] + r() * 230, 252 + r() * 6, -0.04, 50 + r() * 30, 7, mix(C.creamD, C.cream, r()), 0.85, 2);
+      for (let i = 0; i < 10; i++) stroke(ctx, r, 322 + r() * 20, 150 + r() * 90, Math.PI / 2 + (r() - 0.5) * 0.3, 40, 9, mix(C.roseD, hex("#a87470"), r() * 0.4), 0.5, 2);
+      for (let i = 0; i < 10; i++) stroke(ctx, r, F[0] + r() * 210, 252 + r() * 6, -0.04, 50 + r() * 30, 7, mix(C.creamD, C.cream, r()), 0.85, 2);
     });
     unclipBoth(ctx);
     // the front: a cream rim round the dark mouth of the box (seen when the door tips open)
@@ -3274,7 +3281,7 @@ function paintMailbox() {
     });
     // grass at the foot of the post
     withThickness(0.7, () => { for (let i = 0; i < 26; i++) { const x = 140 + r() * 150; stroke(ctx, r, x, 506, -Math.PI / 2 + (r() - 0.5) * 0.6, 14 + r() * 22, 3, mix(hex("#7fa66a"), hex("#b5c98e"), r()), 0.9, 1); } });
-    lightRelief(B.cv, B.hcv, W, H, 0.8);
+    lightRelief(B.cv, B.hcv, W * SC, H * SC, 0.8);
   }
 
   // ---- door: the arched front, a little lighter than the side, with a cream rim and a small knob
@@ -3287,7 +3294,7 @@ function paintMailbox() {
     withThickness(0.8, () => { for (let i = 0; i < 4; i++) stroke(ctx, r, 86 + r() * 30, 168 + r() * 50, -Math.PI / 2 - 0.1, 30, 6, hex("#fbe0d6"), 0.6, 2); });
     edge(ctx, door, 7, C.cream, 0.95);
     withThickness(0.95, () => { dab(ctx, F[0], 156, 9, 7, 0, C.cream, 1); dab(ctx, F[0] - 2, 154, 3.5, 3, 0, hex("#ffffff"), 0.9); });
-    lightRelief(D.cv, D.hcv, W, H, 0.8);
+    lightRelief(D.cv, D.hcv, W * SC, H * SC, 0.8);
   }
 
   // ---- flag: an arm along the side, the little flag at its front end; pivots at (330, 206)
@@ -3296,14 +3303,52 @@ function paintMailbox() {
   {
     const ctx = G.ctx;
     withThickness(0.9, () => {
-      stroke(ctx, r, 336, 206, Math.PI, 92, 7, hex("#8a6a52"), 0.95, 1);
-      dab(ctx, 330, 206, 7, 7, 0, hex("#6f5442"), 1);
+      stroke(ctx, r, 318, 206, Math.PI, 90, 7, hex("#8a6a52"), 0.95, 1);
+      dab(ctx, 312, 206, 7, 7, 0, hex("#6f5442"), 1);
     });
-    fillPaint(ctx, toPath([[236, 186], [268, 188], [266, 214], [236, 214]]), C.flag, [C.flag, hex("#de907f"), hex("#b9685c")], 0, 10, 8, [230, 182, 272, 218]);
-    lightRelief(G.cv, G.hcv, W, H, 0.8);
+    fillPaint(ctx, toPath([[220, 186], [252, 188], [250, 214], [220, 214]]), C.flag, [C.flag, hex("#de907f"), hex("#b9685c")], 0, 10, 8, [214, 182, 256, 218]);
+    lightRelief(G.cv, G.hcv, W * SC, H * SC, 0.8);
+  }
+  // ---- envelope: a little cream letter waiting just inside the mouth (hidden by the closed door)
+  const E = make();
+  PAINT.hx = E.hx;
+  {
+    const ctx = E.ctx;
+    ctx.save(); ctx.translate(F[0] + 2, 222); ctx.rotate(-0.12);
+    const env = toPath([[-40, -24], [40, -24], [40, 24], [-40, 24]]);
+    fillPaint(ctx, env, C.cream, [C.cream, hex("#fdf7ea"), C.creamD], 0.05, 14, 8, [-44, -28, 44, 28]);
+    edge(ctx, [[-38, -22], [0, 4], [38, -22]], 3.5, C.creamD, 0.9);
+    edge(ctx, [[-40, -24], [40, -24], [40, 24], [-40, 24], [-40, -24]], 2.5, hex("#d9c4a2"), 0.7);
+    withThickness(0.95, () => { dab(ctx, 0, 4, 7, 6.5, 0, C.flag, 1); dab(ctx, -2, 2, 2.5, 2, 0, hex("#fbd7cc"), 0.9); });
+    ctx.restore();
+    lightRelief(E.cv, E.hcv, W * SC, H * SC, 0.8);
+  }
+
+  // ---- garden: the little patch at the foot of the post for the larger Contact mailbox — grass, a few white
+  // daisies, soft pink flowers and leaves, and a broader painted ground shadow
+  const P2 = make();
+  PAINT.hx = P2.hx;
+  {
+    const ctx = P2.ctx;
+    ctx.save(); ctx.filter = "blur(6px)"; glaze(ctx, 214, 506, 150, 14, hex("#7f9a66"), 0.35); ctx.restore();
+    withThickness(0.75, () => {
+      for (let i = 0; i < 60; i++) { const x = 70 + r() * 290; stroke(ctx, r, x, 512 - r() * 6, -Math.PI / 2 + (r() - 0.5) * 0.7, 14 + r() * 26, 3, mix(hex("#7fa66a"), hex("#b9cc92"), r()), 0.9, 1); }
+      for (const [x, y, a] of [[150, 494, -2.4], [262, 492, -0.7], [118, 500, -2.8], [300, 498, -0.4]]) dab(ctx, x + Math.cos(a) * 12, y + Math.sin(a) * 12, 14, 6, a, mix(C.sage, hex("#b4c99a"), r()), 0.95);
+      const daisy = (x, y, R) => {
+        for (let k = 0; k < 11; k++) { const a = (k / 11) * Math.PI * 2; dab(ctx, x + Math.cos(a) * R * 0.6, y + Math.sin(a) * R * 0.45, R * 0.48, R * 0.18, a, mix(hex("#fdf8f0"), hex("#efe4d4"), r() * 0.5), 0.97); }
+        dab(ctx, x, y, R * 0.24, R * 0.2, 0, hex("#e8b03e"), 1);
+      };
+      const blossom = (x, y, R) => {
+        for (let k = 0; k < 5; k++) { const a = (k / 5) * Math.PI * 2 + 0.3; dab(ctx, x + Math.cos(a) * R * 0.55, y + Math.sin(a) * R * 0.45, R * 0.5, R * 0.34, a, mix(C.blush, hex("#f8d4d0"), r() * 0.5), 0.96); }
+        dab(ctx, x, y, R * 0.2, R * 0.18, 0, hex("#f3d38a"), 1);
+      };
+      for (const [x, y, R] of [[136, 488, 13], [158, 500, 11], [272, 486, 12], [294, 502, 10], [118, 504, 9]]) { stroke(ctx, r, x, y + 22, -Math.PI / 2, 20, 2.4, hex("#7f9e68"), 0.9, 1); daisy(x, y, R); }
+      for (const [x, y, R] of [[176, 506, 10], [250, 500, 11], [318, 490, 9], [96, 494, 8]]) { stroke(ctx, r, x, y + 20, -Math.PI / 2, 18, 2.2, hex("#7f9e68"), 0.9, 1); blossom(x, y, R); }
+    });
+    lightRelief(P2.cv, P2.hcv, W * SC, H * SC, 0.8);
   }
   PAINT.hx = null;
-  return { body: B.cv, door: D.cv, flag: G.cv };
+  return { body: B.cv, door: D.cv, flag: G.cv, envelope: E.cv, garden: P2.cv };
 }
 
 if (process.argv.includes("--mailbox")) {
@@ -3311,7 +3356,118 @@ if (process.argv.includes("--mailbox")) {
   fs.mkdirSync(dir, { recursive: true });
   const m = paintMailbox();
   for (const [k, cv] of Object.entries(m)) fs.writeFileSync(path.join(dir, `mailbox-${k}.webp`), cv.toBuffer("image/webp", 92));
-  console.log("mailbox: body, door, flag");
+  console.log("mailbox: body, door, flag, envelope, garden");
+  process.exit(0);
+}
+
+/**
+ * Foreground clusters for the inner pages: larger, richer, more detailed than the backdrop's flowers,
+ * because they sit closest to the viewer. Each enters from the LEFT edge (stems run off the canvas there);
+ * the page mirrors them for the right edge.
+ */
+function paintForeground(kind) {
+  const S = kind === "fg-petals" ? 360 : 640;
+  const cv = createCanvas(S, S), ctx = cv.getContext("2d");
+  const hcv = createCanvas(S, S), hx = hcv.getContext("2d");
+  hx.fillStyle = grey(20);
+  hx.fillRect(0, 0, S, S);
+  PAINT.hx = hx;
+  const r = rng(2100 + kind.length * 13 + kind.charCodeAt(3));
+  const P = { coral: hex("#e9806b"), coralD: hex("#cf5f50"), blush: hex("#f2a7ae"), blushD: hex("#de8794"), white: hex("#fdf8f0"), whiteS: hex("#e7dccd"), gold: hex("#e8b03e"), goldD: hex("#c58a2c"), sage: hex("#8fb077"), sageD: hex("#5f804f"), sageL: hex("#b4cb98"), stem: hex("#7d9a62") };
+  const curve = (p0, p1, p2, w, col) => {
+    const B = (t) => [lerp(lerp(p0[0], p1[0], t), lerp(p1[0], p2[0], t), t), lerp(lerp(p0[1], p1[1], t), lerp(p1[1], p2[1], t), t)];
+    for (let i = 0; i < 16; i++) { const [x0, y0] = B(i / 16), [x1, y1] = B((i + 1) / 16); stroke(ctx, r, x0, y0, Math.atan2(y1 - y0, x1 - x0), Math.hypot(x1 - x0, y1 - y0) + w, w * (1 - i / 40), mix(col, hex("#c9d8a8"), r() * 0.2), 0.95, 1); }
+    return B;
+  };
+  const petal = (x, y, ang, len, w, col, shade) => {
+    dab(ctx, x + Math.cos(ang) * len * 0.5, y + Math.sin(ang) * len * 0.5, len * 0.52, w * 0.5, ang, col, 0.97);
+    for (let i = 0; i < 4; i++) stroke(ctx, r, x + Math.cos(ang) * len * 0.1, y + Math.sin(ang) * len * 0.1, ang + (r() - 0.5) * 0.3, len * (0.6 + r() * 0.3), w * 0.22, mix(col, i % 2 ? hex("#ffffff") : shade, 0.2 + r() * 0.25), 0.75, 2);
+    dab(ctx, x + Math.cos(ang) * len * 0.22, y + Math.sin(ang) * len * 0.22, len * 0.18, w * 0.3, ang, shade, 0.45);
+  };
+  const leaf = (x, y, ang, len, w, col) => {
+    const tx = x + Math.cos(ang) * len, ty = y + Math.sin(ang) * len, nx = -Math.sin(ang) * w, ny = Math.cos(ang) * w;
+    const p = new Path2D();
+    p.moveTo(x, y); p.quadraticCurveTo((x + tx) / 2 + nx, (y + ty) / 2 + ny, tx, ty); p.quadraticCurveTo((x + tx) / 2 - nx, (y + ty) / 2 - ny, x, y);
+    ctx.save(); ctx.filter = "blur(0.8px)"; ctx.fillStyle = rgba(col); ctx.fill(p); ctx.restore();
+    clipBoth(ctx, p);
+    for (let i = 0; i < 14; i++) stroke(ctx, r, x + Math.cos(ang) * len * r() * 0.7 + (r() - 0.5) * w, y + Math.sin(ang) * len * r() * 0.7 + (r() - 0.5) * w, ang + (r() - 0.5) * 0.5, len * 0.45, w * 0.32, mix(col, r() < 0.5 ? hex("#f4f0d0") : P.sageD, 0.18 + r() * 0.2), 0.65, 2);
+    unclipBoth(ctx);
+    stroke(ctx, r, x, y, ang, len * 0.92, Math.max(2, w * 0.07), mix(col, hex("#f4f0d0"), 0.4), 0.8, 1);
+  };
+  const daisy = (x, y, R, tilt = 0) => {
+    const n = 16;
+    for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2 + r() * 0.12; petal(x, y, a, R * (0.9 + r() * 0.18), R * 0.34, mix(P.white, hex("#fff6e8"), r() * 0.5), P.whiteS); }
+    dab(ctx, x, y, R * 0.3, R * 0.28, 0, P.gold, 1);
+    for (let i = 0; i < 18; i++) dab(ctx, x + (r() - 0.5) * R * 0.42, y + (r() - 0.5) * R * 0.4, R * 0.05, R * 0.05, 0, mix(P.goldD, hex("#f8d987"), r()), 0.95);
+    dab(ctx, x - R * 0.09, y - R * 0.1, R * 0.1, R * 0.07, tilt, hex("#fbe7a8"), 0.85);
+  };
+  const cosmos = (x, y, R, col, shade) => {
+    for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2 + r() * 0.15; petal(x, y, a, R * (0.92 + r() * 0.14), R * 0.62, mix(col, hex("#ffffff"), r() * 0.18), shade); }
+    dab(ctx, x, y, R * 0.24, R * 0.22, 0, P.gold, 1);
+    for (let i = 0; i < 14; i++) dab(ctx, x + (r() - 0.5) * R * 0.32, y + (r() - 0.5) * R * 0.3, R * 0.045, R * 0.045, 0, mix(P.goldD, hex("#f6d98a"), r()), 0.95);
+  };
+  withThickness(0.9, () => {
+    if (kind === "fg-cosmos") {
+      curve([-20, 600], [160, 470], [330, 270], 9, P.stem);
+      curve([-20, 610], [110, 520], [200, 430], 8, P.stem);
+      curve([-20, 560], [120, 380], [180, 250], 6, P.stem);
+      leaf(70, 520, -0.9, 150, 22, P.sage); leaf(120, 470, -0.2, 130, 20, P.sageL); leaf(60, 560, 0.3, 120, 18, P.sageD);
+      cosmos(330, 270, 120, P.coral, P.coralD);
+      cosmos(200, 430, 84, P.blush, P.blushD);
+      dab(ctx, 180, 238, 18, 26, -0.3, P.coralD, 0.95); dab(ctx, 184, 262, 12, 10, 0, P.sage, 0.95); // a bud
+    } else if (kind === "fg-daisies") {
+      curve([-20, 620], [150, 470], [300, 210], 7, P.stem);
+      curve([-20, 600], [230, 520], [430, 330], 7, P.stem);
+      curve([-20, 560], [120, 470], [220, 340], 6, P.stem);
+      curve([-20, 640], [200, 600], [340, 470], 6, P.stem);
+      leaf(40, 540, -0.6, 160, 24, P.sage); leaf(100, 590, 0.2, 150, 22, P.sageL); leaf(160, 480, -1.3, 110, 18, P.sageD);
+      daisy(300, 210, 96); daisy(430, 330, 84); daisy(220, 340, 70); daisy(340, 470, 62);
+    } else if (kind === "fg-rose") {
+      curve([-20, 610], [140, 520], [300, 330], 10, P.stem);
+      curve([-20, 520], [260, 300], [470, 180], 6, P.stem);
+      leaf(90, 520, -0.5, 170, 34, P.sage); leaf(170, 430, -1.6, 140, 30, P.sageD); leaf(220, 400, 0.4, 150, 30, P.sageL); leaf(360, 240, -0.9, 110, 22, P.sage);
+      const cx = 310, cy = 320, R = 150;
+      // a garden rose, petal by petal from the outside in: each cupped petal a soft dab with a shaded inner
+      // edge and a lit rim, deepening toward a rolled centre
+      for (let k = 0; k < 5; k++) {
+        const rad = R * (1 - k * 0.19), n = [7, 6, 5, 5, 4][k];
+        for (let i = 0; i < n; i++) {
+          const a = (i / n) * Math.PI * 2 + k * 0.7 + (r() - 0.5) * 0.3;
+          const d = rad * (0.5 - k * 0.04), px = cx + Math.cos(a) * d, py = cy + Math.sin(a) * d * 0.82;
+          const col = mix(mix(P.blush, hex("#fbd6da"), r() * 0.5 + 0.1 - k * 0.05), P.blushD, k * 0.14);
+          dab(ctx, px, py, rad * (0.46 + r() * 0.08), rad * (0.33 + r() * 0.06), a + Math.PI / 2, col, 0.97);
+          // the shaded edge toward the centre and the lit outer rim
+          stroke(ctx, r, px - Math.cos(a) * rad * 0.22 - Math.cos(a + Math.PI / 2) * rad * 0.3, py - Math.sin(a) * rad * 0.18 - Math.sin(a + Math.PI / 2) * rad * 0.3, a + Math.PI / 2, rad * 0.6, rad * 0.07, mix(col, hex("#b9606f"), 0.4), 0.55, 2);
+          stroke(ctx, r, px + Math.cos(a) * rad * 0.26 - Math.cos(a + Math.PI / 2) * rad * 0.28, py + Math.sin(a) * rad * 0.22 - Math.sin(a + Math.PI / 2) * rad * 0.28, a + Math.PI / 2, rad * 0.56, rad * 0.06, mix(col, hex("#fff3f1"), 0.6), 0.75, 2);
+        }
+      }
+      for (let i = 0; i < 4; i++) stroke(ctx, r, cx - 22 + i * 4, cy - 6 + i * 5, 0.3 + i * 0.5, 34, 7, mix(hex("#c96f7d"), P.blushD, r()), 0.8, 2);
+      dab(ctx, 470, 180, 22, 32, 0.5, P.blushD, 0.95); dab(ctx, 462, 205, 14, 12, 0, P.sage, 0.95);
+    } else if (kind === "fg-leaves") {
+      const B = curve([-30, 420], [260, 330], [580, 170], 8, hex("#8d7a5c"));
+      for (let i = 1; i < 12; i++) {
+        const t = i / 12, [x, y] = B(t), sd = i % 2 ? -1 : 1;
+        leaf(x, y, -0.45 + sd * (0.9 - t * 0.3), 160 - t * 60, 44 - t * 14, i === 7 ? hex("#dfa65a") : mix(P.sage, P.sageL, r()));
+      }
+      for (const [x, y] of [[330, 330], [345, 345], [320, 352], [338, 362]]) { dab(ctx, x, y, 11, 11, 0, P.coral, 1); dab(ctx, x - 3, y - 3, 4, 3, 0, hex("#fde0d6"), 0.9); }
+    } else {
+      petal(40, 110, -0.35, 150, 80, P.coral, P.coralD);
+      petal(200, 230, 0.6, 120, 64, P.blush, P.blushD);
+      petal(170, 60, 0.15, 100, 44, P.white, P.whiteS);
+    }
+  });
+  lightRelief(cv, hcv, S, S, 1);
+  PAINT.hx = null;
+  return cv;
+}
+
+if (process.argv.includes("--foreground")) {
+  const dir = path.resolve("public/assets/garden/flora");
+  fs.mkdirSync(dir, { recursive: true });
+  for (const kind of ["fg-cosmos", "fg-daisies", "fg-rose", "fg-leaves", "fg-petals"]) {
+    fs.writeFileSync(path.join(dir, `${kind}.webp`), paintForeground(kind).toBuffer("image/webp", 90));
+    console.log(kind);
+  }
   process.exit(0);
 }
 

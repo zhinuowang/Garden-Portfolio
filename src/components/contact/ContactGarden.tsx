@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { contact } from "@/data/site";
 import FloatingFlora from "@/components/garden/FloatingFlora";
 import Mailbox from "@/components/garden/Mailbox";
@@ -34,49 +34,73 @@ const card =
 
 export default function ContactGarden() {
   const dialog = useRef<HTMLDialogElement>(null);
+  const [note, setNote] = useState(false);
+  // the thank-you note tucks itself away again after a few seconds
+  useEffect(() => {
+    if (!note) return;
+    const t = window.setTimeout(() => setNote(false), 5000);
+    return () => window.clearTimeout(t);
+  }, [note]);
 
   return (
     <div className="nightable relative isolate flex min-h-[100svh] items-center overflow-x-clip px-4 pt-28 pb-20 sm:px-6">
       <div aria-hidden="true" className="journal-backdrop journal-backdrop--contact" />
-      <FloatingFlora count={5} start={12} end={88} />
+      <FloatingFlora variant="single" />
 
-      <div className="relative mx-auto grid w-full max-w-6xl items-end gap-6 lg:grid-cols-[minmax(0,1fr)_14rem] lg:gap-4">
-      <section aria-labelledby="contact-title" className="garden-mist garden-mist--soft relative mx-auto w-full max-w-4xl text-center">
-        <p className="font-hand text-2xl text-moss">the last stop in the garden</p>
-        <h1 id="contact-title" className="mt-1 font-serif text-[clamp(2.5rem,6vw,4.2rem)] leading-[1.04] font-medium text-ink">
-          Let&rsquo;s stay in touch.
-        </h1>
-        <p className="mx-auto mt-4 max-w-md text-lg text-ink-soft">For opportunities, collaborations, or a friendly hello.</p>
+      {/* one composition: the title centred over everything; below it the three ways to reach me as one
+          group, and to their right — a little in from the edge — the larger garden mailbox in its flowers */}
+      <section aria-labelledby="contact-title" className="garden-mist garden-mist--soft relative mx-auto w-full max-w-6xl">
+        <div className="text-center">
+          <p className="font-hand text-2xl text-moss">the last stop in the garden</p>
+          <h1 id="contact-title" className="mt-1 font-serif text-[clamp(2.5rem,6vw,4.2rem)] leading-[1.04] font-medium text-ink">
+            Let&rsquo;s stay in touch.
+          </h1>
+          <p className="mx-auto mt-4 max-w-md text-lg text-ink-soft">For opportunities, collaborations, or a friendly hello.</p>
+        </div>
 
-        <ul className="mx-auto mt-10 grid max-w-3xl grid-cols-3 gap-1 sm:mt-12 sm:gap-8">
-          <li style={{ ["--tilt" as string]: "-3deg" }}>
-            <a href={`mailto:${contact.email}`} className={card}>
-              <Icon kind="email" />
-              <Label title="Email" sub={<><span className="sm:hidden">Send a note</span><span className="hidden break-all sm:inline">{contact.email}</span></>} />
-            </a>
-          </li>
-          <li style={{ ["--tilt" as string]: "2deg" }}>
-            <a href={contact.linkedin} target="_blank" rel="noopener noreferrer" className={card}>
-              <Icon kind="linkedin" />
-              <Label title="LinkedIn" sub="View my profile ↗" />
-              <span className="sr-only"> (opens in a new tab)</span>
-            </a>
-          </li>
-          <li style={{ ["--tilt" as string]: "-2deg" }}>
-            <button type="button" aria-haspopup="dialog" onClick={() => dialog.current?.showModal()} className={`${card} cursor-pointer`}>
-              <Icon kind="wechat" />
-              <Label title="WeChat" sub="Scan my QR code" />
+        <div className="mt-8 grid items-end gap-4 lg:mt-2 lg:grid-cols-[minmax(0,1fr)_21rem] lg:gap-6 lg:pr-[3vw] xl:pr-[5vw]">
+          <ul className="mx-auto grid w-full max-w-2xl grid-cols-3 gap-1 sm:gap-6 lg:mr-0 lg:mb-10">
+            <li style={{ ["--tilt" as string]: "-3deg" }}>
+              <a href={`mailto:${contact.email}`} className={card}>
+                <Icon kind="email" />
+                <Label title="Email" sub={<><span className="lg:hidden">Send a note</span><span className="hidden whitespace-nowrap lg:inline">{contact.email}</span></>} />
+              </a>
+            </li>
+            <li style={{ ["--tilt" as string]: "2deg" }}>
+              <a href={contact.linkedin} target="_blank" rel="noopener noreferrer" className={card}>
+                <Icon kind="linkedin" />
+                <Label title="LinkedIn" sub="View my profile ↗" />
+                <span className="sr-only"> (opens in a new tab)</span>
+              </a>
+            </li>
+            <li style={{ ["--tilt" as string]: "-2deg" }}>
+              <button type="button" aria-haspopup="dialog" onClick={() => dialog.current?.showModal()} className={`${card} cursor-pointer`}>
+                <Icon kind="wechat" />
+                <Label title="WeChat" sub="Scan my QR code" />
+              </button>
+            </li>
+          </ul>
+
+          {/* the Landing's mailbox, larger, in its own patch of flowers: it opens on hover; a click opens it
+              and leaves a small thank-you note (this page is already where it leads) */}
+          <div className="relative mx-auto w-44 sm:w-56 lg:-mt-28 lg:w-full">
+            <button
+              type="button"
+              aria-expanded={note}
+              aria-controls="mailbox-note"
+              data-open={note}
+              onClick={() => setNote((n) => !n)}
+              className="mailbox-host contact-mailbox block w-full cursor-pointer rounded-3xl focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-moss"
+            >
+              <span className="sr-only">{note ? "Close the mailbox" : "Open the mailbox"}</span>
+              <Mailbox garden />
             </button>
-          </li>
-        </ul>
+            <p id="mailbox-note" role="status" className={`mailbox-note ${note ? "mailbox-note--shown" : ""}`}>
+              {note ? "Thanks for stopping by my garden!" : ""}
+            </p>
+          </div>
+        </div>
       </section>
-
-      {/* the same garden mailbox as on the Landing, standing to the right; it opens on hover and writes an email */}
-      <a href={`mailto:${contact.email}`} className="mailbox-host contact-mailbox group mx-auto block w-36 rounded-2xl focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-moss lg:w-full">
-        <span className="sr-only">Write me an email</span>
-        <Mailbox />
-      </a>
-      </div>
 
       {/* WeChat: a small panel; Esc, the close button or a click outside it closes it */}
       <dialog
