@@ -42,7 +42,9 @@ Removed (all recoverable from the tag): the homepage sections `GardenGate`, `Gar
   drifting petals; heads only, no stems (`node scripts/paint-landing.mjs --loose`). They come in small composed clusters
   (a large bloom with one or two smaller ones overlapping it, a few drifting petals; thirteen compositions) placed
   down each side of the page in its own uneven rhythm (0.5–1.3 window-heights apart), so neither edge stays bare for
-  long but no more than about three clusters share the window; members genuinely overlap (positions computed
+  long; and two fuller bouquets (four or five overlapping blooms) are held to the window's lower-left and upper-right
+  corners, partly cropped, swaying gently as you scroll, so every view has a balanced, roughly triangular
+  composition; members genuinely overlap (positions computed
   from each painting's measured extent; roughly 15–30% of the smaller bloom, varied), with a clear front and back; a
   cluster drifts as one, its members at most ~11 px apart in depth over a full pass. The flowers are painted with the
   backdrop's brushes and relief, then harmonised toward its warm light (slightly less saturated, softened edges), with
@@ -52,8 +54,7 @@ Removed (all recoverable from the tag): the homepage sections `GardenGate`, `Gar
   on the right it may just touch an image's outer edge (≈20 px), on the left it stays clear (the contents links stay clear).
   Smaller and fewer on tablets; on phones they only peek in (≤ 22 px) and move more gently. With reduced motion they
   stay put on the page. Clicks always reach the content beneath.
-  On Contact the foreground is lighter: three small clusters composed round the window's corners, kept about 40 px
-  clear of the content.
+  On Contact the two corner bouquets and a few drifting petals are kept about 40 px clear of the content.
 - **Garden mailbox (Landing and Contact).** `Mailbox`: one painting in layers (`--mailbox`, drawn at 2× so it stays
   crisp when large): body, envelope, flag, door, and on Contact a small patch of daisies and pink flowers at its foot.
   On hover or focus the arched door tips open, the flag lifts and a little envelope slides out (≈ 0.4 s). On the

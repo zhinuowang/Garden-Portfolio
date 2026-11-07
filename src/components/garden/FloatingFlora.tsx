@@ -27,6 +27,22 @@ type Cluster = { w: number; h: number; members: Member[] };
 // neighbouring blossoms genuinely overlap — roughly 15–30% of the smaller one, varied by cluster — with a
 // clear front and back: the dominant bloom in front, supporting ones tucked behind, loose petals on top.
 const CLUSTERS: Record<string, Cluster> = {
+  // the two corner bouquets that frame the window (see FRAMES below): fuller, four or five blooms each
+  bouquetLowerLeft: { w: 345, h: 332, members: [
+    { kind: "lily", x: 109, y: 0, size: 220, rot: 40 },
+    { kind: "hibiscus", x: 0, y: 29, size: 190, rot: -10 },
+    { kind: "loose-peony-red", x: 31, y: 68, size: 250, rot: 8, dz: 0.006 },
+    { kind: "loose-daisy", x: 154, y: 129, size: 175, rot: 18, dz: 0.008 },
+    { kind: "loose-peony", x: 85, y: 192, size: 140, rot: -20, dz: 0.006 },
+    { kind: "loose-petals", x: 245, y: 157, size: 100, rot: 30, dz: 0.01 },
+  ] },
+  bouquetUpperRight: { w: 327, h: 316, members: [
+    { kind: "daffodil", x: 142, y: 114, size: 185, rot: 14 },
+    { kind: "loose-daisy-half", x: 0, y: 108, size: 175, rot: -120 },
+    { kind: "rose-lavender", x: 57, y: 0, size: 235, rot: -8, dz: 0.006 },
+    { kind: "loose-peony", x: 186, y: 34, size: 135, rot: 10, dz: 0.006 },
+    { kind: "loose-petals", x: 161, y: 221, size: 95, rot: 60, dz: 0.01 },
+  ] },
   lilyTrio: { w: 291, h: 283, members: [
     { kind: "loose-daisy", x: 0, y: 113, size: 170, rot: 22 },
     { kind: "lily", x: 41, y: 0, size: 250, rot: -12, dz: 0.006 },
@@ -102,12 +118,19 @@ const RIGHT: Omit<Beat, "side">[] = [
   { c: "roseTrio", gap: 0.85, reach: 0.78, speed: 1.38, drift: 8 },
 ];
 
-// a single-screen page (Contact): three small clusters composed round the window's corners, well clear of
-// the text (at: how far down the window; scale: smaller than on long pages)
+// the frame: two fuller bouquets held to the window's corners — lower left and upper right, partly cropped by
+// its edges — so every view has a balanced, roughly triangular composition with the clusters drifting past
+// between them. They drift only gently with scrolling (a slow sway up and down), never away.
+type Frame = { c: keyof typeof CLUSTERS; side: "l" | "r"; corner: "top" | "bottom"; sink: number; reach: number; drift: number };
+const FRAMES: Frame[] = [
+  { c: "bouquetLowerLeft", side: "l", corner: "bottom", sink: 0.12, reach: 0.78, drift: 14 },
+  { c: "bouquetUpperRight", side: "r", corner: "top", sink: 0.16, reach: 0.68, drift: 12 },
+];
+
+// a single-screen page (Contact): the frame's two bouquets plus a few drifting petals low on the right, all well
+// clear of the text (at: how far down the window; scale: smaller than on long pages)
 const CORNERS: (Beat & { at: number; scale: number })[] = [
-  { c: "peonyDaisy", side: "r", gap: 0, reach: 0.6, speed: 1.35, drift: 8, at: 0.17, scale: 0.6 },
-  { c: "lilyTrio", side: "l", gap: 0, reach: 0.6, speed: 1.3, drift: 8, at: 0.86, scale: 0.55 },
-  { c: "petals", side: "r", gap: 0, reach: 0.8, speed: 1.55, drift: 12, at: 0.88, scale: 0.55 },
+  { c: "petals", side: "r", gap: 0, reach: 0.8, speed: 1.55, drift: 12, at: 0.86, scale: 0.6 },
 ];
 
 export default function FloatingFlora({ variant = "long" }: { variant?: "long" | "single" }) {
@@ -118,12 +141,21 @@ export default function FloatingFlora({ variant = "long" }: { variant?: "long" |
     const box = anchor.current, fg = layer.current;
     if (!box || !fg) return;
     const still = window.matchMedia("(prefers-reduced-motion: reduce)");
-    type Item = { el: HTMLElement; parts: { el: HTMLElement; dz: number }[]; y: number; h: number; speed: number; drift: number; side: "l" | "r" };
+    type Item = { el: HTMLElement; parts: { el: HTMLElement; dz: number }[]; y: number; h: number; speed: number; drift: number; side: "l" | "r"; frame?: number };
     let items: Item[] = [];
 
     const update = () => {
       const vh = window.innerHeight, sy = window.scrollY, calm = still.matches;
       for (const it of items) {
+        if (it.frame !== undefined) {
+          // a corner bouquet: fixed to its corner (it.y is its top in the window), swaying a little as you scroll
+          const t = sy / 650 + it.frame * 1.7;
+          const dy = calm ? 0 : Math.sin(t) * it.drift, dx = calm ? 0 : Math.sin(t * 0.7) * it.drift * 0.4 * (it.side === "l" ? 1 : -1);
+          it.el.style.visibility = "visible";
+          it.el.style.transform = `translate3d(${dx.toFixed(1)}px, ${(it.y + dy).toFixed(1)}px, 0)`;
+          for (const [i, p] of it.parts.entries()) if (p.dz) p.el.style.transform = calm ? "" : `translate3d(0, ${(Math.sin(t + i) * p.dz * 700).toFixed(1)}px, 0)`;
+          continue;
+        }
         // the cluster's centre on screen: exactly at its page point when that point is mid-window, and
         // `speed` times as far from the middle elsewhere — so it moves faster than the content
         const cy = vh / 2 + (it.y - sy - vh / 2) * it.speed;
@@ -170,13 +202,17 @@ export default function FloatingFlora({ variant = "long" }: { variant?: "long" |
         }
       }
 
+      // the corner bouquets: kept on screen in every tier, smaller on tablets and phones
+      const frames = FRAMES.map((f, i) => ({ ...f, gap: 0, speed: 1, k: 1, y: 0, frame: i }));
+
       fg.replaceChildren();
-      items = beats.map((b) => {
+      items = [...beats, ...frames].map((b) => {
         const cl = CLUSTERS[b.c];
         const limit = b.side === "l" ? marginL + overlapL : marginR + overlapR;
         // where the margin is narrow, the whole cluster is painted smaller (down to 60%) rather than cropped
         // away, so its composition still reads
-        const fit = Math.min(1, Math.max(0.6, limit / (cl.w * scale * b.k * b.reach)));
+        const isFrame = "frame" in b;
+        const fit = Math.min(1, Math.max(isFrame ? 0.75 : 0.6, limit / (cl.w * scale * b.k * b.reach)));
         const k = scale * b.k * fit, w = Math.round(cl.w * k), h = Math.round(cl.h * k);
         const shown = Math.max(Math.min(w * b.reach, limit), tier === "phone" ? 18 : Math.min(w * 0.3, 40)); // how much of the box is inside the window
         const el = document.createElement("span");
@@ -211,6 +247,12 @@ export default function FloatingFlora({ variant = "long" }: { variant?: "long" |
         el.append(inner);
         fg.append(el);
         const speed = still.matches ? 1 : tier === "phone" ? 1 + (b.speed - 1) * 0.35 : b.speed;
+        if (isFrame) {
+          // its top in the window: sunk a little below the bottom edge, or tucked a little under the header
+          const f = b as (typeof frames)[number];
+          const y = f.corner === "bottom" ? vh - h * (1 - f.sink) : 40 - h * f.sink;
+          return { el, parts, y, h, speed: 1, drift: tier === "phone" ? 0 : f.drift, side: b.side, frame: f.frame };
+        }
         return { el, parts, y: b.y, h, speed, drift: tier === "phone" ? 0 : b.drift, side: b.side };
       });
       update();
