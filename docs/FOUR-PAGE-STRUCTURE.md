@@ -48,6 +48,13 @@ Removed (all recoverable from the tag): the homepage sections `GardenGate`, `Gar
   beside it (near the top of the page) it steps back into the outer margin, drawn smaller but whole. Smaller and kept short of the content on tablets;
   on phones they only peek in (≤ 20 px). Still with reduced motion; dimmed at night. Checked over full scrolls of all
   four pages at desktop, tablet and phone sizes: no text, heading, image, link or button is covered.
+- **Background music.** `GardenMusic` in the site header (so it survives page changes): a small painted note, off by
+  default and never autoplayed. On click the track fades in over ~1.8 s to a low volume (0.22 by day, 0.15 at night,
+  eased without restarting when the lamp is lit), loops, and on the second click fades out over ~1.5 s before
+  pausing. It plays from `public/audio/garden-music.mp3` — **not yet supplied**: add a licensed or original track
+  there (soft piano, quiet nature ambience, seamless loop). Until then the button reads "Background music coming
+  soon" and nothing plays. `aria-pressed`, an accessible label and a handwritten hint on hover or focus; the sound
+  curls hold still with reduced motion.
 - **Garden mailbox (Landing and Contact).** `Mailbox`: one painting in layers (`--mailbox`, drawn at 2× so it stays
   crisp when large): body, envelope, flag, door, and on Contact a small patch of daisies and pink flowers at its foot.
   On hover or focus the arched door tips open, the flag lifts and a little envelope slides out (≈ 0.4 s). On the

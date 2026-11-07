@@ -413,6 +413,36 @@ html[data-night-ink] .mailbox-post__hint { color: #fbf0d6; text-shadow: 0 0 10px
   .mailbox, .mailbox img { transition: none; }
 }
 
+/* the music note in the header (GardenMusic): muted with a light stroke when off; when on, two sound curls
+   breathe gently beside it (still with reduced motion); a small handwritten hint on hover or focus */
+.garden-music__waves { opacity: 0; transition: opacity 0.6s ease; }
+.garden-music[data-status="on"] .garden-music__waves { opacity: 1; animation: music-breathe 3.2s ease-in-out infinite; }
+.garden-music[data-status="on"] .garden-music__mute { opacity: 0; }
+.garden-music__mute { transition: opacity 0.4s ease; }
+.garden-music[data-status="unavailable"] .garden-music__note { opacity: 0.55; }
+@keyframes music-breathe { 0%, 100% { opacity: 0.55; transform: translateX(0); } 50% { opacity: 1; transform: translateX(0.6px); } }
+.garden-music__hint {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 50%;
+  white-space: nowrap;
+  font-family: var(--font-caveat), "Segoe Print", cursive;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-ink);
+  text-shadow: 0 0 8px rgb(251 245 230 / 0.95);
+  opacity: 0;
+  transform: translate(-50%, -3px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  pointer-events: none;
+}
+.garden-music:is(:hover, :focus-visible) .garden-music__hint { opacity: 1; transform: translate(-50%, 0); }
+html[data-night-ink] .garden-music__hint { text-shadow: 0 0 8px rgb(18 24 44 / 0.95); }
+html[data-night-ink] .garden-music__waves { stroke: #eeb1a6; }
+@media (prefers-reduced-motion: reduce) {
+  .garden-music[data-status="on"] .garden-music__waves { animation: none; }
+}
+
 /* the firefly cursor: a cute little firefly (head on the click point), its plump tail glowing honey-gold
    inside a soft warm halo that breathes, brightening while it flies */
 .butterfly__firefly { position: absolute; width: 24px; transform: translate(-50%, -16%); opacity: 0; transition: opacity 0.8s ease; pointer-events: none; }

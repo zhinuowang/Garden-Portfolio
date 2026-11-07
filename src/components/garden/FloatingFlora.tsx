@@ -28,8 +28,8 @@ const GARDENS: Record<string, { ll: Cluster; ur: Cluster }> = {
     ur: { w: 241, h: 275, members: [{ kind: "loose-peony", x: 66, y: 100, size: 175, rot: -12 }, { kind: "loose-daisy", x: 9, y: 0, size: 220, rot: 16, dz: 0.006 }, { kind: "loose-petals", x: 0, y: 115, size: 90, rot: 40, dz: 0.008 }] },
   },
   "eliminate-bacteria-pro": {
-    ll: { w: 292, h: 252, members: [{ kind: "loose-peony", x: 36, y: 0, size: 140, rot: 10 }, { kind: "rose-lavender", x: 0, y: 7, size: 245, rot: -6, dz: 0.006 }, { kind: "loose-daisy", x: 132, y: 48, size: 160, rot: 20, dz: 0.008 }] },
-    ur: { w: 248, h: 282, members: [{ kind: "daffodil", x: 88, y: 122, size: 160, rot: 10 }, { kind: "lily", x: 0, y: 0, size: 235, rot: 30, dz: 0.006 }] },
+    ll: { w: 248, h: 282, members: [{ kind: "daffodil", x: 88, y: 122, size: 160, rot: 10 }, { kind: "lily", x: 0, y: 0, size: 235, rot: 30, dz: 0.006 }] },
+    ur: { w: 292, h: 252, members: [{ kind: "loose-peony", x: 36, y: 0, size: 140, rot: 10 }, { kind: "rose-lavender", x: 0, y: 7, size: 245, rot: -6, dz: 0.006 }, { kind: "loose-daisy", x: 132, y: 48, size: 160, rot: 20, dz: 0.008 }] },
   },
   "little-moments": {
     ll: { w: 235, h: 285, members: [{ kind: "loose-poppy", x: 54, y: 0, size: 175, rot: 12 }, { kind: "daffodil", x: 0, y: 50, size: 235, rot: -14, dz: 0.006 }, { kind: "loose-petals", x: 132, y: 126, size: 96, rot: 40, dz: 0.008 }] },

@@ -1,0 +1,113 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { useNight } from "@/components/night/night";
+
+// Background music for the garden: soft piano with a little nature ambience, OFF by default and never
+// autoplayed. The visitor turns it on with the small painted note in the header; it fades in over ~1.8 s to a
+// low volume (a little lower at night), loops, and fades out before pausing. The control lives in the site
+// header, which stays mounted across page changes, so the music carries on uninterrupted between pages.
+//
+// THE TRACK: place a licensed or original audio file at
+//   public/audio/garden-music.mp3
+// (a seamless loop, ideally ~2–4 min, mastered quietly). Until that file exists the button says "Music coming
+// soon" and nothing plays — no external or commercial audio is used.
+
+export const MUSIC_SRC = "/audio/garden-music.mp3";
+
+const DAY_VOLUME = 0.22;
+const NIGHT_VOLUME = 0.15;
+
+type Status = "off" | "on" | "unavailable";
+
+export default function GardenMusic() {
+  const night = useNight();
+  const [status, setStatus] = useState<Status>("off");
+  const audio = useRef<HTMLAudioElement | null>(null);
+  const fadeRaf = useRef(0);
+
+  // ease the volume to `to` over `ms`, then run `done`
+  const fade = (to: number, ms: number, done?: () => void) => {
+    const a = audio.current;
+    if (!a) return;
+    cancelAnimationFrame(fadeRaf.current);
+    const from = a.volume, start = performance.now();
+    const step = (now: number) => {
+      const t = Math.min(1, (now - start) / ms);
+      const eased = t * t * (3 - 2 * t);
+      a.volume = Math.max(0, Math.min(1, from + (to - from) * eased));
+      if (t < 1) fadeRaf.current = requestAnimationFrame(step);
+      else done?.();
+    };
+    fadeRaf.current = requestAnimationFrame(step);
+  };
+
+  const turnOn = async () => {
+    if (!audio.current) {
+      const a = new Audio(MUSIC_SRC);
+      a.loop = true;
+      a.preload = "auto";
+      a.volume = 0;
+      audio.current = a;
+    }
+    const a = audio.current;
+    try {
+      a.volume = 0;
+      await a.play();
+      setStatus("on");
+      fade(night ? NIGHT_VOLUME : DAY_VOLUME, 1800);
+    } catch {
+      // no track yet (or the browser refused): say so, and play nothing
+      audio.current = null;
+      setStatus("unavailable");
+    }
+  };
+
+  const turnOff = () => {
+    setStatus("off");
+    fade(0, 1500, () => audio.current?.pause());
+  };
+
+  // day and night: the same track carries on, only its volume eases a little lower or higher
+  useEffect(() => {
+    if (status === "on") fade(night ? NIGHT_VOLUME : DAY_VOLUME, 1200);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- re-run only when the mood changes
+  }, [night]);
+
+  useEffect(() => () => {
+    cancelAnimationFrame(fadeRaf.current);
+    audio.current?.pause();
+  }, []);
+
+  const label = status === "on" ? "Turn the music off" : status === "unavailable" ? "Background music coming soon" : "Play soft background music";
+  const hint = status === "on" ? "Music on" : status === "unavailable" ? "Music coming soon" : "Music off";
+
+  return (
+    <button
+      type="button"
+      onClick={() => (status === "on" ? turnOff() : turnOn())}
+      aria-pressed={status === "on"}
+      aria-label={label}
+      title={label}
+      data-status={status}
+      className="garden-music group relative inline-flex min-h-11 min-w-11 items-center justify-center rounded-full text-ink transition hover:bg-paper focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-moss"
+    >
+      {/* a small painted note; when playing, two soft sound curls drift beside it */}
+      <svg viewBox="0 0 28 28" className="garden-music__note h-6 w-6" aria-hidden="true" focusable="false">
+        <g filter="url(#paint)">
+          <path d="M11 6.5 L20 4.5 L20 17" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M11 6.5 L11 19.5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+          <ellipse cx="8.2" cy="20" rx="3.4" ry="2.6" transform="rotate(-18 8.2 20)" fill="currentColor" />
+          <ellipse cx="17.2" cy="17.6" rx="3.4" ry="2.6" transform="rotate(-18 17.2 17.6)" fill="currentColor" />
+        </g>
+        <g className="garden-music__waves" fill="none" stroke="#b8615e" strokeWidth="1.4" strokeLinecap="round">
+          <path d="M23.5 9 q2 2 0 4" />
+          <path d="M25.5 7.5 q3 3.5 0 7" />
+        </g>
+        {/* off: a light stroke across */}
+        <path className="garden-music__mute" d="M5 24 L24 5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" opacity="0.55" />
+      </svg>
+      <span aria-hidden="true" className="garden-music__hint">{hint}</span>
+    </button>
+  );
+}
