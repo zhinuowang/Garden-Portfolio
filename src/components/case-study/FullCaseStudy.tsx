@@ -10,6 +10,7 @@ import type { CsBlock, CsImage, FullCaseStudy as Data } from "@/data/case-studie
 import type { Project } from "@/data/projects";
 import JournalContents from "./JournalContents";
 import { useCaseStudy } from "@/i18n/content";
+import { useLocale } from "@/i18n/locale";
 import { useUi } from "@/i18n/ui";
 
 // A full case study as a page from the painted garden's field journal: an
@@ -167,6 +168,7 @@ function Block({ b }: { b: CsBlock }) {
 export default function FullCaseStudy({ project, data: original, next }: { project: Project; data: Data; next: Project }) {
   // the same case study in the visitor's language: the words change, the images and structure never do
   const data = useCaseStudy(project.slug) ?? original;
+  const locale = useLocale();
   const t = useUi().cs;
   return (
     <article className="nightable relative isolate overflow-x-clip px-4 pt-28 pb-24 sm:px-6">
@@ -184,7 +186,8 @@ export default function FullCaseStudy({ project, data: original, next }: { proje
         <header className="mt-6 max-w-3xl">
           <CategoryBadge category={project.category} />
           <h1 className="mt-4 font-serif text-[clamp(2.5rem,6vw,4.4rem)] leading-[1.02] font-medium text-ink">{project.title}</h1>
-          {data.subtitle && <p className="mt-3 font-serif text-[clamp(1.2rem,2.2vw,1.55rem)] text-moss italic">{data.subtitle}</p>}
+          {/* italic only in English: Chinese has no italic, and a faked slant distorts it */}
+          {data.subtitle && <p className={`mt-3 font-serif text-[clamp(1.2rem,2.2vw,1.55rem)] text-moss ${locale === "en" ? "italic" : ""}`}>{data.subtitle}</p>}
           <dl className="mt-8 flex flex-wrap gap-x-10 gap-y-4 border-y border-dashed border-moss/35 py-5">
             {data.facts.map((f) => (
               <div key={f.label}>

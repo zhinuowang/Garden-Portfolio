@@ -19,7 +19,7 @@
 //   node scripts/paint-landing.mjs --title           → the Landing title, one painted layer per letter
 //   node scripts/paint-landing.mjs --butterfly       → the Landing butterfly cursor (wings and body layers)
 //   node scripts/paint-landing.mjs --lamp            → the Scene 1 lamppost (off and lit)
-//   node scripts/paint-landing.mjs --refine          → the navigation wash and the About ornaments and portrait mat
+//   node scripts/paint-landing.mjs --refine          → the About ornaments and the portrait's painted mat
 
 import { createCanvas, Path2D } from "@napi-rs/canvas";
 import fs from "node:fs";
@@ -291,6 +291,8 @@ function unclipBoth(ctx) {
   ctx.restore();
   if (PAINT.hx) PAINT.hx.restore();
 }
+/** One of a few colours (hex strings), chosen with the given random stream. */
+const pick = (r, cols) => hex(cols[Math.floor(r() * cols.length)]);
 /** A wash that is not part of the paint body (glows, cast shadows). */
 const glaze = (ctx, x, y, rx, ry, col, alpha) => dab(ctx, x, y, rx, ry, 0, col, alpha, false);
 
@@ -1100,20 +1102,104 @@ function paint(F) {
           dab(ctx, x, y, 4 * k, 3.5 * k, 0, [hex("#fbf3ea"), hex("#f2c9c4")][i % 2], 0.95);
         }
       }
-      // gate posts and an open picket gate
+      // the opening: the path runs on through it, so the gate opens onto the way in (sandy strokes in the path's
+      // own colours, narrowing a little as they go back, kept inside the gap)
       const ph = (botY - topY) * 1.25;
-      for (const px of [gap0, gap1]) {
-        for (let i = 0; i < 5; i++) knife(ctx, r, px - 10 * k + r() * 8 * k, botY - ph + i * ph * 0.2, Math.PI / 2, ph * 0.22, 22 * k, mix(hex("#8a6a4e"), i % 2 ? WARM : SHADOW, 0.15));
-        dab(ctx, px, botY - ph - 6 * k, 16 * k, 9 * k, 0, hex("#9b7a5c"), 1);
+      const pw = 22 * k; // a post's width
+      {
+        const lip = 6 * k;
+        const way = new Path2D();
+        way.moveTo(gap0 + pw * 0.3, botY + 4 * k);
+        way.lineTo(gap1 - pw * 0.3, botY + 4 * k);
+        // narrow where it meets the path above, widening to the whole opening at the threshold
+        const mid = (gap0 + gap1) / 2, half = (gap1 - gap0) * 0.24;
+        way.bezierCurveTo(gap1 - pw * 0.4, lerp(botY, topY, 0.6), mid + half, topY, mid + half * 0.8, topY - lip);
+        way.lineTo(mid - half * 0.8, topY - lip);
+        way.bezierCurveTo(mid - half, topY, gap0 + pw * 0.4, lerp(botY, topY, 0.6), gap0 + pw * 0.3, botY + 4 * k);
+        way.closePath();
+        clipBoth(ctx, way);
+        ctx.save(); ctx.filter = `blur(${3 * k}px)`; ctx.fillStyle = rgba(hex("#ecdcba")); ctx.fill(way); ctx.restore();
+        for (let i = 0; i < 70; i++) {
+          const y = lerp(topY - lip, botY, r()), x = lerp(gap0, gap1, r());
+          stroke(ctx, r, x, y, (r() - 0.5) * 0.5, (22 + r() * 30) * k, (7 + r() * 6) * k, pick(r, ["#eedfbb", "#f1e2c1", "#e7d6b5", "#f5e5c6", "#e2cfab"]), 0.85, 2);
+        }
+        unclipBoth(ctx);
+        // past the threshold the path does not stop at an edge: it thins out softly into the grass
+        ctx.save(); ctx.filter = `blur(${10 * k}px)`;
+        glaze(ctx, (gap0 + gap1) / 2, botY + 10 * k, (gap1 - gap0) * 0.42, 16 * k, hex("#e8d8b5"), 0.55);
+        ctx.restore();
       }
-      const gw = (gap1 - gap0) * 0.42;
-      for (let i = 0; i < 6; i++) {
-        const t = i / 5;
-        const px = gap0 + 14 * k + t * gw, skew = t * 18 * k;
-        knife(ctx, r, px - 5 * k, botY - ph * 0.85 + skew, Math.PI / 2, ph * 0.8, 12 * k, mix(hex("#efe5d2"), SHADOW, t * 0.12));
+      // two square timber posts: one body of paint with the grain dragged down it, lit on the left, a cap board on top
+      const post = (cx) => {
+        const x = cx - pw / 2, y = botY - ph, body = new Path2D();
+        body.rect(x, y, pw, ph + 4 * k);
+        glaze(ctx, cx + 10 * k, botY + 2 * k, 22 * k, 6 * k, SHADOW, 0.35); // its foot in the grass
+        ctx.fillStyle = rgba(hex("#86664a")); ctx.fill(body);
+        if (PAINT.hx) { PAINT.hx.fillStyle = grey(140); PAINT.hx.fill(body); }
+        clipBoth(ctx, body);
+        for (let i = 0; i < 26; i++) stroke(ctx, r, x + (r() * 0.9 + 0.05) * pw, y + r() * ph, Math.PI / 2 + (r() - 0.5) * 0.02, (16 + r() * 26) * k, 3.5 * k, mix(hex("#8a6a4e"), r() < 0.35 ? WARM : SHADOW, 0.1 + r() * 0.22), 0.8, 2);
+        ctx.fillStyle = rgba(mix(hex("#a5825f"), WARM, 0.35), 0.75); ctx.fillRect(x, y, 4 * k, ph + 4 * k); // the lit edge
+        ctx.fillStyle = rgba(mix(hex("#6a4e38"), SHADOW, 0.3), 0.75); ctx.fillRect(x + pw - 5 * k, y, 5 * k, ph + 4 * k); // the shaded edge
+        unclipBoth(ctx);
+        const cap = new Path2D();
+        cap.roundRect(x - 4 * k, y - 7 * k, pw + 8 * k, 9 * k, 2 * k);
+        ctx.fillStyle = rgba(hex("#9b7a5c")); ctx.fill(cap);
+        if (PAINT.hx) { PAINT.hx.fillStyle = grey(165); PAINT.hx.fill(cap); }
+        stroke(ctx, r, x - 3 * k, y - 4 * k, 0, pw + 6 * k, 3 * k, mix(hex("#b39270"), WARM, 0.4), 0.8, 1);
+      };
+      // the white picket door, hung on the left post and swung half open toward the visitor: in perspective its
+      // free edge is a little shorter (top lower, foot higher), every picket, rail and the brace follow those edges,
+      // and it stands on the ground
+      const hingeX = gap0 + pw / 2, freeX = gap0 + (gap1 - gap0) * 0.5;
+      const top0 = botY - ph * 0.8, bot0 = botY - 4 * k; // at the hinge
+      const top1 = top0 + ph * 0.07, bot1 = bot0 - ph * 0.025; // at the free edge
+      const edge = (t, v) => [lerp(hingeX, freeX, t), lerp(lerp(top0, top1, t), lerp(bot0, bot1, t), v)];
+      const WHITE = hex("#f4ecdc"), SHADE = hex("#c9b999"), LINE = hex("#9d8a6c");
+      ctx.save(); ctx.filter = `blur(${6 * k}px)`;
+      glaze(ctx, (hingeX + freeX) / 2 + 14 * k, botY + 2 * k, (freeX - hingeX) * 0.6, 7 * k, SHADOW, 0.35); // its shadow on the path
+      ctx.restore();
+      // a painted quad (straight edges), its relief raised, with a little bristle texture kept inside it
+      const quad = (pts, col, grainAng) => {
+        const q = new Path2D();
+        q.moveTo(pts[0][0], pts[0][1]);
+        for (const [x, y] of pts.slice(1)) q.lineTo(x, y);
+        q.closePath();
+        ctx.fillStyle = rgba(col); ctx.fill(q);
+        if (PAINT.hx) { PAINT.hx.fillStyle = grey(160); PAINT.hx.fill(q); }
+        clipBoth(ctx, q);
+        const cx = pts.reduce((a, p) => a + p[0], 0) / pts.length, cy = pts.reduce((a, p) => a + p[1], 0) / pts.length;
+        for (let i = 0; i < 6; i++) stroke(ctx, r, cx + (r() - 0.5) * 30 * k, cy + (r() - 0.5) * ph * 0.6, grainAng, (14 + r() * 18) * k, 3 * k, mix(col, r() < 0.5 ? hex("#ffffff") : SHADE, 0.3), 0.55, 2);
+        unclipBoth(ctx);
+        return q;
+      };
+      const n = 6;
+      for (let i = 0; i < n; i++) {
+        const t = (i + 0.5) / n, half = 0.34 / n;
+        const [xa, ya] = edge(t - half, 0), [xb, yb] = edge(t + half, 0), [xc, yc] = edge(t + half, 1), [xd, yd] = edge(t - half, 1);
+        const tip = [(xa + xb) / 2, (ya + yb) / 2 - 10 * k];
+        const col = mix(WHITE, SHADE, 0.12 + t * 0.3);
+        quad([[xa, ya], tip, [xb, yb], [xc, yc], [xd, yd]], col, Math.PI / 2);
+        // its shaded right side, a straight line of darker paint
+        ctx.strokeStyle = rgba(LINE, 0.55); ctx.lineWidth = 2 * k;
+        ctx.beginPath(); ctx.moveTo(tip[0], tip[1]); ctx.lineTo(xb, yb); ctx.lineTo(xc, yc); ctx.stroke();
       }
-      stroke(ctx, r, gap0 + 10 * k, botY - ph * 0.7, Math.atan2(18 * k, gw), gw + 10 * k, 10 * k, hex("#e3d6be"), 1, 1);
-      stroke(ctx, r, gap0 + 10 * k, botY - ph * 0.25, Math.atan2(18 * k, gw), gw + 10 * k, 10 * k, hex("#e3d6be"), 1, 1);
+      // the two rails and the brace: straight painted boards over the pickets, lit on top, shaded beneath
+      const board = (t0, v0, t1, v1, w) => {
+        const [x0, y0] = edge(t0, v0), [x1, y1] = edge(t1, v1);
+        const a = Math.atan2(y1 - y0, x1 - x0), nx = -Math.sin(a) * w / 2, ny = Math.cos(a) * w / 2;
+        ctx.fillStyle = rgba(SHADOW, 0.18); // its shadow on the pickets
+        ctx.beginPath(); ctx.moveTo(x0 + nx, y0 + ny + 3 * k); ctx.lineTo(x1 + nx, y1 + ny + 3 * k); ctx.lineTo(x1 - nx, y1 - ny + 3 * k); ctx.lineTo(x0 - nx, y0 - ny + 3 * k); ctx.fill();
+        quad([[x0 + nx, y0 + ny], [x1 + nx, y1 + ny], [x1 - nx, y1 - ny], [x0 - nx, y0 - ny]], mix(WHITE, SHADE, 0.22), a);
+        ctx.strokeStyle = rgba(LINE, 0.6); ctx.lineWidth = 1.6 * k;
+        ctx.beginPath(); ctx.moveTo(x0 + nx, y0 + ny); ctx.lineTo(x1 + nx, y1 + ny); ctx.stroke();
+      };
+      board(0, 0.2, 1, 0.2, 11 * k);
+      board(0, 0.84, 1, 0.84, 11 * k);
+      board(0.06, 0.8, 0.94, 0.24, 9 * k);
+      // two small iron hinges on the post
+      for (const v of [0.2, 0.84]) { const [x, y] = edge(0, v); dab(ctx, x - 2 * k, y, 6 * k, 3.5 * k, 0, hex("#4c4038"), 0.95); }
+      post(gap0);
+      post(gap1);
     });
   }
 
@@ -1122,10 +1208,29 @@ function paint(F) {
     const r = rng(seed);
     withThickness(0.95, () => {
       glaze(ctx, postX + 30 * k, groundY + 4 * k, 60 * k, 12 * k, SHADOW, 0.35);
-      for (let i = 0; i < 9; i++) knife(ctx, r, postX - 13 * k + (i % 3) * 8 * k, armY - 12 * k + (groundY - armY) * (Math.floor(i / 3) / 3), Math.PI / 2, (groundY - armY) * 0.38, 13 * k, mix(hex("#7c5c42"), i % 3 === 0 ? WARM : SHADOW, 0.18));
-      for (let i = 0; i < 3; i++) knife(ctx, r, postX + 8 * k, armY - 8 * k + i * 6 * k, Math.PI, postX - armTo + 10 * k, 12 * k, mix(hex("#86664a"), i === 0 ? WARM : SHADOW, 0.15));
-      stroke(ctx, r, postX - 4 * k, armY + 40 * k, Math.atan2(-40 * k, -(postX - armTo) * 0.35), (postX - armTo) * 0.42, 9 * k, hex("#6e513b"), 1, 1);
-      dab(ctx, postX, armY - 16 * k, 14 * k, 8 * k, 0, hex("#9b7a5c"), 1);
+      // a timber: one body of paint along a line, the grain dragged along it, its ends cut square
+      const timber = (x0, y0, x1, y1, w, col) => {
+        const a = Math.atan2(y1 - y0, x1 - x0), len = Math.hypot(x1 - x0, y1 - y0), nx = -Math.sin(a) * w / 2, ny = Math.cos(a) * w / 2;
+        const body = new Path2D();
+        body.moveTo(x0 + nx, y0 + ny); body.lineTo(x1 + nx, y1 + ny); body.lineTo(x1 - nx, y1 - ny); body.lineTo(x0 - nx, y0 - ny); body.closePath();
+        ctx.fillStyle = rgba(hex(col)); ctx.fill(body);
+        if (PAINT.hx) { PAINT.hx.fillStyle = grey(150); PAINT.hx.fill(body); }
+        clipBoth(ctx, body);
+        for (let i = 0; i < 6; i++) {
+          const o = ((i + 0.5) / 6 - 0.5) * w;
+          stroke(ctx, r, x0 - Math.sin(a) * o, y0 + Math.cos(a) * o, a + (r() - 0.5) * 0.01, len * (0.55 + r() * 0.5), 3.5 * k, mix(hex(col), i < 2 ? WARM : SHADOW, 0.12 + r() * 0.2), 0.8, 2);
+        }
+        stroke(ctx, r, x0 + nx * 0.7, y0 + ny * 0.7, a, len, 3 * k, mix(hex(col), SHADOW, 0.35), 0.6, 1);
+        unclipBoth(ctx);
+      };
+      timber(postX, groundY, postX, armY - 14 * k, 24 * k, "#7c5c42"); // the post
+      timber(postX + 10 * k, armY, armTo, armY, 18 * k, "#86664a"); // the arm, cut square at its end
+      dab(ctx, armTo + 1 * k, armY, 3.5 * k, 8 * k, 0, hex("#a98966"), 0.9); // its end grain catching the light
+      timber(postX - 2 * k, armY + 70 * k, postX - 70 * k, armY + 4 * k, 11 * k, "#6e513b"); // a straight brace
+      const cap = new Path2D();
+      cap.roundRect(postX - 17 * k, armY - 22 * k, 34 * k, 10 * k, 2 * k);
+      ctx.fillStyle = rgba(hex("#9b7a5c")); ctx.fill(cap);
+      if (PAINT.hx) { PAINT.hx.fillStyle = grey(170); PAINT.hx.fill(cap); }
       // a little vine with a flower twining up the post
       for (let i = 0; i < 14; i++) stroke(ctx, r, postX + (r() - 0.5) * 22 * k, lerp(groundY, armY + 60 * k, i / 14), r() * 6.28, 16 * k, 8 * k, ramp(GREEN_LEAVES, r()), 0.9, 1);
       cosmos(postX + 8 * k, armY + 90 * k, 12 * k, r);
@@ -3892,29 +3997,45 @@ function paintRefine(kind) {
       dab(ctx, ex + 6, ey - 4, 9, 7, 0.3, hex("#eaa7a3"), 0.95);
       dab(ctx, ex + 4, ey - 6, 4.5, 3.5, 0.3, hex("#fbe0dc"), 0.85);
     } else if (kind === "frame") {
-      // the portrait's mat: warm cream laid with soft crossing strokes, its outer edge left uneven, a breath of
-      // sage brushed into the border
-      const cols = ["#fbf6ea", "#f8f1e3", "#fcf8ef", "#f6eedf"];
-      const body = new Path2D();
-      body.roundRect(16, 14, W - 32, H - 28, 26);
-      ctx.save(); ctx.filter = "blur(3px)"; ctx.fillStyle = rgba(hex("#f9f3e6")); ctx.fill(body); ctx.restore();
-      for (let y = 20; y < H - 20; y += 26) for (let x = -30; x < W; x += jit(130, 50)) stroke(ctx, r, x, y + jit(0, 10), jit(0, 0.5), jit(150, 60), jit(28, 10), pick(cols), 0.55, 3);
-      for (let i = 0; i < 46; i++) {
-        // ragged edges: strokes that run a little past the border on every side
-        const side = i % 4, t = r();
-        const [x, y, a] = side === 0 ? [t * W, 8, 0] : side === 1 ? [t * W, H - 8, 0] : side === 2 ? [8, t * H, Math.PI / 2] : [W - 8, t * H, Math.PI / 2];
-        stroke(ctx, r, x - Math.cos(a) * 60, y - Math.sin(a) * 60, a + jit(0, 0.15), jit(120, 50), jit(18, 8), pick(cols), 0.9, 3);
+      // the portrait's mat, painted inside a crisp hand-cut silhouette: its edge is defined, a little irregular,
+      // as if cut and painted by hand (no feathering), with layered cream strokes and a breath of sage inside
+      const cols = ["#fbf6ea", "#f8f1e3", "#fcf8ef", "#f6eedf", "#f3e9d6"];
+      const m = 10, pts = [];
+      const side = (x0, y0, x1, y1) => {
+        const n = Math.max(4, Math.round(Math.hypot(x1 - x0, y1 - y0) / 34));
+        for (let i = 0; i < n; i++) { const t = i / n; pts.push([lerp(x0, x1, t) + jit(0, 3.2), lerp(y0, y1, t) + jit(0, 3.2)]); }
+      };
+      // corners softened by a few pixels — organic, never perfectly sharp
+      side(m + 8, m, W - m - 8, m + 2);
+      side(W - m, m + 8, W - m - 2, H - m - 8);
+      side(W - m - 8, H - m, m + 8, H - m - 2);
+      side(m, H - m - 8, m + 2, m + 8);
+      const shape = new Path2D();
+      shape.moveTo(pts[0][0], pts[0][1]);
+      for (const [x, y] of pts.slice(1)) shape.lineTo(x, y);
+      shape.closePath();
+      ctx.fillStyle = rgba(hex("#f8f1e3")); ctx.fill(shape);
+      if (PAINT.hx) { PAINT.hx.fillStyle = grey(110); PAINT.hx.fill(shape); }
+      clipBoth(ctx, shape);
+      for (let y = 6; y < H; y += 22) for (let x = -40; x < W; x += jit(120, 50)) stroke(ctx, r, x, y + jit(0, 10), jit(0, 0.45), jit(150, 60), jit(28, 10), pick(cols), 0.6, 3);
+      // a breath of sage and blush brushed along the border, inside the edge
+      for (let i = 0; i < 16; i++) {
+        const sd = i % 4, t = 0.08 + r() * 0.84;
+        const [x, y, a] = sd === 0 ? [t * W, 26, 0] : sd === 1 ? [t * W, H - 28, 0] : sd === 2 ? [26, t * H, Math.PI / 2] : [W - 26, t * H, Math.PI / 2];
+        stroke(ctx, r, x - Math.cos(a) * 30, y - Math.sin(a) * 30, a + jit(0, 0.08), jit(80, 30), jit(16, 5), pick(["#e3e8d4", "#dce3ca", "#efe2d6"]), 0.45, 2);
       }
-      for (let i = 0; i < 12; i++) {
-        const side = i % 4, t = 0.1 + r() * 0.8;
-        const [x, y, a] = side === 0 ? [t * W, 18, 0] : side === 1 ? [t * W, H - 20, 0] : side === 2 ? [18, t * H, Math.PI / 2] : [W - 18, t * H, Math.PI / 2];
-        stroke(ctx, r, x - Math.cos(a) * 30, y - Math.sin(a) * 30, a + jit(0, 0.08), jit(80, 30), jit(14, 4), pick(["#e3e8d4", "#dce3ca", "#efe2d6"]), 0.4, 2);
-      }
+      unclipBoth(ctx);
+      // the defined edge: a thin line of slightly deeper paint following the silhouette, catching the light on top
+      ctx.lineJoin = "round";
+      ctx.strokeStyle = rgba(hex("#d9ccb2"), 0.9); ctx.lineWidth = 2.4; ctx.stroke(shape);
+      if (PAINT.hx) { PAINT.hx.strokeStyle = grey(190); PAINT.hx.lineWidth = 3; PAINT.hx.stroke(shape); }
     }
   });
   lightRelief(cv, hcv, W, H, kind.startsWith("nav") ? 0.45 : 0.75);
   PAINT.hx = null;
-  // the same soft brush halo the garden's flowers have, so no edge reads as a cut-out
+  // the same soft brush halo the garden's flowers have, so no edge reads as a cut-out (except the portrait's mat,
+  // whose edge is meant to be crisp)
+  if (kind === "frame") return cv;
   const out = createCanvas(W, H), o = out.getContext("2d");
   o.filter = "blur(1.6px)";
   o.globalAlpha = 0.5;
@@ -3928,8 +4049,8 @@ function paintRefine(kind) {
 if (process.argv.includes("--refine")) {
   const navDir = path.resolve("public/assets/garden/nav"), aboutDir = path.resolve("public/assets/garden/about");
   fs.mkdirSync(navDir, { recursive: true });
-  for (const kind of ["nav-wash", "nav-cloud", "orn-sprig", "orn-blossom", "orn-daisies", "orn-vine", "frame"]) {
-    const dir = kind.startsWith("nav") ? navDir : aboutDir;
+  for (const kind of ["orn-sprig", "orn-blossom", "orn-daisies", "orn-vine", "frame"]) {
+    const dir = aboutDir;
     fs.writeFileSync(path.join(dir, `${kind}.webp`), paintRefine(kind).toBuffer("image/webp", 88));
     console.log(kind);
   }

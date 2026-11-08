@@ -61,8 +61,8 @@ export default function AboutContent() {
             ))}
             <a
               href={about.resume.href}
-              download
-              className="mt-8 inline-flex min-h-12 items-center gap-2 rounded-full bg-forest px-7 py-3 font-medium text-paper transition hover:bg-moss focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-moss"
+              download={about.resume.file}
+              className="resume-btn mt-8 inline-flex min-h-12 items-center gap-2 rounded-full bg-forest px-7 py-3 font-medium text-paper transition hover:bg-moss focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-moss"
             >
               {t.resume} <span className="opacity-75">{t.pdf}</span>
             </a>

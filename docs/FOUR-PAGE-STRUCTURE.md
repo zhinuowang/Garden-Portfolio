@@ -12,15 +12,16 @@ Checkpoint before the change: git tag `phase-2-checkpoint`.
 | `/contact` | Contact | "Let's stay in touch." and three hand-painted contact icons (Email, LinkedIn, WeChat) as one left-aligned block; the garden mailbox on the right |
 | `/work/[slug]` | Case study ×5 | Secondary detail pages, with Back to Work and Next Project |
 
-The persistent nav is About / Work / Contact, then EN / 中文 and the music note (and, at night, the lantern that
-returns to day). The brand, "A Garden of Ideas" over "Zhinuo Wang" (王之诺 in Chinese), is the way home; Contact is
-also reached through the garden mailbox on the Landing. The bar is a strip of painted cream (indigo at night) with a
-ragged lower edge and a slight blur behind it (`--refine`: `public/assets/garden/nav/`); on the Landing only a small
-painted cloud sits behind the links. The current page (and language) is marked by a short sage brushstroke under it
-(`aria-current` / `aria-pressed`), drawn in faintly on hover. At night the bar is plain: a quiet indigo surface with a
-hairline edge, the current page marked by a thin underline. Night also hides the floral ornaments (About's sprig,
-blossom and daisies, the case studies' pressed flowers); heading vines become a faint hairline. No reading mist at night
-on any page. Bilingual: see docs/TRANSLATION-NOTES.md.
+The persistent nav is the same on every page, the Landing included:
+- Left: the brand, "A Garden of Ideas" over "ZHINUO WANG", in English in both languages. It is the way home.
+- Right: About / Work / Contact, then EN / 中文, the music note and (at night) the way back to day.
+
+It is transparent and minimal:
+- No background, panel, paint or shadow.
+- Dark sage text by day and warm cream at night, with the faintest text shadow for legibility over the paintings.
+- Hover changes the colour; the current page and language carry a thin underline.
+
+Night hides the floral ornaments (About's sprig, blossom and daisies; the case studies' pressed flowers), and heading vines become a faint hairline. No page has a reading mist at night. Bilingual: see docs/TRANSLATION-NOTES.md.
 
 ## What was preserved
 

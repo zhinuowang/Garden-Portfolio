@@ -52,10 +52,9 @@ Painted replacements go in `public/assets/garden/{backgrounds,landscape,flowers,
 The three landscape reference images and the screen recording are inspiration only. They are not copied
 into this repository.
 
-## Navigation wash and About ornaments (decorative, Category A)
+## About ornaments (decorative, Category A)
 
 `node scripts/paint-landing.mjs --refine` paints:
-- `public/assets/garden/nav/nav-wash.webp` and `nav-cloud.webp`: the navigation's painted surface by day (at night the bar is a plain indigo surface).
 - `public/assets/garden/about/orn-sprig.webp`: by the name.
 - `orn-blossom.webp`: by Education.
 - `orn-daisies.webp`: by Professional Experience.
@@ -63,4 +62,24 @@ into this repository.
 - `frame.webp`: the portrait's painted mat. The photograph itself is shown exactly as supplied.
 
 These replace the flat SVG ornaments on the About page only; the case studies keep their pressed-flower ornaments.
+
+## Résumés
+
+| Language | File | Source |
+| --- | --- | --- |
+| English | `public/resume/Zhinuo-Wang-Resume.pdf` | `Desktop/Resume.pdf` |
+| 中文 | `public/resume/Zhinuo-Wang-Resume-zh.pdf` | `Desktop/王之诺简历.pdf`, supplied by Zhinuo, copied unchanged |
+
+The About page's download button links to the file for the visitor's language. Note that the Chinese résumé lists a birth date, phone number and city; the English one lists only email.
+
+## Chinese font
+
+`public/fonts/garden-hei-400.woff2` and `garden-hei-600.woff2` ("Garden Hei"):
+- Noto Sans SC (SIL Open Font License 1.1), cut down to the Chinese characters the site uses.
+- Built by `scripts/subset-zh-font.py`. Re-run it after adding Chinese text.
+- Served from the site itself: there are no third-party font requests at runtime.
+
+## Landing gate
+
+Scene 3's garden entrance (posts, picket door, the path through the opening and the sign post) is painted in `hedgeWithGate` and `signPost` in `scripts/paint-landing.mjs`.
 

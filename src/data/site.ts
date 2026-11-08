@@ -82,7 +82,8 @@ export const about = {
     ],
     interpersonal: ["Leadership in small to medium-scale projects", "Teamwork", "Time Management"],
   },
-  resume: { href: "/resume/Zhinuo-Wang-Resume.pdf", source: "Desktop/Resume.pdf" },
+  // the English résumé; the Chinese one is in src/i18n/zh/site.ts (each language downloads its own file)
+  resume: { href: "/resume/Zhinuo-Wang-Resume.pdf", file: "Zhinuo-Wang-Resume.pdf", source: "Desktop/Resume.pdf" },
   portrait: {
     src: "/assets/about/portrait.jpg",
     alt: "Zhinuo Wang standing at a ship's railing by the sea, wearing a soft camel coat.",

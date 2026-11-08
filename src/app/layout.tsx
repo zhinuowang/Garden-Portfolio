@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Caveat, DM_Sans, Fraunces, Noto_Sans_SC } from "next/font/google";
+import { Caveat, DM_Sans, Fraunces } from "next/font/google";
 import { site } from "@/data/site";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
@@ -27,16 +27,8 @@ const dmSans = DM_Sans({
   subsets: ["latin"],
 });
 
-// 中文: ONE clean geometric sans for every Chinese page (headings, body, notes, navigation alike), in two weights
-// only — regular and semibold — after Zhinuo's type reference. Google serves it in small unicode-range slices, so a
-// page downloads only the characters it shows, and English visitors download none.
-const notoSansSC = Noto_Sans_SC({
-  variable: "--font-zh-sans",
-  weight: ["400", "600"],
-  subsets: ["latin"],
-  preload: false,
-  display: "swap",
-});
+// 中文: Chinese characters use "Garden Hei", a self-hosted subset of Noto Sans SC declared in globals.css for
+// Chinese code points only, so the English faces above are never replaced (scripts/subset-zh-font.py).
 
 export const metadata: Metadata = {
   title: site.title,
@@ -67,7 +59,7 @@ export default function RootLayout({
         {/* …and a remembered 中文, so the English never flashes first */}
         <script dangerouslySetInnerHTML={{ __html: LOCALE_BOOT }} />
       </head>
-      <body className={`${fraunces.variable} ${dmSans.variable} ${caveat.variable} ${notoSansSC.variable} antialiased`}>
+      <body className={`${fraunces.variable} ${dmSans.variable} ${caveat.variable} antialiased`}>
         <LocaleSync />
         <SkipLink />
         <PaintDefs />

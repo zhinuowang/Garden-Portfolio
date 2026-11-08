@@ -20,9 +20,10 @@
 
 /* `inline` so the utilities read the next/font variables set on <body>. */
 @theme inline {
-  --font-serif: var(--font-fraunces), Georgia, serif;
-  --font-sans: var(--font-dm-sans), system-ui, sans-serif;
-  --font-hand: var(--font-caveat), "Segoe Print", cursive;
+  /* "Garden Hei" answers only for Chinese characters (see 中文 below); everything Latin uses the face after it */
+  --font-serif: "Garden Hei", var(--font-fraunces), Georgia, serif;
+  --font-sans: "Garden Hei", var(--font-dm-sans), system-ui, sans-serif;
+  --font-hand: "Garden Hei", var(--font-caveat), "Segoe Print", cursive;
 }
 
 :root {
@@ -34,19 +35,31 @@
 /* (visibility, never an opacity transition on <body>: that turns the whole tall page into one composited layer,
    and the browser drops the paintings' tiles — the Landing's lower scenes rendered blank) */
 html[data-locale-pending] body { visibility: hidden; }
-/* One typeface and two weights for every Chinese page: Noto Sans SC (layout.tsx) everywhere — headings, body,
-   handwritten notes, navigation, Latin words inside Chinese text — at regular (400) and semibold (600). Large
-   headings stay regular so they read light and elegant; small labels and emphasis take the semibold. (All three
-   rules share one specificity, so their order decides.) */
-html:lang(zh) :where(body, body *) {
-  font-family: var(--font-zh-sans), "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif !important;
-  font-weight: 400 !important;
-  font-style: normal !important;
+/* Chinese type: ONE face, two weights, used only for Chinese characters. "Garden Hei" is Noto Sans SC (SIL Open Font
+   License) cut down to exactly the Chinese characters this site uses (scripts/subset-zh-font.py) and served from
+   the site itself — no Google or other third-party request, so it loads in mainland China too. Its unicode-range
+   covers only CJK punctuation, ideographs and full-width forms: every Latin letter, digit and shared punctuation
+   mark keeps falling through to the site's English fonts, in English and in Chinese alike. Two faces only — any
+   requested weight up to 500 uses Regular, 550 and above uses Semibold. */
+@font-face {
+  font-family: "Garden Hei";
+  src: url("/fonts/garden-hei-400.woff2") format("woff2");
+  font-weight: 100 500;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+FF00-FFEF;
 }
-html:lang(zh) :where(h3, strong, b, dt, th, .font-medium, .font-semibold, .font-bold, [aria-current="page"], [aria-pressed="true"]) { font-weight: 600 !important; }
-html:lang(zh) :where(h1, h2, .garden-sign span, #landing-invitation) { font-weight: 400 !important; }
-:lang(zh) :is(.uppercase, [class*="tracking-"]) { letter-spacing: 0.06em; }
+@font-face {
+  font-family: "Garden Hei";
+  src: url("/fonts/garden-hei-600.woff2") format("woff2");
+  font-weight: 550 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+FF00-FFEF;
+}
 :lang(zh) main :is(p, li) { line-break: strict; }
+/* "下载中文简历（PDF）": the full-width brackets carry their own space */
+:lang(zh) .resume-btn { gap: 0; }
 /* the Landing invitation in Chinese: a touch smaller, so it rests on one line where it can */
 :lang(zh) #landing-invitation { font-size: clamp(2rem, 3.3vw, 3.6rem); text-wrap: balance; }
 @media (max-aspect-ratio: 3/4) { :lang(zh) #landing-invitation { font-size: clamp(1.8rem, 8vw, 2.6rem); } }
@@ -62,7 +75,7 @@ html {
 body {
   background: var(--color-cream);
   color: var(--color-ink);
-  font-family: var(--font-sans);
+  font-family: "Garden Hei", var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -293,64 +306,15 @@ html[data-night-ink]:has(.nightable) :is(header, footer, .nightable) {
 html[data-night-ink]:has(.nightable) body { background-color: #1e2537; }
 .night-switch-slot:empty { display: none; }
 
-/* ---------- the navigation: a strip of the painted garden ---------- */
-/* the surface: a band of painted cream with a ragged lower edge and no shadow. No backdrop blur: over the
-   Landing's very tall painting a blurred fixed layer made the browser stop drawing the lower scenes. */
-.garden-nav--bar::before,
-.garden-nav--bar::after,
-.garden-nav__cloud::before,
-.garden-nav__cloud::after {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  pointer-events: none;
-  background: center / 100% 100% no-repeat;
-  -webkit-mask: center / 100% 100% no-repeat;
-  mask: center / 100% 100% no-repeat;
-  transition: opacity var(--dusk);
-}
-.garden-nav--bar::before,
-.garden-nav--bar::after { inset: 0 0 -0.9rem; }
-.garden-nav--bar::before {
-  background-image: url("/assets/garden/nav/nav-wash.webp");
-  -webkit-mask-image: url("/assets/garden/nav/nav-wash.webp");
-  mask-image: url("/assets/garden/nav/nav-wash.webp");
-  opacity: 0.97;
-}
-/* night: no paint at all — a plain, quiet indigo surface with a hairline edge */
-.garden-nav--bar::after {
-  inset: 0;
-  -webkit-mask: none;
-  mask: none;
-  background: rgb(26 32 52 / 0.9);
-  border-bottom: 1px solid rgb(232 226 210 / 0.08);
-  opacity: 0;
-}
-html[data-night]:has(.nightable) .garden-nav--bar::before { opacity: 0; }
-html[data-night]:has(.nightable) .garden-nav--bar::after { opacity: 1; }
-/* the Landing: only a small painted cloud behind the links, in the corner of the painting */
-.garden-nav__cloud { position: relative; isolation: isolate; padding: 0.15rem 0.6rem; }
-.garden-nav__cloud::before,
-.garden-nav__cloud::after { inset: -0.55rem -1.4rem -0.7rem; }
-.garden-nav__cloud::before {
-  background-image: url("/assets/garden/nav/nav-cloud.webp");
-  -webkit-mask-image: url("/assets/garden/nav/nav-cloud.webp");
-  mask-image: url("/assets/garden/nav/nav-cloud.webp");
-  opacity: 0.86;
-}
-.garden-nav__cloud::after {
-  inset: -0.2rem -0.5rem;
-  -webkit-mask: none;
-  mask: none;
-  background: rgb(26 32 52 / 0.78);
-  border: 1px solid rgb(232 226 210 / 0.08);
-  border-radius: 999px;
-  opacity: 0;
-}
-html[data-night] .garden-nav__cloud::before { opacity: 0; }
-html[data-night] .garden-nav__cloud::after { opacity: 1; }
+/* ---------- the navigation: transparent and minimal ---------- */
+/* no background, panel, paint or shadow — clean type over the page: dark sage by day, warm cream at night, with
+   the faintest text shadow so it stays legible over the paintings and the content passing beneath */
+.garden-brand { border-radius: 0.4rem; }
+.garden-nav { --nav-ink: #3c5639; --nav-ink-hover: #22301f; --nav-halo: 0 0 6px rgb(251 247 238 / 0.9), 0 0 1px rgb(251 247 238 / 0.9); }
+html[data-night-ink] .garden-nav { --nav-ink: rgb(241 233 214 / 0.86); --nav-ink-hover: #fff7e6; --nav-halo: 0 0 6px rgb(14 20 38 / 0.85), 0 0 1px rgb(14 20 38 / 0.9); }
+.garden-nav :is(.garden-brand, .garden-nav__item, .garden-music, .night-switch, .garden-lang__slash) { color: var(--nav-ink); text-shadow: var(--nav-halo); transition: color 0.3s ease; }
+.garden-nav .garden-brand > span { color: inherit; }
 
-/* the items: quiet text that warms on hover; the current one marked by a short sage brushstroke */
 .garden-nav__item {
   position: relative;
   display: inline-flex;
@@ -359,59 +323,47 @@ html[data-night] .garden-nav__cloud::after { opacity: 1; }
   align-items: center;
   justify-content: center;
   padding: 0 0.7rem;
-  border-radius: 0.6rem;
+  border-radius: 0.4rem;
   font-size: 0.95rem;
   font-weight: 500;
-  color: var(--color-ink-soft);
-  transition: color 0.35s ease;
 }
-.garden-nav__item:hover,
-.garden-nav__item[aria-current="page"],
-.garden-nav__item[aria-pressed="true"] { color: var(--color-forest); }
-.garden-nav__item:focus-visible { outline: 2px solid var(--color-moss); outline-offset: 1px; }
-.garden-nav__stroke {
+/* a thin underline: drawn in faintly on hover, firmly under the current page and language */
+.garden-nav__item::after {
+  content: "";
   position: absolute;
-  left: 0.55rem;
-  right: 0.55rem;
-  bottom: 0.45rem;
-  width: calc(100% - 1.1rem);
-  height: 0.45rem;
-  color: #8fa877;
+  left: 0.7rem;
+  right: 0.7rem;
+  bottom: 0.6rem;
+  height: 1px;
+  background: currentColor;
   opacity: 0;
-  transform: scaleX(0.35);
-  transform-origin: left center;
-  transition: opacity 0.4s ease, transform 0.45s cubic-bezier(0.3, 0.7, 0.3, 1);
+  transform: scaleX(0.4);
+  transition: opacity 0.3s ease, transform 0.35s ease;
 }
-.garden-nav__item:hover .garden-nav__stroke { opacity: 0.45; transform: scaleX(1); }
-.garden-nav__item:is([aria-current="page"], [aria-pressed="true"]) .garden-nav__stroke { opacity: 1; transform: scaleX(1); }
-/* at night the marks are plain too: no brushstroke, just a thin underline under the current page and language */
-html[data-night-ink] .garden-nav__stroke { display: none; }
-html[data-night-ink] .garden-nav__item { color: rgb(239 232 216 / 0.72); }
-html[data-night-ink] .garden-nav__item:hover { color: #f4ecd9; }
-html[data-night-ink] .garden-nav__item:is([aria-current="page"], [aria-pressed="true"]) { color: #f4ecd9; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.45em; text-decoration-color: rgb(216 229 194 / 0.7); }
-@media (prefers-reduced-motion: reduce) { .garden-nav__stroke { transition: opacity 0.2s ease; } }
-/* the language pair: EN / 中文, a little smaller, and a small painted dot before the controls */
+.garden-nav :is(.garden-brand, .garden-nav__item, .garden-music, .night-switch):hover { color: var(--nav-ink-hover); }
+.garden-nav__item:hover::after { opacity: 0.4; transform: scaleX(1); }
+.garden-nav__item:is([aria-current="page"], [aria-pressed="true"]) { color: var(--nav-ink-hover); }
+.garden-nav__item:is([aria-current="page"], [aria-pressed="true"])::after { opacity: 0.85; transform: scaleX(1); }
+.garden-nav :is(.garden-brand, .garden-nav__item, .garden-music, .night-switch):focus-visible { outline: 2px solid currentColor; outline-offset: 1px; }
+@media (prefers-reduced-motion: reduce) { .garden-nav__item::after { transition: opacity 0.2s ease; transform: none; } }
+/* the language pair: EN / 中文, a little smaller; a hair of space before the controls */
 .garden-lang__option { padding: 0 0.45rem; font-size: 0.88rem; }
-.garden-lang__slash { color: var(--color-ink-soft); opacity: 0.45; font-size: 0.85rem; }
-.garden-nav__sep { width: 5px; height: 5px; margin: 0 0.35rem; border-radius: 50% 40% 55% 45%; background: #c9a9a0; opacity: 0.8; }
-html[data-night-ink] .garden-nav__sep { display: none; }
-.garden-brand { border-radius: 0.6rem; }
-.garden-brand:hover > span:first-child { color: var(--color-forest); }
-.garden-brand > span { transition: color 0.35s ease; }
-.garden-brand:focus-visible { outline: 2px solid var(--color-moss); outline-offset: 2px; }
-:lang(zh) .garden-brand__name { letter-spacing: 0.3em; }
+.garden-lang__option::after { left: 0.45rem; right: 0.45rem; }
+.garden-lang__slash { opacity: 0.5; font-size: 0.85rem; }
+.garden-nav .night-switch { min-width: 2.75rem; justify-content: center; }
+.garden-nav__sep { width: 1px; height: 1rem; margin: 0 0.4rem; background: var(--nav-ink); opacity: 0.25; }
 @media (max-width: 639px) {
   .garden-nav__item { padding: 0 0.55rem; }
   .garden-nav__sep { display: none; }
 }
-/* the Landing's corner cloud on a phone: everything on one row, a little closer together */
-@media (max-width: 639px) {
-  .garden-nav--landing nav { padding-inline: 0.4rem; }
-  .garden-nav__cloud { padding: 0.1rem 0.15rem; }
-  .garden-nav--landing .garden-nav__item { padding: 0 0.4rem; }
-  .garden-nav--landing .garden-lang__option { padding: 0 0.32rem; }
-  .garden-nav--landing :is(.garden-music, .night-switch) { min-width: 2.5rem; padding-inline: 0.3rem; }
+/* narrow phones: the language pair and the controls sit a little closer, so the bar stays on two rows (and the
+   smallest screens set the brand one step smaller) */
+@media (max-width: 389px) {
+  .garden-lang__option { padding: 0 0.25rem; min-width: 2.25rem; }
+  .garden-nav :is(.garden-music, .night-switch) { min-width: 2.5rem; }
 }
+@media (max-width: 359px) { .garden-brand > span:first-child { font-size: 1rem; } }
+
 
 /* Landing: the night paintings, moon, stars and fireflies */
 /* (no will-change: three always-composited full-screen night paintings, invisible by day, used up the GPU's
@@ -483,7 +435,7 @@ html[data-night] .lamppost__pool { opacity: 1; }
   left: 115%;
   top: 14%;
   white-space: nowrap;
-  font-family: var(--font-caveat), "Segoe Print", cursive;
+  font-family: "Garden Hei", var(--font-caveat), "Segoe Print", cursive;
   font-size: clamp(1.05rem, 1.5vw, 1.45rem);
   font-weight: 600;
   color: #3a2a1c;
@@ -520,7 +472,7 @@ html[data-night] .mailbox img { filter: brightness(0.55) saturate(0.45) hue-rota
   border-radius: 0.9rem 0.9rem 0.9rem 0.2rem;
   background: rgb(253 248 238 / 0.94);
   box-shadow: 0 10px 24px -14px rgb(96 60 60 / 0.4);
-  font-family: var(--font-caveat), "Segoe Print", cursive;
+  font-family: "Garden Hei", var(--font-caveat), "Segoe Print", cursive;
   font-size: 1.3rem;
   line-height: 1.15;
   color: #3a2a1c;
@@ -541,7 +493,7 @@ html[data-night-ink] .mailbox-note { background: rgb(40 48 71 / 0.94); color: #f
   right: 92%;
   top: 4%;
   white-space: nowrap;
-  font-family: var(--font-caveat), "Segoe Print", cursive;
+  font-family: "Garden Hei", var(--font-caveat), "Segoe Print", cursive;
   font-size: clamp(1.05rem, 1.5vw, 1.45rem);
   font-weight: 600;
   color: #3a2a1c;
@@ -570,7 +522,7 @@ html[data-night-ink] .mailbox-post__hint { color: #fbf0d6; text-shadow: 0 0 10px
   top: calc(100% + 2px);
   left: 50%;
   white-space: nowrap;
-  font-family: var(--font-caveat), "Segoe Print", cursive;
+  font-family: "Garden Hei", var(--font-caveat), "Segoe Print", cursive;
   font-size: 1.05rem;
   font-weight: 600;
   color: var(--color-ink);
@@ -842,10 +794,11 @@ html[data-night] :is(.painted-vine, .journal-rule) { background: none; width: 3r
   inset: -2% -2.5%;
   z-index: -1;
   background: url("/assets/garden/about/frame.webp") center / 100% 100% no-repeat;
-  filter: drop-shadow(0 14px 18px rgb(64 70 60 / 0.16));
+  /* a short, firm shadow: the mat's hand-cut edge stays crisp (no soft halo around it) */
+  filter: drop-shadow(0 6px 6px rgb(64 70 60 / 0.16));
   transition: filter var(--dusk);
 }
-html[data-night] .portrait-frame::before { filter: brightness(0.8) saturate(0.8) drop-shadow(0 14px 18px rgb(8 12 28 / 0.35)); }
+html[data-night] .portrait-frame::before { filter: brightness(0.9) saturate(0.85) drop-shadow(0 5px 6px rgb(6 10 24 / 0.5)); }
 html[data-night-ink] .portrait-frame figcaption { color: #4d564a; }
 
 /* ---------- Work: the compact project garden ---------- */
@@ -922,7 +875,7 @@ html:has(.work-page) body > footer { display: none; }
 }
 .work-landmark:is([data-state="hover"], [data-state="active"]) .work-label { transform: translate(-50%, 0) scale(1.1); }
 .work-label__title {
-  font-family: var(--font-caveat), "Segoe Print", cursive;
+  font-family: "Garden Hei", var(--font-caveat), "Segoe Print", cursive;
   font-weight: 700;
   font-size: clamp(1.15rem, 1.8vw, 1.8rem);
   line-height: 1;
@@ -1126,5 +1079,3 @@ html:has(.work-page) body > footer { display: none; }
   .journey-text { transform: none !important; }
   *, *::before, *::after { transition-duration: 0.01ms !important; }
 }
-/* the narrowest phones: the Landing's links and controls wrap onto two rows inside the cloud */
-@media (max-width: 359px) { .garden-nav__cloud { flex-wrap: wrap; justify-content: flex-end; } }

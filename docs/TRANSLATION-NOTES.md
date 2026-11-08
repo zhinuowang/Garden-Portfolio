@@ -16,13 +16,16 @@ Switching language re-renders text only: no reload and no route change. The musi
 
 ## Chinese typography
 
-One typeface for every Chinese page: Noto Sans SC, a clean geometric sans after Zhinuo's type reference. It is used everywhere — headings, body, notes, navigation, and Latin words inside Chinese text.
+English typography never changes with the language. Chinese characters, and only those, use "Garden Hei":
+- **Font:** Noto Sans SC (SIL OFL), subset to the site's characters by `scripts/subset-zh-font.py`.
+- **Hosting:** served from `/fonts`, so it loads in mainland China.
+- **Script-aware:** declared with a `unicode-range` covering CJK punctuation, ideographs and full-width forms only, and placed ahead of each font stack. Every Latin letter, digit and shared punctuation mark falls through to the site's English fonts, so English words inside Chinese sentences keep their own font.
+- **Two weights:** Regular serves any requested weight up to 500, and Semibold serves 550 and above.
+- **Italic:** the case-study subtitle is italic in English only, since Chinese has no italic.
 
-Two weights only:
-- Regular 400: body text, and large headings, which stay light.
-- Semibold 600: small labels and emphasis.
+Noto Sans SC is the closest freely licensed match to Zhinuo's geometric type sample. The exact face in the sample was not identified, and it is not freely licensed for the web.
 
-The rules are in `globals.css` under "中文". The font loads in unicode-range slices (`layout.tsx`), so English visitors download none of it.
+After adding Chinese text, re-run `python3 scripts/subset-zh-font.py`. Characters missing from the subset fall back to the system's Chinese font.
 
 ## Where the Chinese comes from
 
@@ -78,6 +81,6 @@ These have no Chinese original:
 - **Project names:** stay in English, as asked. Two Chinese names exist in your materials and could be used if wanted:
   - 狗狗营养追踪App (PDF titles)
   - FEEDO (the résumé's app name)
-- **Résumé link:** the Chinese About page links to the English résumé, labelled （英文 PDF）. `Desktop/王之诺简历.pdf` exists and could be linked in Chinese instead, if you want it published.
+- **Résumés:** EN mode downloads the English résumé; 中文 mode downloads `王之诺简历.pdf` as supplied (it lists a birth date, phone number and city).
 - **Unlinked pages:** `/work/nomi-and-pudding` and `/work/dyson-interactive-brochure` are not linked from the site. Their body copy is still English only.
 - **Text inside images:** never translated or changed.

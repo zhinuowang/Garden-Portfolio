@@ -57,6 +57,8 @@ export const aboutZh = {
     interpersonal: ["中小型项目领导力", "团队协作", "时间管理"],
   },
   portraitAlt: "王之诺站在海边轮船的栏杆旁，身穿一件柔软的驼色大衣。",
+  // Zhinuo's own Chinese résumé, supplied by her (Desktop/王之诺简历.pdf, copied unchanged) — never a translation
+  resume: { href: "/resume/Zhinuo-Wang-Resume-zh.pdf", file: "王之诺-中文简历.pdf", source: "Desktop/王之诺简历.pdf" },
 };
 
 /** The Work garden's landmarks, in Chinese. */
