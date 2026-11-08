@@ -5,8 +5,8 @@ import { HTML_LANG, LOCALE_KEY, type Locale } from "./boot";
 
 export type { Locale };
 
-// The visitor's language: English by default, 中文 when chosen. It lives on <html> (`lang` and `data-locale`),
-// is remembered in localStorage and restored before first paint (boot.ts). Switching only re-renders text: no
+// The visitor's language: English by default on every visit, 中文 when chosen. It lives on <html> (`lang` and
+// `data-locale`), is kept for the rest of the visit in sessionStorage and restored before first paint (boot.ts). Switching only re-renders text: no
 // page reload, no route change, so the garden's animations and the music carry on.
 
 const EVENT = "garden-locale";
@@ -19,7 +19,7 @@ export function setLocale(locale: Locale) {
   if (locale === "zh") html.dataset.locale = "zh";
   else delete html.dataset.locale;
   try {
-    localStorage.setItem(LOCALE_KEY, locale);
+    sessionStorage.setItem(LOCALE_KEY, locale);
   } catch {
     /* private mode: the choice just won't be remembered */
   }

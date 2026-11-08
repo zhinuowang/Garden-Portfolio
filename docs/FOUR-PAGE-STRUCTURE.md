@@ -17,7 +17,10 @@ returns to day). The brand, "A Garden of Ideas" over "Zhinuo Wang" (王之诺 in
 also reached through the garden mailbox on the Landing. The bar is a strip of painted cream (indigo at night) with a
 ragged lower edge and a slight blur behind it (`--refine`: `public/assets/garden/nav/`); on the Landing only a small
 painted cloud sits behind the links. The current page (and language) is marked by a short sage brushstroke under it
-(`aria-current` / `aria-pressed`), drawn in faintly on hover. Bilingual: see docs/TRANSLATION-NOTES.md.
+(`aria-current` / `aria-pressed`), drawn in faintly on hover. At night the bar is plain: a quiet indigo surface with a
+hairline edge, the current page marked by a thin underline. Night also hides the floral ornaments (About's sprig,
+blossom and daisies, the case studies' pressed flowers); heading vines become a faint hairline. No reading mist at night
+on any page. Bilingual: see docs/TRANSLATION-NOTES.md.
 
 ## What was preserved
 
@@ -53,8 +56,9 @@ Removed (all recoverable from the tag): the homepage sections `GardenGate`, `Gar
   beside it (near the top of the page) it steps back into the outer margin, drawn smaller but whole. Smaller and kept short of the content on tablets;
   on phones they only peek in (≤ 20 px). Still with reduced motion; dimmed at night. Checked over full scrolls of all
   four pages at desktop, tablet and phone sizes: no text, heading, image, link or button is covered.
-- **Background music.** `GardenMusic` in the site header (so it survives page changes): a small painted note, off by
-  default and never autoplayed. On click the track fades in over ~1.8 s to a low volume (0.22 by day, 0.15 at night,
+- **Background music.** `GardenMusic` in the site header (so it survives page changes): a small painted note, ON by
+  default — it asks to play on arrival and, where the browser requires an interaction first, starts at the visitor's
+  first click, tap or key press; turned off, it stays off for the rest of the visit (sessionStorage). On click the track fades in over ~1.8 s to a low volume (0.22 by day, 0.15 at night,
   eased without restarting when the lamp is lit), loops, and on the second click fades out over ~1.5 s before
   pausing. It plays `public/audio/garden-music.mp3`, a calm solo-piano track supplied by Zhinuo (1:48, looped);
   replace that file to change the music. If the file is missing or playback is refused, the button reads

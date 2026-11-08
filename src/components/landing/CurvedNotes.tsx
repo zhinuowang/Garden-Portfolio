@@ -118,7 +118,7 @@ export default function CurvedNotes({ texts, desktop, mobile }: { texts: string[
           return (
             <g key={i} data-note={i} filter={`url(#note-halo-${key})`} className="curved-note">
               {lines.map((words, l) => (
-                <text key={l} fontSize={f} fontWeight={600} fill="#fcf7ea" letterSpacing={f * 0.01} style={{ fontFamily: "var(--font-caveat), var(--font-zh-hand), cursive" }}>
+                <text key={l} fontSize={f} fontWeight={600} fill="#fcf7ea" letterSpacing={f * 0.01} style={{ fontFamily: "var(--font-caveat), cursive" }}>
                   <textPath href={`#note-${key}-${i}-${l}`} startOffset="50%" textAnchor="middle">
                     {words.map((w, j) => (
                       <Fragment key={j}>

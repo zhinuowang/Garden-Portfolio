@@ -34,10 +34,10 @@ export default function NightSky({ scene }: { scene: 1 | 2 | 3 }) {
         <div className="night-sky__details absolute inset-0">
           <span className="night-sky__moon absolute" />
           {STARS.map((s, i) => (
-            <span key={i} className="night-sky__star absolute rounded-full" style={{ left: `${s.x}%`, top: `${s.y}%`, width: s.r * 2, height: s.r * 2, animationDelay: `${s.d}s` }} />
+            <span key={i} className="night-sky__star absolute rounded-full" style={{ left: `${s.x.toFixed(3)}%`, top: `${s.y.toFixed(3)}%`, width: `${(s.r * 2).toFixed(2)}px`, height: `${(s.r * 2).toFixed(2)}px`, animationDelay: `${s.d.toFixed(2)}s` }} />
           ))}
           {FLIES.map((f, i) => (
-            <span key={i} className="night-sky__fly absolute rounded-full" style={{ left: `${f.x}%`, top: `${f.y}%`, animationDelay: `${f.d}s`, animationDuration: `${f.s}s` }} />
+            <span key={i} className="night-sky__fly absolute rounded-full" style={{ left: `${f.x.toFixed(3)}%`, top: `${f.y.toFixed(3)}%`, animationDelay: `${f.d.toFixed(2)}s`, animationDuration: `${f.s.toFixed(2)}s` }} />
           ))}
         </div>
       )}

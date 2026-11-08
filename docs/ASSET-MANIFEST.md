@@ -55,7 +55,7 @@ into this repository.
 ## Navigation wash and About ornaments (decorative, Category A)
 
 `node scripts/paint-landing.mjs --refine` paints:
-- `public/assets/garden/nav/nav-wash(-night).webp` and `nav-cloud(-night).webp`: the navigation's painted surface.
+- `public/assets/garden/nav/nav-wash.webp` and `nav-cloud.webp`: the navigation's painted surface by day (at night the bar is a plain indigo surface).
 - `public/assets/garden/about/orn-sprig.webp`: by the name.
 - `orn-blossom.webp`: by Education.
 - `orn-daisies.webp`: by Professional Experience.

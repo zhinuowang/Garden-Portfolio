@@ -9,10 +9,20 @@ The site is bilingual (EN default, 中文 optional). English is always the origi
 | Interface strings (nav, buttons, tooltips, accessibility labels) | `src/i18n/ui.ts`: `en` and `zh` have the same keys, enforced by type |
 | Landing, About and landmark copy | `src/i18n/zh/site.ts` (mirrors `src/data/site.ts`) |
 | Case studies | `src/i18n/zh/case-studies/*.ts`: overlays with the same sections and blocks, words only. Images, links and structure always come from the English data, so they cannot drift. |
-| Locale store | `src/i18n/locale.ts`: `<html lang>` plus `localStorage`, restored before first paint by `src/i18n/boot.ts` |
+| Locale store | `src/i18n/locale.ts`: `<html lang>` plus `sessionStorage`, restored before first paint by `src/i18n/boot.ts`. English on every new visit; a 中文 choice holds for the rest of the visit (page changes, reloads). |
 | Tab titles and reveal | `src/i18n/LocaleSync.tsx` |
 
 Switching language re-renders text only: no reload and no route change. The music and the garden's animations carry on.
+
+## Chinese typography
+
+One typeface for every Chinese page: Noto Sans SC, a clean geometric sans after Zhinuo's type reference. It is used everywhere — headings, body, notes, navigation, and Latin words inside Chinese text.
+
+Two weights only:
+- Regular 400: body text, and large headings, which stay light.
+- Semibold 600: small labels and emphasis.
+
+The rules are in `globals.css` under "中文". The font loads in unicode-range slices (`layout.tsx`), so English visitors download none of it.
 
 ## Where the Chinese comes from
 

@@ -20,10 +20,9 @@
 
 /* `inline` so the utilities read the next/font variables set on <body>. */
 @theme inline {
-  /* Chinese characters fall through the Latin faces to the 中文 ones (layout.tsx); Latin keeps its own */
-  --font-serif: var(--font-fraunces), var(--font-zh-serif), "Songti SC", Georgia, serif;
-  --font-sans: var(--font-dm-sans), "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", system-ui, sans-serif;
-  --font-hand: var(--font-caveat), var(--font-zh-hand), "Segoe Print", cursive;
+  --font-serif: var(--font-fraunces), Georgia, serif;
+  --font-sans: var(--font-dm-sans), system-ui, sans-serif;
+  --font-hand: var(--font-caveat), "Segoe Print", cursive;
 }
 
 :root {
@@ -32,15 +31,23 @@
 
 /* ---------- 中文 ---------- */
 /* while a remembered 中文 replaces the server's English (a moment after load), the page waits unseen */
-html[data-locale-pending] body { opacity: 0; }
-body { transition: opacity 0.25s ease; }
-/* Chinese has no italic and needs no letter-spacing or capitals: keep the characters upright and evenly set,
-   and give the lines a little more air */
-:lang(zh) .italic { font-style: normal; }
-:lang(zh) :is(.uppercase, [class*="tracking-"]) { letter-spacing: 0.04em; }
+/* (visibility, never an opacity transition on <body>: that turns the whole tall page into one composited layer,
+   and the browser drops the paintings' tiles — the Landing's lower scenes rendered blank) */
+html[data-locale-pending] body { visibility: hidden; }
+/* One typeface and two weights for every Chinese page: Noto Sans SC (layout.tsx) everywhere — headings, body,
+   handwritten notes, navigation, Latin words inside Chinese text — at regular (400) and semibold (600). Large
+   headings stay regular so they read light and elegant; small labels and emphasis take the semibold. (All three
+   rules share one specificity, so their order decides.) */
+html:lang(zh) :where(body, body *) {
+  font-family: var(--font-zh-sans), "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif !important;
+  font-weight: 400 !important;
+  font-style: normal !important;
+}
+html:lang(zh) :where(h3, strong, b, dt, th, .font-medium, .font-semibold, .font-bold, [aria-current="page"], [aria-pressed="true"]) { font-weight: 600 !important; }
+html:lang(zh) :where(h1, h2, .garden-sign span, #landing-invitation) { font-weight: 400 !important; }
+:lang(zh) :is(.uppercase, [class*="tracking-"]) { letter-spacing: 0.06em; }
 :lang(zh) main :is(p, li) { line-break: strict; }
-:lang(zh) .font-hand { letter-spacing: 0.02em; }
-/* the brush hand runs wider than Caveat: the Landing invitation a touch smaller, so it rests on one line where it can */
+/* the Landing invitation in Chinese: a touch smaller, so it rests on one line where it can */
 :lang(zh) #landing-invitation { font-size: clamp(2rem, 3.3vw, 3.6rem); text-wrap: balance; }
 @media (max-aspect-ratio: 3/4) { :lang(zh) #landing-invitation { font-size: clamp(1.8rem, 8vw, 2.6rem); } }
 
@@ -287,8 +294,8 @@ html[data-night-ink]:has(.nightable) body { background-color: #1e2537; }
 .night-switch-slot:empty { display: none; }
 
 /* ---------- the navigation: a strip of the painted garden ---------- */
-/* the surface: a band of painted cream (indigo at night) with a ragged lower edge, a breath of blur behind it
-   and no shadow; the blur is masked by the same paint, so it ends where the paint does */
+/* the surface: a band of painted cream with a ragged lower edge and no shadow. No backdrop blur: over the
+   Landing's very tall painting a blurred fixed layer made the browser stop drawing the lower scenes. */
 .garden-nav--bar::before,
 .garden-nav--bar::after,
 .garden-nav__cloud::before,
@@ -308,18 +315,19 @@ html[data-night-ink]:has(.nightable) body { background-color: #1e2537; }
   background-image: url("/assets/garden/nav/nav-wash.webp");
   -webkit-mask-image: url("/assets/garden/nav/nav-wash.webp");
   mask-image: url("/assets/garden/nav/nav-wash.webp");
-  opacity: 0.94;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  opacity: 0.97;
 }
+/* night: no paint at all — a plain, quiet indigo surface with a hairline edge */
 .garden-nav--bar::after {
-  background-image: url("/assets/garden/nav/nav-wash-night.webp");
-  -webkit-mask-image: url("/assets/garden/nav/nav-wash-night.webp");
-  mask-image: url("/assets/garden/nav/nav-wash-night.webp");
+  inset: 0;
+  -webkit-mask: none;
+  mask: none;
+  background: rgb(26 32 52 / 0.9);
+  border-bottom: 1px solid rgb(232 226 210 / 0.08);
   opacity: 0;
 }
 html[data-night]:has(.nightable) .garden-nav--bar::before { opacity: 0; }
-html[data-night]:has(.nightable) .garden-nav--bar::after { opacity: 0.93; }
+html[data-night]:has(.nightable) .garden-nav--bar::after { opacity: 1; }
 /* the Landing: only a small painted cloud behind the links, in the corner of the painting */
 .garden-nav__cloud { position: relative; isolation: isolate; padding: 0.15rem 0.6rem; }
 .garden-nav__cloud::before,
@@ -329,17 +337,18 @@ html[data-night]:has(.nightable) .garden-nav--bar::after { opacity: 0.93; }
   -webkit-mask-image: url("/assets/garden/nav/nav-cloud.webp");
   mask-image: url("/assets/garden/nav/nav-cloud.webp");
   opacity: 0.86;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
 }
 .garden-nav__cloud::after {
-  background-image: url("/assets/garden/nav/nav-cloud-night.webp");
-  -webkit-mask-image: url("/assets/garden/nav/nav-cloud-night.webp");
-  mask-image: url("/assets/garden/nav/nav-cloud-night.webp");
+  inset: -0.2rem -0.5rem;
+  -webkit-mask: none;
+  mask: none;
+  background: rgb(26 32 52 / 0.78);
+  border: 1px solid rgb(232 226 210 / 0.08);
+  border-radius: 999px;
   opacity: 0;
 }
 html[data-night] .garden-nav__cloud::before { opacity: 0; }
-html[data-night] .garden-nav__cloud::after { opacity: 0.9; }
+html[data-night] .garden-nav__cloud::after { opacity: 1; }
 
 /* the items: quiet text that warms on hover; the current one marked by a short sage brushstroke */
 .garden-nav__item {
@@ -375,13 +384,17 @@ html[data-night] .garden-nav__cloud::after { opacity: 0.9; }
 }
 .garden-nav__item:hover .garden-nav__stroke { opacity: 0.45; transform: scaleX(1); }
 .garden-nav__item:is([aria-current="page"], [aria-pressed="true"]) .garden-nav__stroke { opacity: 1; transform: scaleX(1); }
-html[data-night-ink] .garden-nav__stroke { color: #b8cb9e; }
+/* at night the marks are plain too: no brushstroke, just a thin underline under the current page and language */
+html[data-night-ink] .garden-nav__stroke { display: none; }
+html[data-night-ink] .garden-nav__item { color: rgb(239 232 216 / 0.72); }
+html[data-night-ink] .garden-nav__item:hover { color: #f4ecd9; }
+html[data-night-ink] .garden-nav__item:is([aria-current="page"], [aria-pressed="true"]) { color: #f4ecd9; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.45em; text-decoration-color: rgb(216 229 194 / 0.7); }
 @media (prefers-reduced-motion: reduce) { .garden-nav__stroke { transition: opacity 0.2s ease; } }
 /* the language pair: EN / 中文, a little smaller, and a small painted dot before the controls */
 .garden-lang__option { padding: 0 0.45rem; font-size: 0.88rem; }
 .garden-lang__slash { color: var(--color-ink-soft); opacity: 0.45; font-size: 0.85rem; }
 .garden-nav__sep { width: 5px; height: 5px; margin: 0 0.35rem; border-radius: 50% 40% 55% 45%; background: #c9a9a0; opacity: 0.8; }
-html[data-night-ink] .garden-nav__sep { background: #8e86ad; }
+html[data-night-ink] .garden-nav__sep { display: none; }
 .garden-brand { border-radius: 0.6rem; }
 .garden-brand:hover > span:first-child { color: var(--color-forest); }
 .garden-brand > span { transition: color 0.35s ease; }
@@ -401,7 +414,9 @@ html[data-night-ink] .garden-nav__sep { background: #8e86ad; }
 }
 
 /* Landing: the night paintings, moon, stars and fireflies */
-.night-sky { opacity: 0; transition: opacity var(--dusk); will-change: opacity; }
+/* (no will-change: three always-composited full-screen night paintings, invisible by day, used up the GPU's
+   tile memory and the browser stopped drawing the Landing's lower scenes) */
+.night-sky { opacity: 0; transition: opacity var(--dusk); }
 html[data-night] .night-sky { opacity: 1; }
 .night-sky__details { opacity: 0; transition: opacity 1.4s ease; }
 html[data-night] .night-sky__details { opacity: 1; transition-delay: 0.9s; }
@@ -700,16 +715,17 @@ html.butterfly-cursor :is(a, button, [role="button"], input, select, textarea, l
   transition: background-color var(--dusk);
 }
 @media (max-width: 639px) { .garden-mist::before { inset: -2rem -1rem; --feather: 1.75rem; background: rgb(251 248 240 / 0.66); } }
-html[data-night-ink] .nightable .garden-mist::before { background: rgb(26 34 56 / 0.5); }
 .garden-mist--soft::before { background: rgb(251 248 240 / 0.34); }
 /* case studies at night: no mist at all — the moonlit painting (dark and even, luminance ≤ 0.075 across 99% of
    it) shows through, and the text carries itself: a warm cream for body copy (≈ 6:1 on the painting's brightest
    areas, 7:1+ for headings) with the faintest shadow so letters stay crisp over the brush texture */
-html[data-night-ink] .nightable .garden-mist--journal::before { background: transparent; }
+/* every page at night (case studies, About, Contact): no mist and no dark glass — the text sits straight on the
+   moonlit painting (all three are dark and even: luminance ≤ 0.071 across 99% of them), carried by its colour */
+html[data-night-ink] .nightable .garden-mist::before { background: transparent; }
+html[data-night-ink] .nightable .about-skill { background: transparent; border-color: rgb(216 229 194 / 0.32); }
 html[data-night-ink] .nightable .journal-fold { background: transparent; border-color: rgb(216 229 194 / 0.3); }
-html[data-night-ink] .nightable .garden-mist--journal { --color-ink-soft: #e2dccd; }
-html[data-night-ink] .nightable .garden-mist--journal :is(p, li, h1, h2, h3, dt, dd, summary) { text-shadow: 0 1px 2px rgb(12 18 34 / 0.55); }
-html[data-night-ink] .nightable .garden-mist--soft::before { background: rgb(26 34 56 / 0.28); }
+html[data-night-ink] .nightable .garden-mist { --color-ink-soft: #e2dccd; }
+html[data-night-ink] .nightable .garden-mist :is(p, li, h1, h2, h3, dt, dd, summary, a, button > span) { text-shadow: 0 1px 2px rgb(12 18 34 / 0.55); }
 
 /* About and Contact: the same fixed backdrop, painted as other corners of the garden */
 .journal-backdrop--about { background-image: url("/assets/garden/about/about-desktop.webp"); }
@@ -813,8 +829,11 @@ html[data-night] .flora-fg__item img { filter: brightness(0.7) saturate(0.6) hue
   height: 1.125rem;
   background: url("/assets/garden/about/orn-vine.webp") left center / contain no-repeat;
 }
-html[data-night] :is(.about-ornament, .painted-vine) { filter: brightness(0.72) saturate(0.65) hue-rotate(-8deg); transition: filter var(--dusk); }
-.about-ornament, .painted-vine { transition: filter var(--dusk); }
+/* night is quieter: the floral ornaments (About's sprig, blossom and daisies; the case studies' pressed flowers)
+   fade away, and the vines under the headings become a faint hairline */
+.about-ornament, .garden-ornament { transition: opacity 1.2s ease, visibility 0s; }
+html[data-night] :is(.about-ornament, .garden-ornament) { opacity: 0 !important; visibility: hidden; transition: opacity 1.2s ease, visibility 0s 1.2s; }
+html[data-night] :is(.painted-vine, .journal-rule) { background: none; width: 3rem; height: 0.75rem; border-bottom: 1px solid rgb(216 229 194 / 0.3); }
 /* the portrait's painted mat (the photograph itself is shown exactly as supplied) */
 .portrait-frame { isolation: isolate; }
 .portrait-frame::before {

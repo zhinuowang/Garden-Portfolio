@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Caveat, DM_Sans, Fraunces, Ma_Shan_Zheng, Noto_Serif_SC } from "next/font/google";
+import { Caveat, DM_Sans, Fraunces, Noto_Sans_SC } from "next/font/google";
 import { site } from "@/data/site";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
@@ -27,21 +27,12 @@ const dmSans = DM_Sans({
   subsets: ["latin"],
 });
 
-// 中文: the Latin faces above have no Chinese glyphs, so the browser falls back, character by character, to these
-// (see --font-serif / --font-hand in globals.css). Google serves them in small unicode-range slices, so a page only
-// downloads the characters it shows — and English visitors download none. Body text uses the system's Chinese
-// sans (PingFang SC, Microsoft YaHei…).
-const notoSerifSC = Noto_Serif_SC({
-  variable: "--font-zh-serif",
-  weight: ["500", "600"],
-  subsets: ["latin"],
-  preload: false,
-  display: "swap",
-});
-// a soft brush hand for the handwritten notes, in the spirit of the painted garden
-const maShanZheng = Ma_Shan_Zheng({
-  variable: "--font-zh-hand",
-  weight: "400",
+// 中文: ONE clean geometric sans for every Chinese page (headings, body, notes, navigation alike), in two weights
+// only — regular and semibold — after Zhinuo's type reference. Google serves it in small unicode-range slices, so a
+// page downloads only the characters it shows, and English visitors download none.
+const notoSansSC = Noto_Sans_SC({
+  variable: "--font-zh-sans",
+  weight: ["400", "600"],
   subsets: ["latin"],
   preload: false,
   display: "swap",
@@ -76,7 +67,7 @@ export default function RootLayout({
         {/* …and a remembered 中文, so the English never flashes first */}
         <script dangerouslySetInnerHTML={{ __html: LOCALE_BOOT }} />
       </head>
-      <body className={`${fraunces.variable} ${dmSans.variable} ${caveat.variable} ${notoSerifSC.variable} ${maShanZheng.variable} antialiased`}>
+      <body className={`${fraunces.variable} ${dmSans.variable} ${caveat.variable} ${notoSansSC.variable} antialiased`}>
         <LocaleSync />
         <SkipLink />
         <PaintDefs />

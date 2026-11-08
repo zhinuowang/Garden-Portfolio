@@ -119,7 +119,7 @@ export default function AboutContent() {
                 <h3 className="text-sm font-semibold tracking-[0.16em] text-moss uppercase">{label}</h3>
                 <ul className="mt-3 flex flex-wrap gap-2">
                   {items.map((s) => (
-                    <li key={s} className="rounded-full border border-moss/25 bg-paper/70 px-3 py-1.5 text-sm text-ink">{s}</li>
+                    <li key={s} className="about-skill rounded-full border border-moss/25 bg-paper/70 px-3 py-1.5 text-sm text-ink">{s}</li>
                   ))}
                 </ul>
               </div>

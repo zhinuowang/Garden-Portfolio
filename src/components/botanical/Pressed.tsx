@@ -4,7 +4,7 @@ type P = { className?: string };
 
 export function PressedDaisy({ className }: P) {
   return (
-    <svg viewBox="0 0 120 220" className={className} aria-hidden="true" focusable="false">
+    <svg viewBox="0 0 120 220" className={`garden-ornament ${className ?? ""}`} aria-hidden="true" focusable="false">
       <g filter="url(#paint)">
         <path d="M60 218 C 58 170, 66 130, 60 70" stroke="#7d9468" strokeWidth="3" fill="none" strokeLinecap="round" />
         <path d="M61 160 C 40 150, 26 156, 18 168 C 34 172, 48 168, 61 160 Z" fill="#9db27f" opacity="0.85" />
@@ -23,7 +23,7 @@ export function PressedDaisy({ className }: P) {
 
 export function PressedSprig({ className }: P) {
   return (
-    <svg viewBox="0 0 120 240" className={className} aria-hidden="true" focusable="false">
+    <svg viewBox="0 0 120 240" className={`garden-ornament ${className ?? ""}`} aria-hidden="true" focusable="false">
       <g filter="url(#paint)">
         <path d="M58 236 C 60 180, 52 110, 66 20" stroke="#7d9468" strokeWidth="2.5" fill="none" strokeLinecap="round" />
         {[40, 70, 100, 130, 160, 190].map((y, i) => (
@@ -41,7 +41,7 @@ export function PressedSprig({ className }: P) {
 
 export function PressedBlossom({ className }: P) {
   return (
-    <svg viewBox="0 0 140 140" className={className} aria-hidden="true" focusable="false">
+    <svg viewBox="0 0 140 140" className={`garden-ornament ${className ?? ""}`} aria-hidden="true" focusable="false">
       <g filter="url(#paint)" transform="translate(70 70)">
         {[0, 72, 144, 216, 288].map((a) => (
           <path key={a} d="M0 0 C -18 -20, -16 -48, 0 -54 C 16 -48, 18 -20, 0 0 Z" fill="#f2b8a0" opacity="0.85" transform={`rotate(${a})`} />

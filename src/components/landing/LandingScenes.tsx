@@ -113,10 +113,11 @@ export default function LandingScenes() {
         <SceneArt scene={3} />
         <NightSky scene={3} />
         {layers(3)}
-        <Reveal className="absolute top-[11%] left-[74%] w-max max-w-[44vw] -translate-x-1/2 -translate-y-1/2 -rotate-2 portrait-art:top-[13%] portrait-art:left-1/2 portrait-art:max-w-[88vw]">
+        {/* (kept clear of the navigation: its centre never higher than 9.5rem from the scene's top) */}
+        <Reveal className="absolute top-[max(15%,9.5rem)] left-[74%] w-max max-w-[44vw] -translate-x-1/2 -translate-y-1/2 -rotate-2 portrait-art:top-[13%] portrait-art:left-1/2 portrait-art:max-w-[88vw]">
           <h2
             id="landing-invitation"
-            className={`reveal-item text-center font-hand text-[clamp(2.3rem,4.2vw,4.4rem)] leading-[1.05] font-semibold text-[#2a3624] portrait-art:text-[clamp(2rem,9.4vw,3rem)] ${note}`}
+            className={`reveal-item text-center text-balance font-hand text-[clamp(2.3rem,4.2vw,4.4rem)] leading-[1.05] font-semibold text-[#2a3624] portrait-art:text-[clamp(2rem,9.4vw,3rem)] ${note}`}
           >
             {copy.invitation}
           </h2>

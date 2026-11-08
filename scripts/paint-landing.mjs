@@ -3928,7 +3928,7 @@ function paintRefine(kind) {
 if (process.argv.includes("--refine")) {
   const navDir = path.resolve("public/assets/garden/nav"), aboutDir = path.resolve("public/assets/garden/about");
   fs.mkdirSync(navDir, { recursive: true });
-  for (const kind of ["nav-wash", "nav-wash-night", "nav-cloud", "nav-cloud-night", "orn-sprig", "orn-blossom", "orn-daisies", "orn-vine", "frame"]) {
+  for (const kind of ["nav-wash", "nav-cloud", "orn-sprig", "orn-blossom", "orn-daisies", "orn-vine", "frame"]) {
     const dir = kind.startsWith("nav") ? navDir : aboutDir;
     fs.writeFileSync(path.join(dir, `${kind}.webp`), paintRefine(kind).toBuffer("image/webp", 88));
     console.log(kind);
