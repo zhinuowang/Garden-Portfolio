@@ -49,9 +49,10 @@ export default function AboutContent() {
               priority
               className="relative h-auto w-full rounded-[3px]"
             />
-            <figcaption className="absolute inset-x-0 bottom-3 text-center font-hand text-2xl text-ink-soft">{t.caption}</figcaption>
+            {/* the handwritten caption is part of the English page only */}
+            {t.caption && <figcaption className="absolute inset-x-0 bottom-3 text-center font-hand text-2xl text-ink-soft">{t.caption}</figcaption>}
           </figure>
-          <div>
+          <div className="about-hero">
             <p className="font-hand text-2xl text-moss">{t.meet}</p>
             <h1 className="mt-1 font-serif text-[clamp(2.6rem,6vw,4.4rem)] leading-[1.02] font-medium text-ink">{ui.designer}</h1>
             <p className="mt-2 text-sm font-semibold tracking-[0.2em] text-ink-soft uppercase">{t.role}</p>

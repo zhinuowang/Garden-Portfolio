@@ -16,9 +16,9 @@ The persistent nav is the same on every page, the Landing included:
 - Left: the brand, "A Garden of Ideas" over "ZHINUO WANG", in English in both languages. It is the way home.
 - Right: About / Work / Contact, then EN / 中文, the music note and (at night) the way back to day.
 
-It is transparent and minimal:
-- No background, panel, paint or shadow.
-- Dark sage text by day and warm cream at night, with the faintest text shadow for legibility over the paintings.
+It is minimal:
+- A quiet band behind it (warm paper by day, deep indigo at night, 95% opaque, hairline edge), so page text scrolling beneath never mixes with the links. No paint, blur or shadow.
+- Dark sage text by day and warm cream at night.
 - Hover changes the colour; the current page and language carry a thin underline.
 
 Night hides the floral ornaments (About's sprig, blossom and daisies; the case studies' pressed flowers), and heading vines become a faint hairline. No page has a reading mist at night. Bilingual: see docs/TRANSLATION-NOTES.md.

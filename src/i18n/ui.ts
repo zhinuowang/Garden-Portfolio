@@ -124,7 +124,7 @@ const zh: Ui = {
   },
   about: {
     meet: "认识这位园丁",
-    caption: "园丁本人",
+    caption: "", // no caption under the photo in Chinese
     role: "UX/UI 与产品设计师 · 多伦多",
     resume: "下载中文简历",
     pdf: "（PDF）",

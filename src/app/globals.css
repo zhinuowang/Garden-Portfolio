@@ -58,6 +58,13 @@ html[data-locale-pending] body { visibility: hidden; }
   unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+FF00-FFEF;
 }
 :lang(zh) main :is(p, li) { line-break: strict; }
+/* the About hero in Chinese: more air — a little tracking on the all-Chinese lines (never on lines that hold Latin
+   words, so English keeps its spacing), more generous line heights and a touch more room between the parts */
+:lang(zh) .about-hero > p:first-child { letter-spacing: 0.12em; }
+:lang(zh) .about-hero h1 { letter-spacing: 0.08em; line-height: 1.18; margin-top: 0.5rem; }
+:lang(zh) .about-hero h1 + p { margin-top: 0.85rem; }
+:lang(zh) .about-hero h1 + p + p { margin-top: 2rem; line-height: 1.6; letter-spacing: 0.04em; }
+:lang(zh) .about-hero h1 + p + p ~ p { margin-top: 1.1rem; line-height: 1.95; letter-spacing: 0.03em; }
 /* "下载中文简历（PDF）": the full-width brackets carry their own space */
 :lang(zh) .resume-btn { gap: 0; }
 /* the Landing invitation in Chinese: a touch smaller, so it rests on one line where it can */
@@ -306,13 +313,24 @@ html[data-night-ink]:has(.nightable) :is(header, footer, .nightable) {
 html[data-night-ink]:has(.nightable) body { background-color: #1e2537; }
 .night-switch-slot:empty { display: none; }
 
-/* ---------- the navigation: transparent and minimal ---------- */
-/* no background, panel, paint or shadow — clean type over the page: dark sage by day, warm cream at night, with
-   the faintest text shadow so it stays legible over the paintings and the content passing beneath */
+/* ---------- the navigation: minimal ---------- */
+/* clean type on a quiet band: dark sage on warm paper by day, warm cream on deep indigo at night */
 .garden-brand { border-radius: 0.4rem; }
-.garden-nav { --nav-ink: #3c5639; --nav-ink-hover: #22301f; --nav-halo: 0 0 6px rgb(251 247 238 / 0.9), 0 0 1px rgb(251 247 238 / 0.9); }
-html[data-night-ink] .garden-nav { --nav-ink: rgb(241 233 214 / 0.86); --nav-ink-hover: #fff7e6; --nav-halo: 0 0 6px rgb(14 20 38 / 0.85), 0 0 1px rgb(14 20 38 / 0.9); }
-.garden-nav :is(.garden-brand, .garden-nav__item, .garden-music, .night-switch, .garden-lang__slash) { color: var(--nav-ink); text-shadow: var(--nav-halo); transition: color 0.3s ease; }
+/* a quiet layer behind it so page text scrolling beneath never mixes with the links: warm paper by day, deep
+   indigo at night, a hairline edge, no paint, blur or shadow (a blurred fixed layer over the Landing's tall painting
+   made the browser stop drawing its lower scenes, so the layer is simply a little opaque instead) */
+.garden-nav {
+  --nav-ink: #3c5639; --nav-ink-hover: #22301f;
+  background: rgb(250 246 236 / 0.95);
+  border-bottom: 1px solid rgb(64 88 60 / 0.1);
+  transition: background-color var(--dusk), border-color var(--dusk);
+}
+html[data-night-ink] .garden-nav {
+  --nav-ink: rgb(241 233 214 / 0.86); --nav-ink-hover: #fff7e6;
+  background: rgb(24 30 50 / 0.95);
+  border-bottom-color: rgb(241 233 214 / 0.08);
+}
+.garden-nav :is(.garden-brand, .garden-nav__item, .garden-music, .night-switch, .garden-lang__slash) { color: var(--nav-ink); transition: color 0.3s ease; }
 .garden-nav .garden-brand > span { color: inherit; }
 
 .garden-nav__item {
@@ -677,7 +695,11 @@ html[data-night-ink] .nightable .garden-mist::before { background: transparent; 
 html[data-night-ink] .nightable .about-skill { background: transparent; border-color: rgb(216 229 194 / 0.32); }
 html[data-night-ink] .nightable .journal-fold { background: transparent; border-color: rgb(216 229 194 / 0.3); }
 html[data-night-ink] .nightable .garden-mist { --color-ink-soft: #e2dccd; }
-html[data-night-ink] .nightable .garden-mist :is(p, li, h1, h2, h3, dt, dd, summary, a, button > span) { text-shadow: 0 1px 2px rgb(12 18 34 / 0.55); }
+html[data-night-ink] .nightable .garden-mist :is(p, li, h1, h2, h3, dt, dd, summary) { text-shadow: 0 1px 2px rgb(12 18 34 / 0.55); }
+/* …but buttons and pills stay crisp: no shadow on their text (text-shadow is inherited, so it is reset on them and
+   everything inside them — CTAs, pill tags, contact cards, the sign, the header's controls) */
+html[data-night-ink] :is(button:not(.lamppost), [role="button"], .resume-btn, .contact-card, .garden-sign, [class*="rounded-full"], .category-badge, .work-label__badge),
+html[data-night-ink] :is(button:not(.lamppost), [role="button"], .resume-btn, .contact-card, .garden-sign, [class*="rounded-full"], .category-badge, .work-label__badge) * { text-shadow: none !important; }
 
 /* About and Contact: the same fixed backdrop, painted as other corners of the garden */
 .journal-backdrop--about { background-image: url("/assets/garden/about/about-desktop.webp"); }
