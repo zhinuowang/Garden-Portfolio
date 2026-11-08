@@ -40,6 +40,9 @@ body { transition: opacity 0.25s ease; }
 :lang(zh) :is(.uppercase, [class*="tracking-"]) { letter-spacing: 0.04em; }
 :lang(zh) main :is(p, li) { line-break: strict; }
 :lang(zh) .font-hand { letter-spacing: 0.02em; }
+/* the brush hand runs wider than Caveat: the Landing invitation a touch smaller, so it rests on one line where it can */
+:lang(zh) #landing-invitation { font-size: clamp(2rem, 3.3vw, 3.6rem); text-wrap: balance; }
+@media (max-aspect-ratio: 3/4) { :lang(zh) #landing-invitation { font-size: clamp(1.8rem, 8vw, 2.6rem); } }
 
 /* Fraunces at its softest: rounded, ink-trap-free terminals instead of sharp wedges, so headings
    feel organic and painted rather than chiselled (the SOFT axis is loaded in layout.tsx). */
@@ -282,6 +285,120 @@ html[data-night-ink]:has(.nightable) :is(header, footer, .nightable) {
 }
 html[data-night-ink]:has(.nightable) body { background-color: #1e2537; }
 .night-switch-slot:empty { display: none; }
+
+/* ---------- the navigation: a strip of the painted garden ---------- */
+/* the surface: a band of painted cream (indigo at night) with a ragged lower edge, a breath of blur behind it
+   and no shadow; the blur is masked by the same paint, so it ends where the paint does */
+.garden-nav--bar::before,
+.garden-nav--bar::after,
+.garden-nav__cloud::before,
+.garden-nav__cloud::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  background: center / 100% 100% no-repeat;
+  -webkit-mask: center / 100% 100% no-repeat;
+  mask: center / 100% 100% no-repeat;
+  transition: opacity var(--dusk);
+}
+.garden-nav--bar::before,
+.garden-nav--bar::after { inset: 0 0 -0.9rem; }
+.garden-nav--bar::before {
+  background-image: url("/assets/garden/nav/nav-wash.webp");
+  -webkit-mask-image: url("/assets/garden/nav/nav-wash.webp");
+  mask-image: url("/assets/garden/nav/nav-wash.webp");
+  opacity: 0.94;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.garden-nav--bar::after {
+  background-image: url("/assets/garden/nav/nav-wash-night.webp");
+  -webkit-mask-image: url("/assets/garden/nav/nav-wash-night.webp");
+  mask-image: url("/assets/garden/nav/nav-wash-night.webp");
+  opacity: 0;
+}
+html[data-night]:has(.nightable) .garden-nav--bar::before { opacity: 0; }
+html[data-night]:has(.nightable) .garden-nav--bar::after { opacity: 0.93; }
+/* the Landing: only a small painted cloud behind the links, in the corner of the painting */
+.garden-nav__cloud { position: relative; isolation: isolate; padding: 0.15rem 0.6rem; }
+.garden-nav__cloud::before,
+.garden-nav__cloud::after { inset: -0.55rem -1.4rem -0.7rem; }
+.garden-nav__cloud::before {
+  background-image: url("/assets/garden/nav/nav-cloud.webp");
+  -webkit-mask-image: url("/assets/garden/nav/nav-cloud.webp");
+  mask-image: url("/assets/garden/nav/nav-cloud.webp");
+  opacity: 0.86;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+.garden-nav__cloud::after {
+  background-image: url("/assets/garden/nav/nav-cloud-night.webp");
+  -webkit-mask-image: url("/assets/garden/nav/nav-cloud-night.webp");
+  mask-image: url("/assets/garden/nav/nav-cloud-night.webp");
+  opacity: 0;
+}
+html[data-night] .garden-nav__cloud::before { opacity: 0; }
+html[data-night] .garden-nav__cloud::after { opacity: 0.9; }
+
+/* the items: quiet text that warms on hover; the current one marked by a short sage brushstroke */
+.garden-nav__item {
+  position: relative;
+  display: inline-flex;
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.7rem;
+  border-radius: 0.6rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--color-ink-soft);
+  transition: color 0.35s ease;
+}
+.garden-nav__item:hover,
+.garden-nav__item[aria-current="page"],
+.garden-nav__item[aria-pressed="true"] { color: var(--color-forest); }
+.garden-nav__item:focus-visible { outline: 2px solid var(--color-moss); outline-offset: 1px; }
+.garden-nav__stroke {
+  position: absolute;
+  left: 0.55rem;
+  right: 0.55rem;
+  bottom: 0.45rem;
+  width: calc(100% - 1.1rem);
+  height: 0.45rem;
+  color: #8fa877;
+  opacity: 0;
+  transform: scaleX(0.35);
+  transform-origin: left center;
+  transition: opacity 0.4s ease, transform 0.45s cubic-bezier(0.3, 0.7, 0.3, 1);
+}
+.garden-nav__item:hover .garden-nav__stroke { opacity: 0.45; transform: scaleX(1); }
+.garden-nav__item:is([aria-current="page"], [aria-pressed="true"]) .garden-nav__stroke { opacity: 1; transform: scaleX(1); }
+html[data-night-ink] .garden-nav__stroke { color: #b8cb9e; }
+@media (prefers-reduced-motion: reduce) { .garden-nav__stroke { transition: opacity 0.2s ease; } }
+/* the language pair: EN / 中文, a little smaller, and a small painted dot before the controls */
+.garden-lang__option { padding: 0 0.45rem; font-size: 0.88rem; }
+.garden-lang__slash { color: var(--color-ink-soft); opacity: 0.45; font-size: 0.85rem; }
+.garden-nav__sep { width: 5px; height: 5px; margin: 0 0.35rem; border-radius: 50% 40% 55% 45%; background: #c9a9a0; opacity: 0.8; }
+html[data-night-ink] .garden-nav__sep { background: #8e86ad; }
+.garden-brand { border-radius: 0.6rem; }
+.garden-brand:hover > span:first-child { color: var(--color-forest); }
+.garden-brand > span { transition: color 0.35s ease; }
+.garden-brand:focus-visible { outline: 2px solid var(--color-moss); outline-offset: 2px; }
+:lang(zh) .garden-brand__name { letter-spacing: 0.3em; }
+@media (max-width: 639px) {
+  .garden-nav__item { padding: 0 0.55rem; }
+  .garden-nav__sep { display: none; }
+}
+/* the Landing's corner cloud on a phone: everything on one row, a little closer together */
+@media (max-width: 639px) {
+  .garden-nav--landing nav { padding-inline: 0.4rem; }
+  .garden-nav__cloud { padding: 0.1rem 0.15rem; }
+  .garden-nav--landing .garden-nav__item { padding: 0 0.4rem; }
+  .garden-nav--landing .garden-lang__option { padding: 0 0.32rem; }
+  .garden-nav--landing :is(.garden-music, .night-switch) { min-width: 2.5rem; padding-inline: 0.3rem; }
+}
 
 /* Landing: the night paintings, moon, stars and fireflies */
 .night-sky { opacity: 0; transition: opacity var(--dusk); will-change: opacity; }
@@ -690,6 +807,28 @@ html[data-night] .flora-fg__item img { filter: brightness(0.7) saturate(0.6) hue
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 12'%3E%3Cpath d='M2 7 C 22 2, 38 11, 60 6 S 98 3, 118 7' fill='none' stroke='%236f8a5a' stroke-width='1.6' stroke-linecap='round'/%3E%3Cellipse cx='34' cy='4' rx='5' ry='2.2' fill='%23a4b68c' transform='rotate(-25 34 4)'/%3E%3Cellipse cx='78' cy='9' rx='5' ry='2.2' fill='%23a4b68c' transform='rotate(25 78 9)'/%3E%3C/svg%3E") left center / contain no-repeat;
 }
 
+/* About: the small painted ornaments, and a vine under each heading painted in the same hand */
+.painted-vine {
+  width: 9rem;
+  height: 1.125rem;
+  background: url("/assets/garden/about/orn-vine.webp") left center / contain no-repeat;
+}
+html[data-night] :is(.about-ornament, .painted-vine) { filter: brightness(0.72) saturate(0.65) hue-rotate(-8deg); transition: filter var(--dusk); }
+.about-ornament, .painted-vine { transition: filter var(--dusk); }
+/* the portrait's painted mat (the photograph itself is shown exactly as supplied) */
+.portrait-frame { isolation: isolate; }
+.portrait-frame::before {
+  content: "";
+  position: absolute;
+  inset: -2% -2.5%;
+  z-index: -1;
+  background: url("/assets/garden/about/frame.webp") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 14px 18px rgb(64 70 60 / 0.16));
+  transition: filter var(--dusk);
+}
+html[data-night] .portrait-frame::before { filter: brightness(0.8) saturate(0.8) drop-shadow(0 14px 18px rgb(8 12 28 / 0.35)); }
+html[data-night-ink] .portrait-frame figcaption { color: #4d564a; }
+
 /* ---------- Work: the compact project garden ---------- */
 /* the Work page is one painted scene: no site footer beneath it, and the panorama fills the
    window below the header — a little wider than the window when it must, trimming only the
@@ -968,3 +1107,5 @@ html:has(.work-page) body > footer { display: none; }
   .journey-text { transform: none !important; }
   *, *::before, *::after { transition-duration: 0.01ms !important; }
 }
+/* the narrowest phones: the Landing's links and controls wrap onto two rows inside the cloud */
+@media (max-width: 359px) { .garden-nav__cloud { flex-wrap: wrap; justify-content: flex-end; } }

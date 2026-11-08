@@ -22,9 +22,15 @@ export default function LocaleSync() {
   useEffect(() => {
     const title = pageTitle(pathname, locale);
     if (!title) return;
-    // after Next has written the page's own (English) title for this route
-    const id = requestAnimationFrame(() => (document.title = title));
-    return () => cancelAnimationFrame(id);
+    // Next writes the route's own (English) title whenever it likes; put ours back each time it does
+    const apply = () => {
+      if (document.title !== title) document.title = title;
+    };
+    apply();
+    const watch = new MutationObserver(apply);
+    // (Next may stream the <title> into <body>, so watch the whole document — child and text changes only)
+    watch.observe(document.documentElement, { childList: true, subtree: true, characterData: true });
+    return () => watch.disconnect();
   }, [pathname, locale]);
 
   return null;

@@ -19,6 +19,7 @@
 //   node scripts/paint-landing.mjs --title           → the Landing title, one painted layer per letter
 //   node scripts/paint-landing.mjs --butterfly       → the Landing butterfly cursor (wings and body layers)
 //   node scripts/paint-landing.mjs --lamp            → the Scene 1 lamppost (off and lit)
+//   node scripts/paint-landing.mjs --refine          → the navigation wash and the About ornaments and portrait mat
 
 import { createCanvas, Path2D } from "@napi-rs/canvas";
 import fs from "node:fs";
@@ -3757,6 +3758,179 @@ if (process.argv.includes("--loose")) {
   fs.mkdirSync(dir, { recursive: true });
   for (const kind of ["loose-daisy", "loose-daisy-half", "loose-peony", "loose-peony-red", "loose-poppy", "loose-petals", "lily", "hibiscus", "daffodil", "rose-lavender"]) {
     fs.writeFileSync(path.join(dir, `${kind}.webp`), paintLoose(kind).toBuffer("image/webp", 90));
+    console.log(kind);
+  }
+  process.exit(0);
+}
+
+// ---------------------------------------------------------------- refinements: navigation wash, About ornaments
+
+/**
+ * The navigation's painted wash and the About page's small ornaments (a sprig of pink buds by the name, a
+ * blossom by Education, daisies by Experience, the vine under each heading, the portrait's painted mat), all
+ * built from the same bristle strokes, dabs and impasto relief as the garden. Decorative only (Category A).
+ *
+ *   node scripts/paint-landing.mjs --refine   → public/assets/garden/nav/*.webp, public/assets/garden/about/orn-*.webp
+ */
+function paintRefine(kind) {
+  const SIZES = { "nav-wash": [2400, 150], "nav-wash-night": [2400, 150], "nav-cloud": [720, 190], "nav-cloud-night": [720, 190], "orn-sprig": [300, 600], "orn-blossom": [420, 420], "orn-daisies": [380, 560], "orn-vine": [576, 72], "frame": [640, 910] };
+  const [W, H] = SIZES[kind];
+  const cv = createCanvas(W, H), ctx = cv.getContext("2d");
+  const hcv = createCanvas(W, H), hx = hcv.getContext("2d");
+  hx.fillStyle = grey(20);
+  hx.fillRect(0, 0, W, H);
+  PAINT.hx = hx;
+  const r = rng(4100 + [...kind].reduce((a, ch) => a + ch.charCodeAt(0), 0));
+  const jit = (v, a) => v + (r() - 0.5) * a;
+  const pick = (cols) => hex(cols[Math.floor(r() * cols.length)]);
+  // a small leaf or petal: a soft teardrop from base to tip, filled with a few bristle strokes kept inside it
+  const leaf = (x, y, ang, len, w, col, shade, light, alpha = 0.92) => {
+    const tx = x + Math.cos(ang) * len, ty = y + Math.sin(ang) * len, nx = -Math.sin(ang), ny = Math.cos(ang);
+    const p = new Path2D();
+    p.moveTo(x, y);
+    p.bezierCurveTo(x + Math.cos(ang) * len * 0.3 + nx * w * jit(0.75, 0.25), y + Math.sin(ang) * len * 0.3 + ny * w * jit(0.75, 0.25), tx + nx * w * 0.35, ty + ny * w * 0.35, tx, ty);
+    p.bezierCurveTo(tx - nx * w * 0.45, ty - ny * w * 0.45, x + Math.cos(ang) * len * 0.3 - nx * w * jit(0.6, 0.25), y + Math.sin(ang) * len * 0.3 - ny * w * jit(0.6, 0.25), x, y);
+    ctx.save(); ctx.filter = `blur(${Math.max(0.6, w * 0.03)}px)`; ctx.fillStyle = rgba(col, alpha); ctx.fill(p); ctx.restore();
+    clipBoth(ctx, p);
+    for (let i = 0; i < 7; i++) {
+      const o = (r() - 0.5) * w * 0.8;
+      stroke(ctx, r, x + nx * o * 0.3, y + ny * o * 0.3, ang + (r() - 0.5) * 0.3, len * jit(0.95, 0.2), Math.max(1.5, jit(w * 0.24, w * 0.1)), mix(col, i % 3 === 0 ? shade : i % 3 === 1 ? light : col, 0.25 + r() * 0.35), 0.75, 3);
+    }
+    unclipBoth(ctx);
+  };
+  // a stem: overlapping short strokes along a curve, so the line is a little uneven like a loaded brush
+  const stem = (pts, w, cols) => {
+    for (let i = 0; i < pts.length - 1; i++) {
+      const [x0, y0] = pts[i], [x1, y1] = pts[i + 1];
+      for (let k = 0; k < 2; k++) stroke(ctx, r, x0 + jit(0, w * 0.12), y0 + jit(0, w * 0.12), Math.atan2(y1 - y0, x1 - x0) + jit(0, 0.03), Math.hypot(x1 - x0, y1 - y0) * 1.2, w * (k ? 0.55 : jit(1, 0.3)), pick(cols), 0.9, 2);
+    }
+  };
+  const curve = (x0, y0, x1, y1, bend, n = 14) => [...Array(n + 1)].map((_, i) => { const t = i / n; return [lerp(x0, x1, t) + Math.sin(t * Math.PI) * bend, lerp(y0, y1, t)]; });
+  const daisy = (cx, cy, R, tilt = 1) => {
+    const n = 15;
+    for (let i = 0; i < n; i++) {
+      if (r() < 0.1) continue;
+      const a = (i / n) * Math.PI * 2 + jit(0, 0.18), len = R * jit(1, 0.35);
+      const x = cx + Math.cos(a) * R * 0.16, y = cy + Math.sin(a) * R * 0.16 * tilt;
+      stroke(ctx, r, x, y, Math.atan2(Math.sin(a) * tilt, Math.cos(a)), len * Math.hypot(Math.cos(a), Math.sin(a) * tilt), R * 0.24, mix(hex("#fbf7ef"), hex("#efe7dc"), r()), 0.95, 3);
+      if (r() < 0.6) stroke(ctx, r, x, y, Math.atan2(Math.sin(a) * tilt, Math.cos(a)), len * 0.55, R * 0.08, hex("#ffffff"), 0.7, 1);
+    }
+    for (let i = 0; i < 20; i++) { const a = r() * Math.PI * 2, d = r() * R * 0.2; dab(ctx, cx + Math.cos(a) * d, cy + Math.sin(a) * d * tilt, jit(R * 0.08, R * 0.05), jit(R * 0.065, R * 0.04), r() * 3, mix(hex("#e6b347"), r() < 0.25 ? hex("#a8742a") : hex("#f7dc8c"), r()), 0.95); }
+  };
+  const SAGE = ["#93ab78", "#a9bc8b", "#87a06d", "#9fb583"], STEM = ["#7d9468", "#6f8a5a", "#869d6e"];
+
+  withThickness(kind.startsWith("nav") ? 0.35 : 0.8, () => {
+    if (kind === "nav-wash" || kind === "nav-wash-night") {
+      // a band of thin paint laid with long horizontal strokes, its lower edge left ragged where each stroke ends
+      const night = kind.endsWith("night");
+      const cols = night ? ["#252d47", "#2a334f", "#232a42", "#2e3756"] : ["#fbf6ec", "#f7f0e2", "#fdf9f1", "#f4ecdc"];
+      ctx.fillStyle = rgba(hex(cols[0]), 0.96);
+      ctx.fillRect(0, 0, W, 100);
+      for (let row = 0; row < 7; row++) {
+        const y = 8 + row * 14;
+        for (let x = -100; x < W + 100; x += jit(220, 120)) stroke(ctx, r, x, y + jit(0, 8), jit(0, 0.03), jit(320, 160), jit(34, 12), pick(cols), 0.9, 3);
+      }
+      // the ragged lower edge: shorter strokes dipping to different depths
+      for (let x = -60; x < W + 60; x += jit(90, 60)) stroke(ctx, r, x, jit(108, 22), jit(0, 0.08), jit(140, 90), jit(20, 10), pick(cols), 0.8, 3);
+      // a whisper of the garden along it: faint sage (or, at night, lavender) brushed under the edge
+      const hint = night ? ["#4a5078", "#3c4468"] : ["#d8e0c6", "#cfd9bb", "#ecd9cf"];
+      for (let x = 0; x < W; x += jit(260, 160)) stroke(ctx, r, x, jit(112, 16), jit(0, 0.05), jit(200, 120), jit(8, 5), pick(hint), 0.45, 2);
+    } else if (kind === "nav-cloud" || kind === "nav-cloud-night") {
+      // the same paint as a small soft cloud behind the links on the Landing, ragged at every edge
+      const night = kind.endsWith("night");
+      const cols = night ? ["#252d47", "#2a334f", "#232a42", "#2e3756"] : ["#fbf6ec", "#f7f0e2", "#fdf9f1", "#f4ecdc"];
+      const cx = W / 2, cy = H / 2;
+      for (let i = 0; i < 70; i++) {
+        const t = r() * Math.PI * 2, d = Math.sqrt(r());
+        const x = cx + Math.cos(t) * d * (W / 2 - 90), y = cy + Math.sin(t) * d * (H / 2 - 40);
+        stroke(ctx, r, x - 80, y, jit(0, 0.12), jit(190, 80), jit(32, 12), pick(cols), 0.85, 3);
+      }
+    } else if (kind === "orn-sprig") {
+      // a sprig of sweet-pea buds: a slender stem, alternating sage leaves, pink buds opening at the top
+      const pts = curve(150, 590, 168, 70, -26);
+      stem(pts, 7, STEM);
+      for (let i = 0; i < 6; i++) {
+        const [x, y] = pts[12 - i * 2 > 1 ? 12 - i * 2 : 2];
+        const side = i % 2 ? 1 : -1;
+        leaf(x, y, -Math.PI / 2 + side * jit(1.0, 0.25), jit(86, 24) - i * 4, jit(30, 8), pick(SAGE), hex("#5f7a4c"), hex("#d3dfbd"));
+      }
+      // the buds: small cupped dabs, deeper at the base, a lit edge; one opened into a little flower
+      const buds = [[168, 72, 1], [196, 112, 0.85], [138, 118, 0.8], [184, 160, 0.65]];
+      for (const [x, y, s] of buds) {
+        stroke(ctx, r, x, y + 30 * s, -Math.PI / 2 + jit(0, 0.3), 30 * s, 4, pick(STEM), 0.9, 1);
+        for (let k = 0; k < 4; k++) leaf(x, y + 8 * s, -Math.PI / 2 + (k - 1.5) * 0.55 + jit(0, 0.2), 40 * s * jit(1, 0.25), 28 * s, mix(hex("#eaa7a3"), hex("#f6cbc5"), r()), hex("#c4706c"), hex("#fde6e1"));
+        dab(ctx, x, y + 12 * s, 9 * s, 7 * s, 0, hex("#c9807b"), 0.55);
+      }
+    } else if (kind === "orn-blossom") {
+      // a peach blossom: five rounded petals of uneven reach, brush-lit edges, a honey heart, two leaves behind
+      const cx = 210 + jit(0, 10), cy = 205 + jit(0, 10);
+      leaf(cx + 40, cy + 40, 0.75, 170, 60, pick(SAGE), hex("#5f7a4c"), hex("#d3dfbd"));
+      leaf(cx - 30, cy + 50, 2.1, 150, 54, pick(SAGE), hex("#5f7a4c"), hex("#d3dfbd"));
+      for (let i = 0; i < 5; i++) {
+        const a = (i / 5) * Math.PI * 2 - Math.PI / 2 + jit(0, 0.25);
+        leaf(cx, cy, a, jit(150, 30), jit(132, 20), mix(hex("#f2b8a0"), hex("#f8cdb8"), r()), hex("#d98f7f"), hex("#fff0e6"), 0.95);
+        stroke(ctx, r, cx + Math.cos(a) * 14, cy + Math.sin(a) * 14, a + jit(0, 0.1), jit(60, 20), 5, hex("#d98f7f"), 0.55, 2);
+      }
+      for (let i = 0; i < 18; i++) { const a = r() * Math.PI * 2, d = r() * 22; dab(ctx, cx + Math.cos(a) * d, cy + Math.sin(a) * d, jit(8, 4), jit(7, 4), r() * 3, mix(hex("#e3bf73"), r() < 0.3 ? hex("#b9873c") : hex("#f4dc98"), r()), 0.95); }
+    } else if (kind === "orn-daisies") {
+      // two daisies on slim stems, one turned a little away, two leaves at their feet
+      stem(curve(190, 556, 214, 150, -18), 6, STEM);
+      stem(curve(170, 556, 112, 312, 22), 5, STEM);
+      leaf(186, 470, -2.5, 120, 34, pick(SAGE), hex("#5f7a4c"), hex("#d3dfbd"));
+      leaf(196, 430, -0.55, 110, 30, pick(SAGE), hex("#5f7a4c"), hex("#d3dfbd"));
+      daisy(112, 300, 66, 0.72);
+      daisy(214, 148, 112, 0.95);
+    } else if (kind === "orn-vine") {
+      // the little vine under a heading: an uneven stem with small leaves along it and one blush bud at its tip
+      const pts = [...Array(17)].map((_, i) => [14 + i * 33, 40 + Math.sin(i * 0.75 + 0.4) * 9 + jit(0, 3)]);
+      stem(pts, 5, STEM);
+      for (let i = 1; i < 15; i += 2.4) {
+        const [x, y] = pts[Math.round(i)], up = Math.round(i) % 2 ? -1 : 1;
+        leaf(x, y, up * jit(1.05, 0.3) - (up > 0 ? 0 : 0) , jit(30, 8), jit(14, 4), pick(SAGE), hex("#5f7a4c"), hex("#d3dfbd"));
+      }
+      const [ex, ey] = pts[16];
+      dab(ctx, ex + 6, ey - 4, 9, 7, 0.3, hex("#eaa7a3"), 0.95);
+      dab(ctx, ex + 4, ey - 6, 4.5, 3.5, 0.3, hex("#fbe0dc"), 0.85);
+    } else if (kind === "frame") {
+      // the portrait's mat: warm cream laid with soft crossing strokes, its outer edge left uneven, a breath of
+      // sage brushed into the border
+      const cols = ["#fbf6ea", "#f8f1e3", "#fcf8ef", "#f6eedf"];
+      const body = new Path2D();
+      body.roundRect(16, 14, W - 32, H - 28, 26);
+      ctx.save(); ctx.filter = "blur(3px)"; ctx.fillStyle = rgba(hex("#f9f3e6")); ctx.fill(body); ctx.restore();
+      for (let y = 20; y < H - 20; y += 26) for (let x = -30; x < W; x += jit(130, 50)) stroke(ctx, r, x, y + jit(0, 10), jit(0, 0.5), jit(150, 60), jit(28, 10), pick(cols), 0.55, 3);
+      for (let i = 0; i < 46; i++) {
+        // ragged edges: strokes that run a little past the border on every side
+        const side = i % 4, t = r();
+        const [x, y, a] = side === 0 ? [t * W, 8, 0] : side === 1 ? [t * W, H - 8, 0] : side === 2 ? [8, t * H, Math.PI / 2] : [W - 8, t * H, Math.PI / 2];
+        stroke(ctx, r, x - Math.cos(a) * 60, y - Math.sin(a) * 60, a + jit(0, 0.15), jit(120, 50), jit(18, 8), pick(cols), 0.9, 3);
+      }
+      for (let i = 0; i < 12; i++) {
+        const side = i % 4, t = 0.1 + r() * 0.8;
+        const [x, y, a] = side === 0 ? [t * W, 18, 0] : side === 1 ? [t * W, H - 20, 0] : side === 2 ? [18, t * H, Math.PI / 2] : [W - 18, t * H, Math.PI / 2];
+        stroke(ctx, r, x - Math.cos(a) * 30, y - Math.sin(a) * 30, a + jit(0, 0.08), jit(80, 30), jit(14, 4), pick(["#e3e8d4", "#dce3ca", "#efe2d6"]), 0.4, 2);
+      }
+    }
+  });
+  lightRelief(cv, hcv, W, H, kind.startsWith("nav") ? 0.45 : 0.75);
+  PAINT.hx = null;
+  // the same soft brush halo the garden's flowers have, so no edge reads as a cut-out
+  const out = createCanvas(W, H), o = out.getContext("2d");
+  o.filter = "blur(1.6px)";
+  o.globalAlpha = 0.5;
+  o.drawImage(cv, 0, 0);
+  o.filter = "none";
+  o.globalAlpha = 1;
+  o.drawImage(cv, 0, 0);
+  return out;
+}
+
+if (process.argv.includes("--refine")) {
+  const navDir = path.resolve("public/assets/garden/nav"), aboutDir = path.resolve("public/assets/garden/about");
+  fs.mkdirSync(navDir, { recursive: true });
+  for (const kind of ["nav-wash", "nav-wash-night", "nav-cloud", "nav-cloud-night", "orn-sprig", "orn-blossom", "orn-daisies", "orn-vine", "frame"]) {
+    const dir = kind.startsWith("nav") ? navDir : aboutDir;
+    fs.writeFileSync(path.join(dir, `${kind}.webp`), paintRefine(kind).toBuffer("image/webp", 88));
     console.log(kind);
   }
   process.exit(0);

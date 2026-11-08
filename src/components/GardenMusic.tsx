@@ -94,7 +94,7 @@ export default function GardenMusic() {
       aria-label={label}
       title={label}
       data-status={status}
-      className="garden-music group relative inline-flex min-h-11 min-w-11 items-center justify-center rounded-full text-ink transition hover:bg-paper focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-moss"
+      className="garden-music group relative inline-flex min-h-11 min-w-11 items-center justify-center rounded-[0.6rem] text-ink-soft transition-colors hover:text-forest focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-moss"
     >
       {/* a small painted note; when playing, two soft sound curls drift beside it */}
       <svg viewBox="0 0 28 28" className="garden-music__note h-6 w-6" aria-hidden="true" focusable="false">

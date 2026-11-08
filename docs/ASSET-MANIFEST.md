@@ -51,3 +51,16 @@ Painted replacements go in `public/assets/garden/{backgrounds,landscape,flowers,
 
 The three landscape reference images and the screen recording are inspiration only. They are not copied
 into this repository.
+
+## Navigation wash and About ornaments (decorative, Category A)
+
+`node scripts/paint-landing.mjs --refine` paints:
+- `public/assets/garden/nav/nav-wash(-night).webp` and `nav-cloud(-night).webp`: the navigation's painted surface.
+- `public/assets/garden/about/orn-sprig.webp`: by the name.
+- `orn-blossom.webp`: by Education.
+- `orn-daisies.webp`: by Professional Experience.
+- `orn-vine.webp`: under each About heading.
+- `frame.webp`: the portrait's painted mat. The photograph itself is shown exactly as supplied.
+
+These replace the flat SVG ornaments on the About page only; the case studies keep their pressed-flower ornaments.
+

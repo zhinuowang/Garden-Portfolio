@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import anchors from "@/data/work-anchors.json";
 import { getProject } from "@/data/projects";
+import { useLocale } from "@/i18n/locale";
+import { placeName } from "@/i18n/content";
+import { useUi } from "@/i18n/ui";
 
 // The Work page: one compact painted garden with three project landmarks and a
 // small guide. Hover (or focus) a landmark and it lifts, its label grows and the
@@ -31,6 +34,8 @@ const pct = (v: number) => `${v * 100}%`;
 
 function Stage({ fmt, c, ratio, className }: { fmt: "desktop" | "mobile"; c: Composition; ratio: number; className: string }) {
   const router = useRouter();
+  const locale = useLocale();
+  const t = useUi();
   const stageRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState(c.start);
   const [walkMs, setWalkMs] = useState(0);
@@ -187,12 +192,12 @@ function Stage({ fmt, c, ratio, className }: { fmt: "desktop" | "mobile"; c: Com
               <span aria-hidden="true" className="work-label absolute" style={{ left: pct(m.label[0]), top: pct(m.label[1]) }}>
                 <span className="work-label__title">{p.title}</span>
                 <span className={`work-label__badge ${p.category === "academic" ? "work-label__badge--academic" : "work-label__badge--personal"}`}>
-                  {p.category === "academic" ? "Academic project" : "Personal project"}
+                  {t.categoryShort[p.category]}
                 </span>
               </span>
               <Link
                 href={`/work/${m.slug}`}
-                aria-label={`${p.title}, ${p.category} project. Walk to ${p.locationName.replace(/^The /, "the ")} and open it`}
+                aria-label={t.work.landmark(p.title, p.category, placeName(m.slug, locale))}
                 className="work-hit absolute"
                 style={{ left: pct(m.hit[0]), top: pct(m.hit[1]), width: pct(m.hit[2]), height: pct(m.hit[3]) }}
                 onMouseEnter={() => { setHover(m.slug); lookAt(m); }}

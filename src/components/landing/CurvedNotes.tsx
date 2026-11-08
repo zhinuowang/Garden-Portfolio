@@ -17,7 +17,8 @@ function units(text: string) {
   if (!CJK.test(text)) return { parts: text.split(" "), gap: " " };
   const parts: string[] = [];
   for (const ch of Array.from(text)) {
-    if (/[，。、！？；：”’）]/.test(ch) && parts.length) parts[parts.length - 1] += ch;
+    // punctuation — and a zero-width space marking the preferred line break — stays with the character before it
+    if (/[，。、！？；：”’）\u200b]/.test(ch) && parts.length) parts[parts.length - 1] += ch;
     else parts.push(ch);
   }
   return { parts, gap: "" };
@@ -31,7 +32,7 @@ function splitLines(text: string, n: number) {
   let best = 1, bestScore = Infinity;
   for (let i = 1; i < words.length; i++) {
     const a = len(words.slice(0, i)), b = len(words.slice(i));
-    const nice = gap ? SMALL_WORDS.has(words[i].toLowerCase()) : /[，、]$/.test(words[i - 1]);
+    const nice = gap ? SMALL_WORDS.has(words[i].toLowerCase()) : /[，、\u200b]$/.test(words[i - 1]);
     const score = Math.max(a, b) - (nice ? 2.5 * (gap ? 1 : 2.1) : 0);
     if (score < bestScore) { bestScore = score; best = i; }
   }

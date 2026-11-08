@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import CategoryBadge from "@/components/CategoryBadge";
@@ -7,6 +9,8 @@ import { PressedBlossom, PressedDaisy, PressedSprig } from "@/components/botanic
 import type { CsBlock, CsImage, FullCaseStudy as Data } from "@/data/case-studies/types";
 import type { Project } from "@/data/projects";
 import JournalContents from "./JournalContents";
+import { useCaseStudy } from "@/i18n/content";
+import { useUi } from "@/i18n/ui";
 
 // A full case study as a page from the painted garden's field journal: an
 // oil-on-canvas backdrop (scripts/paint-landing.mjs --journal), sage and moss
@@ -57,6 +61,7 @@ function Num({ n }: { n: number }) {
 }
 
 function Block({ b }: { b: CsBlock }) {
+  const t = useUi();
   switch (b.type) {
     case "p":
       return <p className="mt-4 text-[1.075rem] leading-[1.8] text-ink-soft">{b.text}</p>;
@@ -70,7 +75,7 @@ function Block({ b }: { b: CsBlock }) {
     case "bullets":
       return (
         <ul className="journal-leaves mt-4 space-y-2.5 text-[1.075rem] leading-[1.7] text-ink-soft">
-          {b.items.map((t) => <li key={t}>{t}</li>)}
+          {b.items.map((x) => <li key={x}>{x}</li>)}
         </ul>
       );
     case "components":
@@ -130,14 +135,14 @@ function Block({ b }: { b: CsBlock }) {
             className="inline-flex min-h-11 items-center gap-2 rounded-full bg-forest px-5 py-2.5 font-medium text-paper transition-colors hover:bg-moss focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-moss"
           >
             {b.label}
-            <span className="sr-only"> (opens in a new tab)</span>
+            <span className="sr-only"> {t.newTab}</span>
           </a>
         </p>
       );
     case "placeholder":
       return (
         <p className="mt-4 rounded-xl border-2 border-dashed border-moss/35 px-4 py-3 text-[0.95rem] leading-relaxed text-ink-soft italic">
-          <span className="mr-1.5 font-hand text-lg text-moss not-italic">to write —</span>
+          <span className="mr-1.5 font-hand text-lg text-moss not-italic">{t.cs.toWrite}</span>
           {b.text}
         </p>
       );
@@ -159,7 +164,10 @@ function Block({ b }: { b: CsBlock }) {
   }
 }
 
-export default function FullCaseStudy({ project, data, next }: { project: Project; data: Data; next: Project }) {
+export default function FullCaseStudy({ project, data: original, next }: { project: Project; data: Data; next: Project }) {
+  // the same case study in the visitor's language: the words change, the images and structure never do
+  const data = useCaseStudy(project.slug) ?? original;
+  const t = useUi().cs;
   return (
     <article className="nightable relative isolate overflow-x-clip px-4 pt-28 pb-24 sm:px-6">
       <div aria-hidden="true" className="journal-backdrop" />
@@ -170,7 +178,7 @@ export default function FullCaseStudy({ project, data, next }: { project: Projec
 
       <div className="garden-mist garden-mist--journal mx-auto max-w-6xl">
         <Link href="/work" className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-forest underline-offset-4 hover:underline">
-          <span aria-hidden="true">←</span> Back to Work
+          <span aria-hidden="true">←</span> {t.back}
         </Link>
 
         <header className="mt-6 max-w-3xl">
@@ -202,12 +210,12 @@ export default function FullCaseStudy({ project, data, next }: { project: Projec
 
             <PressedDaisy className="pointer-events-none mx-auto mt-16 block w-12 opacity-80" />
 
-            <nav aria-label="More projects" className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-dashed border-moss/35 pt-8">
+            <nav aria-label={t.more} className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-dashed border-moss/35 pt-8">
               <Link href="/work" className="inline-flex min-h-11 items-center font-medium text-forest underline-offset-4 hover:underline">
-                ← Back to Work
+                ← {t.back}
               </Link>
               <Link href={`/work/${next.slug}`} className="group inline-flex min-h-11 flex-col items-end text-right">
-                <span className="text-xs font-semibold tracking-[0.16em] text-moss uppercase">Next Project</span>
+                <span className="text-xs font-semibold tracking-[0.16em] text-moss uppercase">{t.next}</span>
                 <span className="font-serif text-2xl font-medium text-ink group-hover:text-forest">{next.title} →</span>
               </Link>
             </nav>

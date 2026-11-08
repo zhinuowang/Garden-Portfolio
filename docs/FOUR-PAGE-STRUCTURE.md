@@ -12,8 +12,12 @@ Checkpoint before the change: git tag `phase-2-checkpoint`.
 | `/contact` | Contact | "Let's stay in touch." and three hand-painted contact icons (Email, LinkedIn, WeChat) as one left-aligned block; the garden mailbox on the right |
 | `/work/[slug]` | Case study ×5 | Secondary detail pages, with Back to Work and Next Project |
 
-The persistent nav is Home / About / Work (Contact is reached through the garden mailbox on the Landing); the current page is marked with `aria-current`. The brand reads
-"A Garden of Ideas" over "Zhinuo Wang".
+The persistent nav is About / Work / Contact, then EN / 中文 and the music note (and, at night, the lantern that
+returns to day). The brand, "A Garden of Ideas" over "Zhinuo Wang" (王之诺 in Chinese), is the way home; Contact is
+also reached through the garden mailbox on the Landing. The bar is a strip of painted cream (indigo at night) with a
+ragged lower edge and a slight blur behind it (`--refine`: `public/assets/garden/nav/`); on the Landing only a small
+painted cloud sits behind the links. The current page (and language) is marked by a short sage brushstroke under it
+(`aria-current` / `aria-pressed`), drawn in faintly on hover. Bilingual: see docs/TRANSLATION-NOTES.md.
 
 ## What was preserved
 
@@ -35,13 +39,14 @@ Removed (all recoverable from the tag): the homepage sections `GardenGate`, `Gar
   flowers (`node scripts/paint-landing.mjs --about`), the content resting on the same faint reading surface as the case
   studies. The taped polaroid portrait (the supplied photo, unaltered), pressed-flower ornaments, case-study-style
   headings with handwritten side notes and a painted vine, a dotted timeline for experience, and skills grouped as tags.
-- **Three depths (case studies, About).** Background: the painted backdrop, fixed. Content: the page,
+- **Three depths (case studies; by day only).** Background: the painted backdrop, fixed. Content: the page,
   scrolling normally. Foreground: `FloatingFlora`, a layer fixed to the window above the content (the header stays
   above it; no pointer events) holding just two painted flower clusters that frame the window — one rising from the
   lower-left corner, one hanging into the upper-right — each two or three overlapping heads (lily, hibiscus, daisies,
   daffodil, lavender rose, peonies, poppy, petals; `node scripts/paint-landing.mjs --loose`, painted after Zhinuo's
   references and harmonised with the backdrop's light). Every page has its own combination (`GARDENS`, keyed by the
-  project slug and "about"). The Contact page has no floating flowers. The clusters answer the scroll at their own pace (about a sixth of its speed
+  project slug). About and Contact have no floating flowers. At night the layer fades out (≈1.4 s), then rests
+  hidden with its sway paused and its scroll handler idle; at day it is placed again and fades back in. The clusters answer the scroll at their own pace (about a sixth of its speed
   at most), only ever drifting into open margin — the lower one sinking, the upper one down the empty right margin;
   scrolling back reverses it. Each reaches inward up to the text column where the margin is clear. On a case study the
   lower-left cluster sits just below the pinned contents list (never more than about half hidden); while the list is

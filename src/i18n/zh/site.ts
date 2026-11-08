@@ -9,7 +9,8 @@
 
 export const landingScenesZh = {
   title: "A Garden of Ideas",
-  thoughts: ["每个想法，都始于一颗小小的种子。", "我在细微之处寻找灵感。", "设计，是我把观察化为体验的方式。"],
+  // (\u200b marks where a thought may break onto its second line on the hills: never inside a word)
+  thoughts: ["每个想法，都始于一颗小小的种子。", "我在细微之处\u200b寻找灵感。", "设计，是我把观察化为体验的方式。"],
   invitation: "来看看我种出了些什么吧。",
   cta: "探索我的作品",
 };

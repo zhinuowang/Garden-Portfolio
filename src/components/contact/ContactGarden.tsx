@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { contact } from "@/data/site";
 import Mailbox from "@/components/garden/Mailbox";
+import { useUi } from "@/i18n/ui";
 
 // The last stop in the garden: three hand-painted contact icons (scripts/paint-landing.mjs --icons)
 // over the painted meadow (--contact). Email and LinkedIn are plain links; WeChat opens a small
@@ -33,6 +34,8 @@ const card =
   "contact-card group flex min-h-11 w-full flex-col items-start rounded-3xl pt-2 pb-3 text-left focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-moss";
 
 export default function ContactGarden() {
+  const ui = useUi();
+  const t = ui.contact;
   const dialog = useRef<HTMLDialogElement>(null);
   const [note, setNote] = useState(false);
   // the thank-you note tucks itself away again after a few seconds
@@ -53,27 +56,27 @@ export default function ContactGarden() {
             before the mailbox */}
         <div className="lg:pb-6 lg:pl-[4vw] xl:pl-[5vw]">
           <h1 id="contact-title" className="font-serif text-[clamp(2.6rem,5.6vw,4.6rem)] leading-[1.04] font-medium text-ink">
-            Let&rsquo;s stay in touch.
+            {t.title}
           </h1>
 
           <ul className="mt-10 grid max-w-2xl grid-cols-3 gap-3 sm:mt-12 sm:gap-10">
             <li style={{ ["--tilt" as string]: "-3deg" }}>
               <a href={`mailto:${contact.email}`} className={card}>
                 <Icon kind="email" />
-                <Label title="Email" sub={<><span className="xl:hidden">Send a note</span><span className="hidden whitespace-nowrap xl:inline">{contact.email}</span></>} />
+                <Label title={t.email} sub={<><span className="xl:hidden">{t.emailSub}</span><span className="hidden whitespace-nowrap xl:inline">{contact.email}</span></>} />
               </a>
             </li>
             <li style={{ ["--tilt" as string]: "2deg" }}>
               <a href={contact.linkedin} target="_blank" rel="noopener noreferrer" className={card}>
                 <Icon kind="linkedin" />
-                <Label title="LinkedIn" sub="View my profile ↗" />
-                <span className="sr-only"> (opens in a new tab)</span>
+                <Label title={t.linkedin} sub={t.linkedinSub} />
+                <span className="sr-only"> {ui.newTab}</span>
               </a>
             </li>
             <li style={{ ["--tilt" as string]: "-2deg" }}>
               <button type="button" aria-haspopup="dialog" onClick={() => dialog.current?.showModal()} className={`${card} cursor-pointer`}>
                 <Icon kind="wechat" />
-                <Label title="WeChat" sub="Scan my QR code" />
+                <Label title={t.wechat} sub={t.wechatSub} />
               </button>
             </li>
           </ul>
@@ -90,11 +93,11 @@ export default function ContactGarden() {
               onClick={() => setNote((n) => !n)}
               className="mailbox-host contact-mailbox block w-full cursor-pointer rounded-3xl focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-moss"
             >
-              <span className="sr-only">{note ? "Close the mailbox" : "Open the mailbox"}</span>
+              <span className="sr-only">{note ? t.closeMailbox : t.openMailbox}</span>
               <Mailbox garden />
             </button>
             <p id="mailbox-note" role="status" className={`mailbox-note ${note ? "mailbox-note--shown" : ""}`}>
-              {note ? "Thanks for stopping by my garden!" : ""}
+              {note ? t.thanks : ""}
             </p>
           </div>
       </section>
@@ -107,27 +110,27 @@ export default function ContactGarden() {
         className="wechat-panel m-auto w-[min(22rem,calc(100vw-2rem))] rounded-3xl bg-paper p-0 text-ink"
       >
         <div className="px-6 pt-6 pb-6 text-center">
-          <h2 id="wechat-title" className="font-serif text-2xl font-medium text-ink">WeChat</h2>
+          <h2 id="wechat-title" className="font-serif text-2xl font-medium text-ink">{t.wechat}</h2>
           {contact.wechatQr ? (
             <>
               <Image
                 src={contact.wechatQr.src}
-                alt="Zhinuo Wang's WeChat QR code (WeChat name 小诺., Toronto, Canada)"
+                alt={t.qrAlt}
                 width={contact.wechatQr.width}
                 height={contact.wechatQr.height}
                 unoptimized
                 className="mx-auto mt-4 h-auto w-60 rounded-xl"
               />
-              <p className="mt-3 text-sm text-ink-soft">Scan with WeChat to add me.</p>
+              <p className="mt-3 text-sm text-ink-soft">{t.scan}</p>
             </>
           ) : (
             <>
-              <div role="img" aria-label="Placeholder: WeChat QR code not added yet" className="mx-auto mt-4 flex aspect-square w-48 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-moss/45 px-4">
-                <span className="font-hand text-2xl text-moss">QR code</span>
-                <span className="mt-1 text-xs font-semibold tracking-[0.14em] text-ink-soft uppercase">coming soon</span>
+              <div role="img" aria-label={t.qrPlaceholder} className="mx-auto mt-4 flex aspect-square w-48 flex-col items-center justify-center rounded-2xl border-2 border-dashed border-moss/45 px-4">
+                <span className="font-hand text-2xl text-moss">{t.qrSoonTitle}</span>
+                <span className="mt-1 text-xs font-semibold tracking-[0.14em] text-ink-soft uppercase">{t.qrSoon}</span>
               </div>
               <p className="mt-4 text-sm leading-relaxed text-ink-soft">
-                My WeChat QR code will be here soon. Until then, email is the quickest way to reach me:
+                {t.qrSoonText}
                 <a href={`mailto:${contact.email}`} className="mt-1 block font-medium break-all text-forest underline underline-offset-4">{contact.email}</a>
               </p>
             </>
@@ -138,7 +141,7 @@ export default function ContactGarden() {
             onClick={() => dialog.current?.close()}
             className="mt-5 inline-flex min-h-11 items-center rounded-full border border-moss/40 px-6 font-medium text-forest transition-colors hover:bg-moss/10 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-moss"
           >
-            Close
+            {t.close}
           </button>
         </div>
       </dialog>
