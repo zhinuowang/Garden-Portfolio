@@ -25,7 +25,7 @@ export default function SiteHeader() {
 
   return (
     <header className="garden-nav fixed inset-x-0 top-0 z-40">
-      <nav aria-label={t.nav.label} className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-1 px-2 py-1 min-[390px]:gap-x-2 min-[390px]:px-3 sm:gap-x-4 sm:px-6 max-sm:pb-0">
+      <nav aria-label={t.nav.label} className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-1 px-2 py-[11px] min-[390px]:gap-x-2 min-[390px]:px-3 sm:gap-x-4 sm:px-6 max-sm:pb-[7px]">
         {/* the brand is the same in both languages */}
         <Link href="/" aria-label={t.nav.home} lang="en" className="garden-brand flex min-h-11 flex-col justify-center leading-tight">
           <span className="font-serif text-lg font-medium">A Garden of Ideas</span>
