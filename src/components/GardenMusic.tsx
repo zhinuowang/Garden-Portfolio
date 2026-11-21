@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNight } from "@/components/night/night";
 import { useUi } from "@/i18n/ui";
+import { MEDIA_EVENT } from "@/lib/mediaAudio";
 
 // Background music for the garden: soft piano, ON by default. It fades in over ~1.8 s to a low volume (a little
 // lower at night), loops, and fades out before pausing when turned off with the small note in the header.
@@ -15,6 +16,10 @@ import { useUi } from "@/i18n/ui";
 // THE TRACK: public/audio/garden-music.mp3, a calm solo-piano piece supplied by Zhinuo (Clavier Music,
 // "Calming Piano — Soft and Peaceful", 1:48, 256 kbps). To change it, replace that file. If it is missing or
 // the browser refuses to play it, the button says "Music coming soon" and nothing plays.
+//
+// MEDIA ON THE PAGE: while a page's own video plays with sound (the AURELLE commercial), the music fades out and
+// pauses; when the video pauses, ends, is muted or the page is left, the music fades back in from where it was —
+// but only if the visitor has it on. The visitor's own setting (and what is remembered) is never touched.
 
 export const MUSIC_SRC = "/audio/garden-music.mp3";
 
@@ -40,6 +45,8 @@ export default function GardenMusic() {
   const fadeTimer = useRef(0);
   const nightRef = useRef(night);
   nightRef.current = night;
+  /** set while a video on the page is playing with sound: the music is paused for it, not turned off */
+  const ducked = useRef(false);
   /** set while the music waits for the visitor's first interaction (autoplay not yet allowed) */
   const waiting = useRef<(() => void) | null>(null);
 
@@ -81,7 +88,9 @@ export default function GardenMusic() {
       a.volume = 0;
       await a.play();
       setStatus("on");
-      fade(nightRef.current ? NIGHT_VOLUME : DAY_VOLUME, 1800);
+      // a video began with sound in the meantime (its first click also unlocked the music): stay quiet for it
+      if (ducked.current) a.pause();
+      else fade(nightRef.current ? NIGHT_VOLUME : DAY_VOLUME, 1800);
       return "on";
     } catch (e) {
       // the browser wants an interaction first: try again then. Anything else means no playable track.
@@ -134,9 +143,28 @@ export default function GardenMusic() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- once, on arrival
   }, []);
 
+  // a video on the page with sound: fade the music out and pause it; afterwards resume (if it is still on)
+  const statusRef = useRef(status);
+  statusRef.current = status;
+  useEffect(() => {
+    const onMedia = (e: Event) => {
+      const audible = (e as CustomEvent<{ audible: boolean }>).detail.audible;
+      if (audible === ducked.current) return;
+      ducked.current = audible;
+      const a = audio.current;
+      if (!a || statusRef.current !== "on") return;
+      if (audible) fade(0, 600, () => a.pause());
+      else {
+        a.play().then(() => fade(nightRef.current ? NIGHT_VOLUME : DAY_VOLUME, 1600)).catch(() => {});
+      }
+    };
+    window.addEventListener(MEDIA_EVENT, onMedia);
+    return () => window.removeEventListener(MEDIA_EVENT, onMedia);
+  }, []);
+
   // day and night: the same track carries on, only its volume eases a little lower or higher
   useEffect(() => {
-    if (status === "on") fade(night ? NIGHT_VOLUME : DAY_VOLUME, 1200);
+    if (status === "on" && !ducked.current) fade(night ? NIGHT_VOLUME : DAY_VOLUME, 1200);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- re-run only when the mood changes
   }, [night]);
 

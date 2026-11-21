@@ -66,4 +66,5 @@ export const placesZh: Record<string, string> = {
   "dog-nutrition-tracker": "小狗角",
   "eliminate-bacteria-pro": "泡泡喷泉",
   "little-moments": "风车",
+  aurelle: "玻璃花房",
 };

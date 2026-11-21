@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# AURELLE master-derived video (85 MB): too large for git / some hosts; see docs/ASSET-MANIFEST.md
+public/video/*.mp4

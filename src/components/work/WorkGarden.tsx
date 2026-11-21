@@ -9,25 +9,29 @@ import { useLocale } from "@/i18n/locale";
 import { placeName } from "@/i18n/content";
 import { useUi } from "@/i18n/ui";
 
-// The Work page: one compact painted garden with three project landmarks and a
+// The Work page: one compact painted garden with four project landmarks and a
 // small guide. Hover (or focus) a landmark and it lifts, its label grows and the
 // girl turns to look; click it and she walks over and shares a short moment with
 // it — kneels to offer the puppy a treat and pat it, touches the fountain's water
-// so two koi leap, or takes out her phone for a selfie with the windmill — then a soft
-// paper wipe grows from the landmark into the project page. Landmarks are
-// real links: Enter works, and with reduced motion they open straight away.
+// so two koi leap, takes out her phone for a selfie with the windmill, or opens the
+// greenhouse door — then a soft paper wipe grows from the landmark into the project
+// page. She keeps to the paths (a landmark may give waypoints) and passes behind
+// whatever stands nearer the viewer. Landmarks are real links: Enter works, and
+// with reduced motion they open straight away.
 // All artwork is decorative (scripts/paint-landing.mjs --work); project content
 // lives only on the project pages.
 
 type Sprite = { name: string; kind: string; x: number; y: number; w: number; h: number; pivot: number[] };
-type Landmark = { slug: string; kind: "fountain" | "doghouse" | "windmill"; hit: number[]; label: number[]; stand: number[]; face: number; layers: string[] };
+type Landmark = { slug: string; kind: "fountain" | "doghouse" | "windmill" | "greenhouse"; base: number; hit: number[]; label: number[]; via?: number[][]; stand: number[]; face: number; layers: string[] };
 type Composition = { start: number[]; girl: { w: number; h: number; feet: number[]; phone: number[] }; landmarks: Landmark[]; sprites: Sprite[] };
 
 const POSES = ["idle", "walk-a", "walk-b", "reach", "offer", "pet-a", "pet-b", "turn", "phone", "phone-up", "selfie"] as const;
 /** The landmarks rise into the garden in this order when the page opens. */
-const ENTER_ORDER = { doghouse: 0, fountain: 1, windmill: 2 } as const;
+const ENTER_ORDER = { doghouse: 0, fountain: 1, windmill: 2, greenhouse: 3 } as const;
 /** How long each moment plays before the page turns. */
-const MOMENT_MS = { doghouse: 2100, fountain: 1900, windmill: 2400 } as const;
+const MOMENT_MS = { doghouse: 2100, fountain: 1900, windmill: 2400, greenhouse: 1250 } as const;
+/** Stacking by depth: whatever stands lower in the picture is nearer, so it is drawn over what is behind it. */
+const depth = (y: number) => Math.round(y * 1000);
 type Pose = (typeof POSES)[number];
 const src = (fmt: string, name: string) => `/assets/garden/work/sprites/${fmt}-${name.replace("work-", "")}.webp`;
 const pct = (v: number) => `${v * 100}%`;
@@ -37,6 +41,7 @@ function Stage({ fmt, c, ratio, className }: { fmt: "desktop" | "mobile"; c: Com
   const locale = useLocale();
   const t = useUi();
   const stageRef = useRef<HTMLDivElement>(null);
+  const girlRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState(c.start);
   const [walkMs, setWalkMs] = useState(0);
   const [pose, setPose] = useState<Pose>("idle");
@@ -50,6 +55,20 @@ function Stage({ fmt, c, ratio, className }: { fmt: "desktop" | "mobile"; c: Com
   const focusOrigin = chosen ? `${(chosen.hit[0] + chosen.hit[2] / 2) * 100}% ${(chosen.hit[1] + chosen.hit[3] / 2) * 100}%` : "50% 50%";
 
   useEffect(() => () => timers.current.forEach((t) => clearTimeout(t)), []);
+  useEffect(() => {
+    if (girlRef.current) girlRef.current.style.zIndex = String(depth(c.start[1]));
+  }, [c.start]);
+  /** While she walks, keep her depth in step with where her feet actually are. */
+  const followDepth = (ms: number) => {
+    const until = performance.now() + ms + 100;
+    const tick = () => {
+      const el = girlRef.current, stage = stageRef.current;
+      if (!el || !stage) return;
+      el.style.zIndex = String(depth(parseFloat(getComputedStyle(el).top) / stage.clientHeight));
+      if (performance.now() < until) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  };
   const later = (fn: () => void, ms: number) => timers.current.push(window.setTimeout(fn, ms));
 
   const sprite = (name: string) => c.sprites.find((s) => s.name === name)!;
@@ -66,12 +85,23 @@ function Stage({ fmt, c, ratio, className }: { fmt: "desktop" | "mobile"; c: Com
     if (busy) return;
     setActive(m.slug);
     router.prefetch(`/work/${m.slug}`);
-    // walk: duration grows with distance (in stage widths), legs alternating, a gentle bob
-    const dx = m.stand[0] - pos[0], dy = (m.stand[1] - pos[1]) / ratio;
-    const ms = Math.round(Math.min(1800, Math.max(750, 550 + Math.hypot(dx, dy) * 2600)));
-    setFace(dx >= 0 ? 1 : -1);
-    setWalkMs(ms);
-    setPos(m.stand);
+    // walk, along any waypoints: duration grows with distance (in stage widths), legs alternating, a gentle bob
+    const route = [...(m.via ?? []), m.stand];
+    const legs = route.map((p, i) => {
+      const from = i ? route[i - 1] : pos;
+      return { to: p, dx: p[0] - from[0], d: Math.hypot(p[0] - from[0], (p[1] - from[1]) / ratio) };
+    });
+    const total = legs.reduce((a, l) => a + l.d, 0);
+    const ms = Math.round(Math.min(route.length > 1 ? 2300 : 1800, Math.max(750, 550 + total * 2600)));
+    let at = 0;
+    legs.forEach((l, i) => {
+      const legMs = Math.round((ms * l.d) / (total || 1));
+      const walk = () => { setFace(l.dx >= 0 ? 1 : -1); setWalkMs(legMs); setPos(l.to); };
+      if (i === 0) walk();
+      else later(walk, at);
+      at += legMs;
+    });
+    followDepth(ms);
     let step = 0;
     const stride = window.setInterval(() => setPose(step++ % 2 ? "walk-b" : "walk-a"), 160);
     later(() => {
@@ -88,6 +118,10 @@ function Stage({ fmt, c, ratio, className }: { fmt: "desktop" | "mobile"; c: Com
           later(() => clearInterval(patting), 1300);
         }, 700);
       } else if (m.kind === "fountain") {
+        setFace(m.face);
+        setPose("reach");
+      } else if (m.kind === "greenhouse") {
+        // she reaches for the handle and the door swings open on its hinge (the swing itself is CSS)
         setFace(m.face);
         setPose("reach");
       } else {
@@ -143,7 +177,7 @@ function Stage({ fmt, c, ratio, className }: { fmt: "desktop" | "mobile"; c: Com
           const p = getProject(m.slug)!;
           const state = active === m.slug ? "active" : hover === m.slug ? "hover" : "idle";
           return (
-            <div key={m.slug} className="work-landmark" data-kind={m.kind} data-state={state} style={{ ["--i" as string]: i, ["--enter" as string]: ENTER_ORDER[m.kind] } as React.CSSProperties}>
+            <div key={m.slug} className="work-landmark" data-kind={m.kind} data-state={state} style={{ zIndex: depth(m.base), ["--i" as string]: i, ["--enter" as string]: ENTER_ORDER[m.kind] } as React.CSSProperties}>
               <span aria-hidden="true" className="work-glow absolute" style={{ left: pct(m.hit[0] + m.hit[2] / 2), top: pct(m.hit[1] + m.hit[3] * 0.92), width: pct(m.hit[2] * 0.9) }} />
               {m.layers.map((name) => {
                 const s = sprite(name);
@@ -212,6 +246,7 @@ function Stage({ fmt, c, ratio, className }: { fmt: "desktop" | "mobile"; c: Com
 
         {/* the guide, anchored at her feet */}
         <div
+          ref={girlRef}
           aria-hidden="true"
           className={`work-girl pointer-events-none absolute ${walkMs && pose.startsWith("walk") ? "work-girl--walking" : ""}`}
           data-pose={pose}

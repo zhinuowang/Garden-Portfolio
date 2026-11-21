@@ -72,7 +72,17 @@ These have no Chinese original:
   - Caption: 园丁本人
   - Kicker: 认识这位园丁
   - The portrait's description.
-- **Work landmarks:** 小狗角 (The Puppy Corner), 泡泡喷泉 (The Bubble Fountain), 风车 (The Windmill).
+- **Work landmarks:** 小狗角 (The Puppy Corner), 泡泡喷泉 (The Bubble Fountain), 风车 (The Windmill), 玻璃花房 (The Greenhouse).
+- **AURELLE page:**
+
+  | English | Chinese |
+  | --- | --- |
+  | AI Skincare Commercial | AI 护肤广告片 |
+  | AI Creative Production | AI 创意制作 |
+  | Overview | 项目概述 |
+
+  - Overview sentence: AURELLE 是我个人创作的一支 AI 生成护肤精华广告片，探索生成式 AI 在美妆广告与视觉叙事中的运用。
+  - "AURELLE" stays in English. Text inside the film is not translated.
 - **Image descriptions (alt text):** every image description on the case studies. They describe the images; they are not part of them.
 
 ## Decisions to confirm

@@ -4,7 +4,7 @@ import WorkHeading from "@/components/work/WorkHeading";
 
 export const metadata: Metadata = {
   title: "Work | A Garden of Ideas — Zhinuo Wang",
-  description: "Explore three projects by Zhinuo Wang in a small painted garden: two academic projects and one personal project.",
+  description: "Explore four projects by Zhinuo Wang in a small painted garden: two academic projects and two personal projects.",
 };
 
 export default function WorkPage() {

@@ -83,3 +83,20 @@ The About page's download button links to the file for the visitor's language. N
 
 Scene 3's garden entrance (posts, picket door, the path through the opening and the sign post) is painted in `hedgeWithGate` and `signPost` in `scripts/paint-landing.mjs`.
 
+
+## AURELLE (fourth project), added 2026-11-21
+
+The two categories stay separate.
+
+**Category B (real project material, from Zhinuo):**
+- **`public/video/aurelle-commercial.mp4`:** the finished commercial `Desktop/AURELLE AD.mp4`.
+  - Remuxed without re-encoding using AVFoundation passthrough with "optimise for network use". The H.264 and AAC data is byte-identical to the master (sha256 checked); only the MP4 index moved to the front, so playback can start before the whole file arrives.
+  - Specs: 1920 × 1080, 59.9 s, 85.2 MB, H.264 High@4.0 (~11.2 Mbps), AAC stereo (~187 kbps).
+  - The master on the Desktop is untouched.
+  - The file is not committed to git (`.gitignore`). At 85 MB it is too large for some hosts' per-file limits (Cloudflare Pages: 25 MiB), and GitHub warns above 50 MB. Copy it in (or remux again) before deploying, or serve it from object storage.
+- **`public/video/aurelle-poster-{1920,1280}.webp`:** one real frame of the film (59.0 s, the closing product shot), resized only.
+
+**Category A (decorative garden art, not project work):**
+- **Work-page greenhouse:** `public/assets/garden/work/sprites/*-greenhouse*.webp`, painted by `scripts/paint-landing.mjs --work`.
+  - Includes its door layer.
+  - The small bottles on its shelf are generic garden decoration, not AURELLE product art.

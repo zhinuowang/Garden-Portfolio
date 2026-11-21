@@ -45,6 +45,16 @@ const en = {
     toWrite: "to write —",
     pending: "To be provided",
   },
+  aurelle: {
+    subtitle: "AI Skincare Commercial",
+    discipline: "AI Creative Production",
+    film: "The commercial",
+    video: "AURELLE, AI skincare commercial (1 minute, with sound)",
+    noVideo: "Your browser can’t play this video here.",
+    overview: "Overview",
+    overviewText:
+      "AURELLE is a personal AI-generated skincare serum commercial exploring the use of generative AI in beauty advertising and visual storytelling.",
+  },
   about: {
     meet: "Meet the Gardener",
     caption: "the gardener",
@@ -121,6 +131,15 @@ const zh: Ui = {
     contentsLabel: "目录",
     toWrite: "待补充 —",
     pending: "待补充",
+  },
+  aurelle: {
+    subtitle: "AI 护肤广告片",
+    discipline: "AI 创意制作",
+    film: "广告片",
+    video: "AURELLE，AI 护肤广告片（1 分钟，有声）",
+    noVideo: "你的浏览器暂时无法在这里播放此视频。",
+    overview: "项目概述",
+    overviewText: "AURELLE 是我个人创作的一支 AI 生成护肤精华广告片，探索生成式 AI 在美妆广告与视觉叙事中的运用。",
   },
   about: {
     meet: "认识这位园丁",

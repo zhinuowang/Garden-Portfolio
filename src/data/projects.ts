@@ -181,6 +181,32 @@ export const projects: Project[] = [
     ],
   },
   {
+    id: "aurelle",
+    slug: "aurelle",
+    title: "AURELLE",
+    category: "personal",
+    gardenRegion: "creative-corner",
+    gardenLocation: "greenhouse",
+    locationName: "The Greenhouse",
+    discipline: "AI Creative Production",
+    shortDescription:
+      "AURELLE is a personal AI-generated skincare serum commercial exploring the use of generative AI in beauty advertising and visual storytelling.",
+    role: null,
+    collaboration: null,
+    courseContext: null,
+    projectDate: null,
+    tools: null,
+    heroImage: null,
+    gallery: [],
+    // The page is the video-led project page in src/components/aurelle/ (data in src/data/aurelle.ts).
+    caseStudySections: [],
+    sourceAssetReferences: ["Desktop/AURELLE AD.mp4 (the finished commercial, supplied 2026-11-20)"],
+    openQuestions: [
+      "Concept, creative direction, process, tools and workflow: to be supplied.",
+      "Project date: not stated, so not shown.",
+    ],
+  },
+  {
     id: "dyson-brochure",
     slug: "dyson-interactive-brochure",
     title: "Dyson Interactive Brochure",
@@ -256,7 +282,7 @@ export const regions: Record<
 export const selectedWorkSlugs = ["little-moments", "dog-nutrition-tracker"];
 
 /** The projects shown on the Work page for now, in the order the garden presents them. */
-export const workSlugs = ["dog-nutrition-tracker", "eliminate-bacteria-pro", "little-moments"];
+export const workSlugs = ["dog-nutrition-tracker", "eliminate-bacteria-pro", "little-moments", "aurelle"];
 
 export function getProject(slug: string) {
   return projects.find((p) => p.slug === slug);

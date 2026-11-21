@@ -6,6 +6,7 @@ import { AssetPlaceholder } from "@/components/ProjectMedia";
 import ProjectMedia from "@/components/ProjectMedia";
 import MarkVisited from "@/components/MarkVisited";
 import FullCaseStudy from "@/components/case-study/FullCaseStudy";
+import AurellePage from "@/components/aurelle/AurellePage";
 import { fullCaseStudies } from "@/data/case-studies";
 import { getProject, nextProject, projects } from "@/data/projects";
 
@@ -43,6 +44,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
   const next = nextProject(project.slug);
   const full = fullCaseStudies[project.slug];
   if (full) return <FullCaseStudy project={project} data={full} next={next} />;
+  if (project.slug === "aurelle") return <AurellePage project={project} next={next} />;
 
   return (
     <article className="px-4 pt-28 pb-20 sm:px-6">
