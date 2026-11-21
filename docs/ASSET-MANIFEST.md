@@ -89,11 +89,16 @@ Scene 3's garden entrance (posts, picket door, the path through the opening and 
 The two categories stay separate.
 
 **Category B (real project material, from Zhinuo):**
-- **`public/video/aurelle-commercial.mp4`:** the finished commercial `Desktop/AURELLE AD.mp4`.
-  - Remuxed without re-encoding using AVFoundation passthrough with "optimise for network use". The H.264 and AAC data is byte-identical to the master (sha256 checked); only the MP4 index moved to the front, so playback can start before the whole file arrives.
-  - Specs: 1920 × 1080, 59.9 s, 85.2 MB, H.264 High@4.0 (~11.2 Mbps), AAC stereo (~187 kbps).
-  - The master on the Desktop is untouched.
-  - The file is committed to git (85.2 MB). That is under GitHub's 100 MB per-file limit; GitHub warns above 50 MB. Some hosts limit file sizes: Cloudflare Pages allows 25 MiB per file, so a deploy there would need the film served from object storage. A larger replacement (over 100 MB) would need Git LFS.
+- **`public/video/aurelle-commercial.mp4` (served):** a web encode of `Desktop/AURELLE AD.mp4`, made 2026-11-21 for Cloudflare Pages (25 MiB per-file limit).
+  - Encoded with macOS VideoToolbox (no third-party tools).
+  - Video: H.264 High@4.0, two-pass at ~2.75 Mbps, fast start.
+  - Size and timing: 1920 × 1080, 30 fps, 1797 frames and 59.9 s, the same as the source.
+  - Audio: the original AAC, copied untouched (packet checksums match).
+  - Result: 21,926,205 bytes (20.91 MiB).
+  - Quality against the source, 30 sampled frames: mean PSNR 44.9 dB, mean SSIM 0.984, minimum 0.975. A visual check at 100% of faces, the bottle and label, subtitles and hair showed no visible loss.
+- **`media/master/aurelle-commercial-master.mp4`:** the 85.2 MB master, a lossless remux of the export (streams byte-identical).
+  - It sits outside `public/`, so it stays in the repository but is never part of the deployed site.
+  - The Desktop export itself is untouched.
 - **Marks in the film:**
   - On 2026-11-21 Zhinuo replaced `Desktop/AURELLE AD.mp4` with a new export without the "AI生成+" mark that used to sit top-left in the opening. The site file was remuxed from it the same lossless way (streams checked byte-identical; 85.16 MB, 1920 × 1080, 59.9 s).
   - The "KlingAI 4.0" mark (bottom-right, ~8–11.5 s) is still part of that clip in the export. It is left as it is (not painted out).

@@ -40,5 +40,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# The AURELLE film (public/video/aurelle-commercial.mp4, 85 MB) IS committed: it is under GitHub's 100 MB
-# per-file limit (GitHub only warns above 50 MB). See docs/ASSET-MANIFEST.md before replacing it with anything larger.
+# The AURELLE master film (media/master/, 85 MB) IS committed: it is under GitHub's 100 MB per-file limit, and it
+# lives outside public/ so it is never deployed. The served film (public/video/) is a ~22 MB web encode. See
+# docs/ASSET-MANIFEST.md before adding anything larger.
