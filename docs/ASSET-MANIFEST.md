@@ -93,7 +93,7 @@ The two categories stay separate.
   - Remuxed without re-encoding using AVFoundation passthrough with "optimise for network use". The H.264 and AAC data is byte-identical to the master (sha256 checked); only the MP4 index moved to the front, so playback can start before the whole file arrives.
   - Specs: 1920 × 1080, 59.9 s, 85.2 MB, H.264 High@4.0 (~11.2 Mbps), AAC stereo (~187 kbps).
   - The master on the Desktop is untouched.
-  - The file is not committed to git (`.gitignore`). At 85 MB it is too large for some hosts' per-file limits (Cloudflare Pages: 25 MiB), and GitHub warns above 50 MB. Copy it in (or remux again) before deploying, or serve it from object storage.
+  - The file is committed to git (85.2 MB). That is under GitHub's 100 MB per-file limit; GitHub warns above 50 MB. Some hosts limit file sizes: Cloudflare Pages allows 25 MiB per file, so a deploy there would need the film served from object storage. A larger replacement (over 100 MB) would need Git LFS.
 - **Marks in the film:**
   - On 2026-11-21 Zhinuo replaced `Desktop/AURELLE AD.mp4` with a new export without the "AI生成+" mark that used to sit top-left in the opening. The site file was remuxed from it the same lossless way (streams checked byte-identical; 85.16 MB, 1920 × 1080, 59.9 s).
   - The "KlingAI 4.0" mark (bottom-right, ~8–11.5 s) is still part of that clip in the export. It is left as it is (not painted out).
