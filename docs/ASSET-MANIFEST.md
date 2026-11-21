@@ -94,9 +94,10 @@ The two categories stay separate.
   - Specs: 1920 × 1080, 59.9 s, 85.2 MB, H.264 High@4.0 (~11.2 Mbps), AAC stereo (~187 kbps).
   - The master on the Desktop is untouched.
   - The file is not committed to git (`.gitignore`). At 85 MB it is too large for some hosts' per-file limits (Cloudflare Pages: 25 MiB), and GitHub warns above 50 MB. Copy it in (or remux again) before deploying, or serve it from object storage.
-- **Marks burned into the film (checked 2026-11-21):** "AI生成+" (top-left, 0–~1.5 s) and "KlingAI 4.0" (bottom-right, ~8–11.5 s). The player adds nothing.
-  - They are part of the video pixels and are not painted out.
-  - A clean export from the production tools, if Zhinuo supplies one, would replace this file (same lossless remux). The Desktop master stays as it is.
+- **Marks in the film:**
+  - On 2026-11-21 Zhinuo replaced `Desktop/AURELLE AD.mp4` with a new export without the "AI生成+" mark that used to sit top-left in the opening. The site file was remuxed from it the same lossless way (streams checked byte-identical; 85.16 MB, 1920 × 1080, 59.9 s).
+  - The "KlingAI 4.0" mark (bottom-right, ~8–11.5 s) is still part of that clip in the export. It is left as it is (not painted out).
+  - The page's title and overview say the commercial is AI-generated.
 - **`public/video/aurelle-poster-{1920,1280}.webp`:** one real frame of the film (59.0 s, the closing product shot), resized only.
 
 **Category A (decorative garden art, not project work):**
