@@ -246,14 +246,6 @@ function Stage({ fmt, c, ratio, className }: { fmt: "desktop" | "mobile"; c: Com
           );
         })}
 
-        {/* at the foot of the first screen: the garden carries on below */}
-        <span aria-hidden="true" className="work-more absolute" style={fmt === "desktop" ? { top: pct(c.screen * 0.975), left: pct(c.start[0] + 0.13) } : { top: pct(c.screen * 0.945), left: pct(c.start[0] - 0.34) }}>
-          <span className="work-more__text">{t.work.more}</span>
-          <svg viewBox="0 0 20 14" className="work-more__chev">
-            <path d="M2 2 L10 11 L18 2" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </span>
-
         {/* the guide, anchored at her feet */}
         <div
           ref={girlRef}

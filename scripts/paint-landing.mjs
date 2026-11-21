@@ -1288,15 +1288,21 @@ function paint(F) {
         size: (x, y) => 0.8 + clamp(y / H) * 0.5,
       });
     }
-    // soft paths from the girl's spot to each landmark
+    // narrow garden trails: each a gentle curve whose width wavers a little along its length, with ragged,
+    // softly blended edges, fine cream brushwork, and a few tufts of grass creeping in at the sides
     const trail = ([x0, y0], [cx, cy], [x1, y1], w0, w1, seed) => {
       const pt = (t) => [lerp(lerp(x0, cx, t), lerp(cx, x1, t), t), lerp(lerp(y0, cy, t), lerp(cy, y1, t), t)];
-      const Lp = [], Rp = [];
-      for (let i = 0; i <= 30; i++) {
-        const t = i / 30, [ax, ay] = pt(t), [bx, by] = pt(Math.min(1, t + 0.01));
-        const a = Math.atan2(Y(by - ay), X(bx - ax) || 1e-6), w = X(lerp(w0, w1, t)) / 2;
-        Lp.push([X(ax) - Math.sin(a) * w, Y(ay) + Math.cos(a) * w]);
-        Rp.push([X(ax) + Math.sin(a) * w, Y(ay) - Math.cos(a) * w]);
+      const Lp = [], Rp = [], mid = [];
+      const N = 48;
+      for (let i = 0; i <= N; i++) {
+        const t = i / N, [ax, ay] = pt(t), [bx, by] = pt(Math.min(1, t + 0.01));
+        const a = Math.atan2(Y(by - ay), X(bx - ax) || 1e-6);
+        const sway = 1 + fbm(t * 3.2, seed * 0.37, seed) * 0.42; // the width breathes along the way
+        const w = (X(lerp(w0, w1, t)) / 2) * sway * (i === N ? 0.75 : 1);
+        const jl = 1 + (hash(i, 1, seed) - 0.5) * 0.22, jr = 1 + (hash(i, 2, seed) - 0.5) * 0.22; // ragged edges
+        Lp.push([X(ax) - Math.sin(a) * w * jl, Y(ay) + Math.cos(a) * w * jl]);
+        Rp.push([X(ax) + Math.sin(a) * w * jr, Y(ay) - Math.cos(a) * w * jr]);
+        mid.push([X(ax), Y(ay), a, w]);
       }
       const p = new Path2D();
       p.moveTo(Lp[0][0], Lp[0][1]);
@@ -1305,10 +1311,26 @@ function paint(F) {
       p.closePath();
       const xs = [...Lp, ...Rp].map((q) => q[0]), ys = [...Lp, ...Rp].map((q) => q[1]);
       form({
-        seed, path: p, bbox: [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)], soft: 2,
-        color: (x, y) => mix(hex("#f2e2c3"), hex("#d6bd96"), clamp(fbm(x / 160, y / 160, seed) + 0.45)),
-        angle: () => Math.atan2(Y(y1 - y0), X(x1 - x0)), len: [26, 60], width: [8, 14], alpha: [0.35, 0.6], cover: 1.4, vary: 0.1, spread: 0.7,
-        thick: () => 0.35,
+        seed, path: p, bbox: [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)], soft: 3,
+        color: (x, y) => mix(hex("#f3e5c8"), hex("#dcc59f"), clamp(fbm(x / 120, y / 120, seed) + 0.45)),
+        angle: () => Math.atan2(Y(y1 - y0), X(x1 - x0)), len: [16, 38], width: [4, 8], alpha: [0.32, 0.55], cover: 1.6, vary: 0.1, spread: 0.7,
+        thick: () => 0.28,
+      });
+      // grass along and into the edges, so the trail sinks into the lawn rather than sitting on it
+      const r = rng(seed + 300);
+      withThickness(0.4, () => {
+        for (let i = 0; i < N * 1.4; i++) {
+          const [mx, my, a, w] = mid[Math.floor(r() * (N + 1))];
+          const side = r() < 0.5 ? -1 : 1, d = w * (0.75 + r() * 0.45);
+          const gx = mx - Math.sin(a) * d * side, gy = my + Math.cos(a) * d * side;
+          stroke(ctx, r, gx, gy, -Math.PI / 2 + (r() - 0.5) * 1.1, (8 + r() * 9) * k, (2 + r() * 1.6) * k, mix(hex("#7f9a62"), hex("#b8c98a"), r()), 0.7, 1);
+        }
+        // and a few small patches inside, where the walking has worn less
+        for (let i = 0; i < 3; i++) {
+          const [mx, my, a, w] = mid[4 + Math.floor(r() * (N - 8))];
+          const off = (r() - 0.5) * w * 0.8;
+          for (let j = 0; j < 6; j++) stroke(ctx, r, mx - Math.sin(a) * off + (r() - 0.5) * 8 * k, my + Math.cos(a) * off + (r() - 0.5) * 4 * k, -Math.PI / 2 + (r() - 0.5) * 1, (6 + r() * 6) * k, 1.8 * k, mix(hex("#8aa46a"), hex("#b8c98a"), r()), 0.65, 1);
+        }
       });
     };
     for (const [i, t] of L.trails.entries()) trail(t[0], t[1], t[2], t[3], t[4], 70 + i);
@@ -2816,11 +2838,12 @@ const WORK_DESKTOP = {
     hills: [[0.25, 0.43, 0.5, 0.04, "sage"], [0.82, 0.45, 0.45, 0.04, "moss"], [0.5, 0.53, 0.95, 0.03, "sage"]],
     // paths from the girl's spot to each landmark: [from, control, to, width at start, width at end]
     trails: [
-      [[0.5, 0.93], [0.42, 0.86], [0.37, 0.8], 0.05, 0.034],
-      [[0.5, 0.93], [0.62, 0.86], [0.72, 0.68], 0.05, 0.03],
-      // deeper into the garden: down to the windmill and on to the greenhouse
-      [[0.5, 0.93], [0.44, 1.15], [0.41, 1.385], 0.05, 0.036],
-      [[0.5, 0.93], [0.62, 1.25], [0.69, 1.6], 0.05, 0.042],
+      [[0.5, 0.93], [0.4, 0.92], [0.37, 0.8], 0.028, 0.02],
+      [[0.5, 0.93], [0.66, 0.9], [0.72, 0.68], 0.026, 0.018],
+      // on down into the lower garden, forking again: left to the windmill, right to the greenhouse
+      [[0.5, 0.93], [0.55, 1.12], [0.5, 1.22], 0.03, 0.026],
+      [[0.5, 1.22], [0.42, 1.27], [0.41, 1.385], 0.024, 0.02],
+      [[0.5, 1.22], [0.55, 1.58], [0.68, 1.6], 0.025, 0.024],
     ],
     trees: [
       [0.05, 0.64, 0.075, "autumn"], [0.965, 0.7, 0.07, "turning"], [0.34, 0.48, 0.02, "green"], [0.86, 0.475, 0.016, "green"],
@@ -2841,10 +2864,10 @@ const WORK_DESKTOP = {
     // two and two: the fountain and the dog house on the first screen, the windmill and the greenhouse below,
     // staggered so the walk down feels like going deeper into the garden
     landmarks: [
-      { slug: "eliminate-bacteria-pro", kind: "fountain", x: 0.27, base: 0.76, w: 0.2, stand: [0.37, 0.78], face: -1, label: [0.27, 0.8] },
-      { slug: "dog-nutrition-tracker", kind: "doghouse", x: 0.66, base: 0.62, w: 0.15, puppy: [0.77, 0.655, 0.06], stand: [0.72, 0.662], face: 1, label: [0.69, 0.66] },
-      { slug: "little-moments", kind: "windmill", x: 0.33, base: 1.33, h: 0.26, stand: [0.41, 1.36], face: -1, label: [0.33, 1.36] },
-      { slug: "aurelle", kind: "greenhouse", x: 0.69, base: 1.56, w: 0.2, stand: [0.6565, 1.575], face: 1, label: [0.69, 1.59] },
+      { slug: "eliminate-bacteria-pro", kind: "fountain", x: 0.27, base: 0.76, w: 0.2, via: [[0.4175, 0.8925]], stand: [0.37, 0.785], face: -1, label: [0.27, 0.8] },
+      { slug: "dog-nutrition-tracker", kind: "doghouse", x: 0.66, base: 0.62, w: 0.15, puppy: [0.77, 0.655, 0.06], via: [[0.635, 0.8525]], stand: [0.72, 0.672], face: 1, label: [0.69, 0.66] },
+      { slug: "little-moments", kind: "windmill", x: 0.33, base: 1.33, h: 0.26, via: [[0.525, 1.0975], [0.5, 1.22], [0.4375, 1.286]], stand: [0.41, 1.37], face: -1, label: [0.33, 1.36] },
+      { slug: "aurelle", kind: "greenhouse", x: 0.69, base: 1.56, w: 0.2, via: [[0.525, 1.0975], [0.5, 1.22], [0.5475, 1.425], [0.6, 1.555]], stand: [0.6565, 1.575], face: 1, label: [0.69, 1.59] },
     ],
   },
 };
@@ -2858,10 +2881,12 @@ const WORK_MOBILE = {
     far: [[0, 0.245], [0.5, 0.23], [1, 0.245]],
     hills: [[0.2, 0.27, 0.6, 0.03, "sage"], [0.85, 0.29, 0.5, 0.03, "moss"], [0.5, 0.34, 1.2, 0.02, "sage"]],
     trails: [
-      [[0.72, 0.95], [0.76, 0.64], [0.22, 0.6], 0.12, 0.07],
-      [[0.72, 0.95], [0.6, 0.9], [0.53, 0.83], 0.12, 0.08],
-      [[0.72, 0.95], [0.55, 1.02], [0.47, 1.215], 0.12, 0.08],
-      [[0.72, 0.95], [0.76, 1.2], [0.68, 1.41], 0.12, 0.1],
+      [[0.72, 0.95], [0.8, 0.74], [0.6, 0.66], 0.07, 0.05],
+      [[0.6, 0.66], [0.4, 0.62], [0.23, 0.6], 0.05, 0.04],
+      [[0.73, 0.7725], [0.6, 0.78], [0.54, 0.83], 0.045, 0.04],
+      [[0.72, 0.95], [0.62, 1.03], [0.58, 1.08], 0.07, 0.06],
+      [[0.58, 1.08], [0.5, 1.14], [0.47, 1.215], 0.05, 0.045],
+      [[0.58, 1.08], [0.52, 1.38], [0.64, 1.43], 0.055, 0.05],
     ],
     trees: [[0.08, 0.4, 0.11, "autumn"], [0.92, 1.06, 0.09, "green"], [0.1, 1.37, 0.09, "turning"]],
     shrubs: [[0.4, 1.415, 0.06, 931], [0.96, 1.42, 0.06, 932]],
@@ -2874,10 +2899,10 @@ const WORK_MOBILE = {
     start: [0.72, 0.95],
     girlH: 0.1,
     landmarks: [
-      { slug: "dog-nutrition-tracker", kind: "doghouse", x: 0.6, base: 0.55, w: 0.3, puppy: [0.32, 0.565, 0.13], via: [[0.7, 0.66]], stand: [0.22, 0.58], face: 1, label: [0.6, 0.57] },
-      { slug: "eliminate-bacteria-pro", kind: "fountain", x: 0.3, base: 0.8, w: 0.44, stand: [0.53, 0.81], face: -1, label: [0.3, 0.82] },
-      { slug: "little-moments", kind: "windmill", x: 0.3, base: 1.16, h: 0.44, stand: [0.47, 1.19], face: -1, label: [0.3, 1.18] },
-      { slug: "aurelle", kind: "greenhouse", x: 0.68, base: 1.39, w: 0.42, stand: [0.6, 1.405], face: 1, label: [0.68, 1.415] },
+      { slug: "dog-nutrition-tracker", kind: "doghouse", x: 0.6, base: 0.55, w: 0.3, puppy: [0.32, 0.565, 0.13], via: [[0.73, 0.7725], [0.6, 0.66], [0.4075, 0.625]], stand: [0.22, 0.6], face: 1, label: [0.6, 0.57] },
+      { slug: "eliminate-bacteria-pro", kind: "fountain", x: 0.3, base: 0.8, w: 0.44, via: [[0.73, 0.7725], [0.6175, 0.79]], stand: [0.53, 0.82], face: -1, label: [0.3, 0.82] },
+      { slug: "little-moments", kind: "windmill", x: 0.3, base: 1.16, h: 0.44, via: [[0.635, 1.0225], [0.58, 1.08], [0.5125, 1.1438]], stand: [0.47, 1.2], face: -1, label: [0.3, 1.18] },
+      { slug: "aurelle", kind: "greenhouse", x: 0.68, base: 1.39, w: 0.42, via: [[0.635, 1.0225], [0.58, 1.08], [0.5475, 1.2625], [0.565, 1.3675]], stand: [0.6, 1.405], face: 1, label: [0.68, 1.415] },
     ],
   },
 };

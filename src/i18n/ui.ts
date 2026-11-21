@@ -33,7 +33,6 @@ const en = {
   },
   work: {
     heading: "Choose a place to explore my work.",
-    more: "More of the garden below",
     landmark: (title: string, category: "personal" | "academic", place: string) =>
       `${title}, ${category} project. Walk to ${place.replace(/^The /, "the ")} and open it`,
   },
@@ -116,7 +115,6 @@ const zh: Ui = {
   },
   work: {
     heading: "选一处角落，看看我的作品吧。",
-    more: "往下走，花园里还有更多",
     landmark: (title, category, place) => `${title}，${category === "academic" ? "学术项目" : "个人项目"}。走到${place}，打开这个项目`,
   },
   cs: {

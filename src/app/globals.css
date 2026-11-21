@@ -879,25 +879,6 @@ html:has(.work-page) body > footer { display: none; }
   pointer-events: none;
 }
 .work-landmark[data-state="hover"] .work-cue { opacity: 1; animation: work-cue 1s ease-in-out infinite; }
-/* the foot of the first screen: a handwritten note and a slow chevron saying the garden carries on below */
-.work-more {
-  left: 50%;
-  z-index: 2000;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.15rem;
-  transform: translate(-50%, -100%);
-  color: #3c5639;
-  pointer-events: none;
-  text-shadow: 0 0 10px rgb(251 247 238 / 0.95), 0 1px 2px rgb(251 247 238 / 0.9);
-}
-.work-more__text { font-family: "Garden Hei", var(--font-caveat), cursive; font-weight: 700; font-size: clamp(1rem, 1.35vw, 1.35rem); line-height: 1; white-space: nowrap; }
-.work-more__chev { width: clamp(16px, 1.3vw, 22px); aspect-ratio: 20 / 14; filter: drop-shadow(0 0 4px rgb(251 247 238 / 0.9)); animation: work-more 2.4s ease-in-out infinite; }
-@keyframes work-more { 50% { translate: 0 35%; } }
-html[data-night-ink] .work-more { color: #f4ecd9; text-shadow: 0 0 10px rgb(20 28 48 / 0.95), 0 1px 2px rgb(20 28 48 / 0.9); }
-html[data-night-ink] .work-more__chev { filter: drop-shadow(0 0 4px rgb(20 28 48 / 0.9)); }
-@media (prefers-reduced-motion: reduce) { .work-more__chev { animation: none; } }
 @keyframes work-cue {
   0%, 100% { translate: 0 0; }
   50% { translate: 0 -30%; }
