@@ -38,6 +38,39 @@ type Pose = (typeof POSES)[number];
 const src = (fmt: string, name: string) => `/assets/garden/work/sprites/${fmt}-${name.replace("work-", "")}.webp`;
 const pct = (v: number) => `${v * 100}%`;
 
+/**
+ * Her route as one smooth curve: a Catmull–Rom spline through the start, the landmark's waypoints and the spot
+ * where she stops, sampled every few pixels, with the distance walked so far at each sample.
+ */
+function routePath(points: number[][], W: number, H: number) {
+  const P = points.map(([x, y]) => [x * W, y * H]);
+  const pts: number[][] = [];
+  for (let i = 0; i < P.length - 1; i++) {
+    const p0 = P[i - 1] ?? P[i], p1 = P[i], p2 = P[i + 1], p3 = P[i + 2] ?? P[i + 1];
+    const n = Math.max(6, Math.ceil(Math.hypot(p2[0] - p1[0], p2[1] - p1[1]) / 3));
+    for (let j = 0; j < n; j++) {
+      const t = j / n, t2 = t * t, t3 = t2 * t;
+      pts.push([0, 1].map((k) => 0.5 * (2 * p1[k] + (p2[k] - p0[k]) * t + (2 * p0[k] - 5 * p1[k] + 4 * p2[k] - p3[k]) * t2 + (3 * p1[k] - p0[k] - 3 * p2[k] + p3[k]) * t3)));
+    }
+  }
+  pts.push(P[P.length - 1]);
+  const len = [0];
+  for (let i = 1; i < pts.length; i++) len.push(len[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+  return { pts, len, total: len[len.length - 1] };
+}
+
+/** Distance along the route at time t: a gentle start, an even pace, a gentle stop. */
+function walked(t: number, T: number, L: number) {
+  const ta = Math.min(0.22 * T, 300), td = Math.min(0.26 * T, 360);
+  const v = L / (T - ta / 2 - td / 2);
+  if (t <= 0) return 0;
+  if (t < ta) return (0.5 * v * t * t) / ta;
+  if (t < T - td) return v * (ta / 2) + v * (t - ta);
+  if (t >= T) return L;
+  const u = T - t;
+  return L - (0.5 * v * u * u) / td;
+}
+
 function Stage({ fmt, c, ratio, className }: { fmt: "desktop" | "mobile"; c: Composition; ratio: number; className: string }) {
   const router = useRouter();
   const locale = useLocale();
@@ -45,7 +78,9 @@ function Stage({ fmt, c, ratio, className }: { fmt: "desktop" | "mobile"; c: Com
   const stageRef = useRef<HTMLDivElement>(null);
   const girlRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState(c.start);
-  const [walkMs, setWalkMs] = useState(0);
+  const [walking, setWalking] = useState(false);
+  const raf = useRef(0);
+  const faceRef = useRef(-1);
   const [pose, setPose] = useState<Pose>("idle");
   const [face, setFace] = useState(-1);
   const [hover, setHover] = useState<string | null>(null);
@@ -56,21 +91,16 @@ function Stage({ fmt, c, ratio, className }: { fmt: "desktop" | "mobile"; c: Com
   const chosen = c.landmarks.find((l) => l.slug === active);
   const focusOrigin = chosen ? `${(chosen.hit[0] + chosen.hit[2] / 2) * 100}% ${(chosen.hit[1] + chosen.hit[3] / 2) * 100}%` : "50% 50%";
 
-  useEffect(() => () => timers.current.forEach((t) => clearTimeout(t)), []);
+  useEffect(() => () => {
+    timers.current.forEach((t) => clearTimeout(t));
+    cancelAnimationFrame(raf.current);
+  }, []);
   useEffect(() => {
     if (girlRef.current) girlRef.current.style.zIndex = String(depth(c.start[1]));
   }, [c.start]);
-  /** While she walks, keep her depth in step with where her feet actually are. */
-  const followDepth = (ms: number) => {
-    const until = performance.now() + ms + 100;
-    const tick = () => {
-      const el = girlRef.current, stage = stageRef.current;
-      if (!el || !stage) return;
-      el.style.zIndex = String(depth(parseFloat(getComputedStyle(el).top) / stage.clientHeight));
-      if (performance.now() < until) requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
-  };
+  useEffect(() => {
+    faceRef.current = face;
+  }, [face]);
   const later = (fn: () => void, ms: number) => timers.current.push(window.setTimeout(fn, ms));
 
   const sprite = (name: string) => c.sprites.find((s) => s.name === name)!;
@@ -87,27 +117,26 @@ function Stage({ fmt, c, ratio, className }: { fmt: "desktop" | "mobile"; c: Com
     if (busy) return;
     setActive(m.slug);
     router.prefetch(`/work/${m.slug}`);
-    // walk, along any waypoints: duration grows with distance (in stage widths), legs alternating, a gentle bob
-    const route = [...(m.via ?? []), m.stand];
-    const legs = route.map((p, i) => {
-      const from = i ? route[i - 1] : pos;
-      return { to: p, dx: p[0] - from[0], d: Math.hypot(p[0] - from[0], (p[1] - from[1]) / ratio) };
-    });
-    const total = legs.reduce((a, l) => a + l.d, 0);
-    const ms = Math.round(Math.min(route.length > 1 ? 2300 : 1800, Math.max(750, 550 + total * 2600)));
-    let at = 0;
-    legs.forEach((l, i) => {
-      const legMs = Math.round((ms * l.d) / (total || 1));
-      const walk = () => { setFace(l.dx >= 0 ? 1 : -1); setWalkMs(legMs); setPos(l.to); };
-      if (i === 0) walk();
-      else later(walk, at);
-      at += legMs;
-    });
-    followDepth(ms);
-    let step = 0;
-    const stride = window.setInterval(() => setPose(step++ % 2 ? "walk-b" : "walk-a"), 160);
-    later(() => {
-      clearInterval(stride);
+    // the walk: ONE continuous motion along a smooth curve through her waypoints, at an even walking pace (a
+    // gentle start and stop only at the ends). A single animation-frame loop moves her with a transform (no layout
+    // work per frame and no React re-render per step), counts her steps by the distance she actually covers (so
+    // her feet keep pace with the ground), turns her only when the path really changes direction, and keeps her
+    // depth in step with her feet.
+    const el = girlRef.current!, stage = stageRef.current!;
+    const W = stage.clientWidth, H = stage.clientHeight;
+    const path = routePath([pos, ...(m.via ?? []), m.stand], W, H);
+    const gh = c.girl.h * H; // her height in pixels
+    const T = Math.min(2400, Math.max(700, (path.total / (2.2 * gh)) * 1000));
+    const stride = 0.38 * gh;
+    const ox = pos[0] * W, oy = pos[1] * H;
+    let i = 0, step = -1, t0 = 0;
+    const at = (d: number, from: number) => {
+      let k = from;
+      while (k < path.len.length - 2 && path.len[k + 1] < d) k++;
+      const a = path.pts[k], b = path.pts[k + 1], span = path.len[k + 1] - path.len[k] || 1, u = Math.min(1, (d - path.len[k]) / span);
+      return { k, x: a[0] + (b[0] - a[0]) * u, y: a[1] + (b[1] - a[1]) * u };
+    };
+    const arrive = () => {
       stageRef.current?.setAttribute("data-moment", m.kind);
       if (m.kind === "doghouse") {
         // kneel and hold out a treat, then pat the puppy a few times
@@ -134,15 +163,51 @@ function Stage({ fmt, c, ratio, className }: { fmt: "desktop" | "mobile"; c: Com
         later(() => setPose("phone-up"), 560);
         later(() => setPose("selfie"), 860);
       }
-    }, ms);
-    // then a soft paper wipe from the landmark into the project
-    const hold = MOMENT_MS[m.kind];
-    later(() => {
-      const r = stageRef.current!.getBoundingClientRect();
-      setWipe({ x: r.left + (m.hit[0] + m.hit[2] / 2) * r.width, y: r.top + (m.hit[1] + m.hit[3] / 2) * r.height });
-    }, ms + hold);
-    later(() => router.push(`/work/${m.slug}`), ms + hold + 750);
-    timers.current.push(stride);
+      // then a soft paper wipe from the landmark into the project
+      const hold = MOMENT_MS[m.kind];
+      later(() => {
+        const r = stageRef.current!.getBoundingClientRect();
+        setWipe({ x: r.left + (m.hit[0] + m.hit[2] / 2) * r.width, y: r.top + (m.hit[1] + m.hit[3] / 2) * r.height });
+      }, hold);
+      later(() => router.push(`/work/${m.slug}`), hold + 750);
+    };
+    const tick = (now: number) => {
+      if (!t0) t0 = now;
+      const t = now - t0, d = walked(t, T, path.total);
+      const here = at(d, i);
+      i = here.k;
+      el.style.translate = `${here.x - ox}px ${here.y - oy}px`;
+      el.style.zIndex = String(depth(here.y / H));
+      // her steps: one per stride of ground covered
+      const s = Math.floor(d / stride);
+      if (s !== step) {
+        step = s;
+        el.dataset.pose = s % 2 ? "walk-b" : "walk-a";
+      }
+      // which way she faces: from the path a little ahead, ignoring tiny wobbles
+      const ahead = at(Math.min(path.total, d + 14), i);
+      if (Math.abs(ahead.x - here.x) > 2.5) {
+        const f = ahead.x > here.x ? 1 : -1;
+        if (f !== faceRef.current) {
+          faceRef.current = f;
+          setFace(f);
+        }
+      }
+      if (t < T) {
+        raf.current = requestAnimationFrame(tick);
+        return;
+      }
+      // arrived: hand her resting place back to React in the same frame, so nothing jumps
+      el.style.left = pct(m.stand[0]);
+      el.style.top = pct(m.stand[1]);
+      el.style.translate = "";
+      setPos(m.stand);
+      setWalking(false);
+      arrive();
+    };
+    setWalking(true);
+    setPose("walk-a");
+    raf.current = requestAnimationFrame(tick);
   };
 
   return (
@@ -250,14 +315,13 @@ function Stage({ fmt, c, ratio, className }: { fmt: "desktop" | "mobile"; c: Com
         <div
           ref={girlRef}
           aria-hidden="true"
-          className={`work-girl pointer-events-none absolute ${walkMs && pose.startsWith("walk") ? "work-girl--walking" : ""}`}
+          className={`work-girl pointer-events-none absolute ${walking ? "work-girl--walking" : ""}`}
           data-pose={pose}
           style={{
             left: pct(pos[0]),
             top: pct(pos[1]),
             width: pct(girl.w),
             transform: `translate(-50%, -${c.girl.feet[1] * 100}%)`,
-            transition: walkMs ? `left ${walkMs}ms ease-in-out, top ${walkMs}ms ease-in-out` : undefined,
           }}
         >
           <div className="work-girl__body relative" style={{ transform: face < 0 ? "scaleX(-1)" : undefined }}>
