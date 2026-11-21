@@ -879,6 +879,25 @@ html:has(.work-page) body > footer { display: none; }
   pointer-events: none;
 }
 .work-landmark[data-state="hover"] .work-cue { opacity: 1; animation: work-cue 1s ease-in-out infinite; }
+/* the foot of the first screen: a handwritten note and a slow chevron saying the garden carries on below */
+.work-more {
+  left: 50%;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  transform: translate(-50%, -100%);
+  color: #3c5639;
+  pointer-events: none;
+  text-shadow: 0 0 10px rgb(251 247 238 / 0.95), 0 1px 2px rgb(251 247 238 / 0.9);
+}
+.work-more__text { font-family: "Garden Hei", var(--font-caveat), cursive; font-weight: 700; font-size: clamp(1rem, 1.35vw, 1.35rem); line-height: 1; white-space: nowrap; }
+.work-more__chev { width: clamp(16px, 1.3vw, 22px); aspect-ratio: 20 / 14; filter: drop-shadow(0 0 4px rgb(251 247 238 / 0.9)); animation: work-more 2.4s ease-in-out infinite; }
+@keyframes work-more { 50% { translate: 0 35%; } }
+html[data-night-ink] .work-more { color: #f4ecd9; text-shadow: 0 0 10px rgb(20 28 48 / 0.95), 0 1px 2px rgb(20 28 48 / 0.9); }
+html[data-night-ink] .work-more__chev { filter: drop-shadow(0 0 4px rgb(20 28 48 / 0.9)); }
+@media (prefers-reduced-motion: reduce) { .work-more__chev { animation: none; } }
 @keyframes work-cue {
   0%, 100% { translate: 0 0; }
   50% { translate: 0 -30%; }
@@ -1109,32 +1128,13 @@ html:has(.work-page) body > footer { display: none; }
   *, *::before, *::after { transition-duration: 0.01ms !important; }
 }
 
-/* ---------- AURELLE: the video-led project page ---------- */
-/* the garden's painted backdrop (as on every project page), warmed by a faint blush and cream wash so the page
-   feels a little more editorial; nothing floats over the page and nothing frames the film but air */
-.aurelle-wash {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(60rem 40rem at 85% 10%, rgb(242 214 208 / 0.45), transparent 70%),
-    radial-gradient(50rem 36rem at 5% 90%, rgb(214 226 200 / 0.35), transparent 70%),
-    linear-gradient(rgb(251 246 238 / 0.55), rgb(251 246 238 / 0.35));
-  transition: opacity var(--dusk);
-}
-html[data-night] .aurelle-wash { opacity: 0; }
-.aurelle-title { letter-spacing: 0.06em; }
-/* the film: its own 16:9 shape, the corners just softened, a quiet shadow to lift it off the paper */
+/* ---------- AURELLE: the film on its case-study page ---------- */
+/* its own 16:9 shape, the corners just softened, a quiet shadow to settle it on the paper */
 .aurelle-video {
   aspect-ratio: 16 / 9;
   object-fit: contain;
   background: #14110f;
-  border-radius: 0.6rem;
-  box-shadow: 0 30px 60px -36px rgb(60 46 40 / 0.55), 0 2px 6px -2px rgb(60 46 40 / 0.18);
+  border-radius: 0.5rem;
+  box-shadow: 0 24px 50px -32px rgb(60 46 40 / 0.5), 0 2px 6px -2px rgb(60 46 40 / 0.16);
 }
-html[data-night] .aurelle-video { box-shadow: 0 30px 60px -36px rgb(0 0 0 / 0.7); }
-@media (max-width: 639px) { .aurelle-film { margin-inline: -0.25rem; } .aurelle-video { border-radius: 0.4rem; } }
-:lang(zh) .aurelle-lede { line-height: 1.7; letter-spacing: 0.03em; }
-:lang(zh) .aurelle-kicker { letter-spacing: 0.12em; }
-:lang(zh) .aurelle-discipline { letter-spacing: 0.1em; }
+html[data-night] .aurelle-video { box-shadow: 0 24px 50px -32px rgb(0 0 0 / 0.7); }

@@ -1315,6 +1315,7 @@ function paint(F) {
     // a few trees and flowers at the edges, kept quiet so the landmarks stand out
     for (const [i, [tx, ty, ts, kind]] of L.trees.entries()) tree(X(tx), Y(ty), ts * W, 90 + i, kind);
     for (const cl of L.clusters) cluster(cl);
+    for (const [sx, sy, ss, sd] of L.shrubs ?? []) shrub(X(sx), Y(sy), ss * W, sd);
 
     // ---- the landmarks, each on its own layer, with their ground shadows in the scene
     const lm = [];
@@ -1473,38 +1474,33 @@ function paint(F) {
   }
 
   /**
-   * A small vintage botanical greenhouse, seen from its gable end: a low stone
-   * plinth, cream glazing bars over pale glass, a pitched glass roof with a
-   * round window and a finial, an arched sage-green door, climbing pink roses,
-   * pots of blossom by the door and, behind the glass, plants in bloom and a
-   * few little glass bottles on a shelf. Decorative garden art only: it is not
-   * part of any project. Drawing units: 200 wide, ground at v = 0, up is
-   * negative; f scales them. parts: "house" (everything but the door, with the
-   * lit doorway behind it) or "door" (the door alone, its own layer so the page
-   * can swing it open on its hinge).
+   * A small botanical greenhouse, painted like the other Work landmarks (dog house, fountain, windmill): solid
+   * bodies of colour laid with the palette knife, bristle strokes for leaves and flowers, the same cream stone
+   * and sage, lit from the upper left, with the impasto relief the sprite pass adds. Seen from its gable end: a
+   * stone plinth, chunky cream glazing bars over blue-green glass with plants and pink blooms behind it, a glass
+   * gable with a round window, an arched sage door and climbing roses. Decorative garden art only, not part of any
+   * project. Drawing units: 200 wide, ground at v = 0, up is negative; f scales them. parts: "house" (everything
+   * but the door, with the lit doorway behind it) or "door" (the door alone, its own layer so it can swing open).
    */
   function greenhouse(x, base, w, seed, parts = "house") {
     const r = rng(seed);
     const f = w / 200;
     const P = (u, v) => [x + (u - 100) * f, base + v * f];
-    const CREAM = hex("#efe7d2"), CREAM_SH = hex("#c9c0a4"), SAGE = hex("#9db08b"), SAGE_D = hex("#6f8566");
+    const CREAM = (lit) => mix(hex("#cdbb9f"), hex("#fbf3e3"), lit); // the windmill's stone creams
+    const SAGE = (lit) => mix(hex("#6f8a66"), hex("#b9c9a2"), lit);
+    const GLASS = (lit) => mix(hex("#86aaa6"), hex("#dcebe6"), lit);
     const poly = (pts) => { const p = new Path2D(); pts.forEach(([u, v], i) => (i ? p.lineTo(...P(u, v)) : p.moveTo(...P(u, v)))); p.closePath(); return p; };
-    // one painted bar: a straight body of paint with a lit edge and a shaded edge, cut square, slightly hand-wobbled
-    const bar = (u0, v0, u1, v1, wd, col, lit = 0.25) => {
-      const [x0, y0] = P(u0 + (r() - 0.5) * 0.6, v0), [x1, y1] = P(u1 + (r() - 0.5) * 0.6, v1);
-      const a = Math.atan2(y1 - y0, x1 - x0), nx = (-Math.sin(a) * wd * f) / 2, ny = (Math.cos(a) * wd * f) / 2;
-      const body = new Path2D();
-      body.moveTo(x0 + nx, y0 + ny); body.lineTo(x1 + nx, y1 + ny); body.lineTo(x1 - nx, y1 - ny); body.lineTo(x0 - nx, y0 - ny); body.closePath();
-      ctx.fillStyle = rgba(col); ctx.fill(body);
-      if (PAINT.hx) { PAINT.hx.fillStyle = grey(160); PAINT.hx.fill(body); }
-      ctx.lineWidth = Math.max(0.8, wd * f * 0.28);
-      ctx.strokeStyle = rgba(mix(col, WARM, 0.55), 0.8);
-      ctx.beginPath(); ctx.moveTo(x0 - nx * 0.5, y0 - ny * 0.5); ctx.lineTo(x1 - nx * 0.5, y1 - ny * 0.5); ctx.stroke();
-      ctx.strokeStyle = rgba(mix(col, SHADOW, 0.35), 0.7);
-      ctx.beginPath(); ctx.moveTo(x0 + nx * 0.6, y0 + ny * 0.6); ctx.lineTo(x1 + nx * 0.6, y1 + ny * 0.6); ctx.stroke();
-      if (lit > 0) stroke(ctx, r, (x0 + x1) / 2 - nx * 0.3, (y0 + y1) / 2 - ny * 0.3, a, Math.hypot(x1 - x0, y1 - y0) * 0.35, wd * f * 0.4, mix(col, WARM, 0.7), lit, 0);
+    // a painted bar: two or three overlapping knife slabs along it, lighter towards the upper left
+    const bar = (u0, v0, u1, v1, wd, col) => {
+      const [x0, y0] = P(u0, v0), [x1, y1] = P(u1, v1);
+      const a = Math.atan2(y1 - y0, x1 - x0), len = Math.hypot(x1 - x0, y1 - y0);
+      const n = Math.max(1, Math.round(len / (40 * f)));
+      for (let i = 0; i < n; i++) {
+        const t0 = i / n, l = (len / n) * 1.12;
+        const lit = clamp(0.75 - ((x0 + (x1 - x0) * t0) - (x - 100 * f)) / (260 * f) + (r() - 0.5) * 0.15);
+        knife(ctx, r, x0 + (x1 - x0) * t0 - Math.cos(a) * l * 0.04, y0 + (y1 - y0) * t0 - Math.sin(a) * l * 0.04, a + (r() - 0.5) * 0.02, l, wd * f, col(lit));
+      }
     };
-    // the door's outline: straight sides and a round arch
     const doorPath = (u0, u1, v0, top) => {
       const p = new Path2D(), cx = (u0 + u1) / 2, rad = (u1 - u0) / 2;
       p.moveTo(...P(u0, v0)); p.lineTo(...P(u0, top + rad));
@@ -1512,179 +1508,134 @@ function paint(F) {
       p.lineTo(...P(u1, v0)); p.closePath();
       return p;
     };
-    const D = { u0: 82, u1: 118, top: -118 }; // the doorway
+    const D = { u0: 82, u1: 118, top: -118 };
 
     if (parts === "door") {
-      withThickness(0.9, () => {
+      withThickness(1, () => {
         const door = doorPath(D.u0 + 1.5, D.u1 - 1.5, 0, D.top + 1.5);
-        ctx.fillStyle = rgba(SAGE); ctx.fill(door);
+        ctx.fillStyle = rgba(SAGE(0.45)); ctx.fill(door);
         clipBoth(ctx, door);
-        // two tall panes of glass, faintly showing green inside
-        for (const [a, b] of [[86.5, 98.5], [101.5, 113.5]]) {
+        for (let i = 0; i < 16; i++) knife(ctx, r, ...P(D.u0 + r() * 34, -2 - r() * 118), -Math.PI / 2 + (r() - 0.5) * 0.08, 22 * f, 7 * f, SAGE(clamp(0.7 - i / 22 + (r() - 0.5) * 0.2)));
+        // two panes of glass, knife-laid, with a leaf or two behind and one gleam
+        for (const [a, b] of [[87, 99], [101, 113]]) {
           const pane = new Path2D();
-          pane.rect(...P(a, -66), (b - a) * f, 58 * f);
-          pane.rect(...P(a, -110), (b - a) * f, 40 * f);
-          ctx.fillStyle = rgba(mix(hex("#a9c6be"), hex("#e8f1e8"), 0.35), 0.95); ctx.fill(pane);
-          for (let i = 0; i < 5; i++) stroke(ctx, r, ...P(a + r() * (b - a), -100 + r() * 90), -Math.PI / 2 + (r() - 0.5) * 0.6, 14 * f, 5 * f, mix(hex("#6f8f5f"), hex("#a4bd84"), r()), 0.45, 1);
-          stroke(ctx, r, ...P(a + 2, -20), -1.2, 40 * f, 2.2 * f, hex("#ffffff"), 0.55, 0); // a gleam
+          pane.rect(...P(a, -64), (b - a) * f, 54 * f);
+          pane.rect(...P(a, -108), (b - a) * f, 38 * f);
+          clipBoth(ctx, pane);
+          for (let i = 0; i < 12; i++) knife(ctx, r, ...P(a - 1 + r() * (b - a), -8 - r() * 104), -Math.PI / 2 + (r() - 0.5) * 0.2, 16 * f, 7 * f, GLASS(clamp(0.75 - i / 18)));
+          for (let i = 0; i < 4; i++) stroke(ctx, r, ...P(a + r() * (b - a), -12 - r() * 40), -Math.PI / 2 + (r() - 0.5) * 0.8, 12 * f, 5 * f, mix(hex("#5d7a4c"), hex("#9cb36b"), r()), 0.7, 2);
+          stroke(ctx, r, ...P(a + 2, -30), -1.25, 30 * f, 2.6 * f, hex("#f6fbf8"), 0.55, 1);
+          unclipBoth(ctx);
         }
-        for (let i = 0; i < 14; i++) knife(ctx, r, ...P(D.u0 + 2 + r() * 32, -4 - r() * 110), -Math.PI / 2, 12 * f, 3 * f, mix(SAGE_D, mix(SAGE, WARM, 0.35), r()), 0.55);
-        unclipBoth(ctx);
-        bar(100, -2, 100, D.top + 6, 3, mix(SAGE, SHADOW, 0.1), 0);
-        bar(D.u0 + 3, -68, D.u1 - 3, -68, 3, mix(SAGE, SHADOW, 0.08), 0);
-        bar(D.u0 + 3, -6, D.u1 - 3, -6, 4, mix(SAGE, SHADOW, 0.15), 0);
-        ctx.strokeStyle = rgba(SAGE_D, 0.9); ctx.lineWidth = 2.2 * f; ctx.stroke(door);
-        // a small brass handle on the latch side (left)
-        dab(ctx, ...P(88, -48), 2.2 * f, 2.2 * f, 0, hex("#c9a25a"), 1);
-        dab(ctx, ...P(87.6, -48.6), 0.9 * f, 0.9 * f, 0, hex("#f4dca0"), 0.9);
+        dab(ctx, ...P(88.5, -48), 2.6 * f, 2.6 * f, 0, hex("#c69a52"), 1); // a brass handle on the latch side
+        dab(ctx, ...P(88, -48.6), 1.1 * f, 1.1 * f, 0, hex("#f1d896"), 0.9);
       });
       return;
     }
 
-    withThickness(0.95, () => {
-      // its soft shadow on the lawn
+    withThickness(1, () => {
       ctx.save();
       ctx.filter = `blur(${8 * k}px)`;
-      glaze(ctx, ...P(108, 2), 104 * f, 10 * f, SHADOW, 0.38);
+      glaze(ctx, ...P(108, 2), 104 * f, 11 * f, SHADOW, 0.4);
       ctx.restore();
 
-      // ---- behind the glass: the planting, a shelf of little bottles, a warm light
+      // ---- the glass body: painted glass with the planting showing through it
       const shell = poly([[16, -14], [16, -124], [100, -186], [184, -124], [184, -14]]);
-      // the inside: a light, airy green, deeper towards the floor
-      const inner = ctx.createLinearGradient(0, base - 186 * f, 0, base);
-      inner.addColorStop(0, rgba(hex("#dfe9dc"))); inner.addColorStop(0.55, rgba(hex("#b9cdb2"))); inner.addColorStop(1, rgba(hex("#8fab84")));
-      ctx.fillStyle = inner; ctx.fill(shell);
+      ctx.fillStyle = rgba(GLASS(0.55)); ctx.fill(shell);
       clipBoth(ctx, shell);
-      // tall leafy plants, palms and ferns rising from the beds, then rows of blooms
-      for (let i = 0; i < 150; i++) {
-        const u = 18 + r() * 164, v = -16 - Math.pow(r(), 1.7) * 128;
-        const light = clamp(0.15 + r() * 0.65 - (v + 16) / -320);
-        stroke(ctx, r, ...P(u, v), -Math.PI / 2 + (r() - 0.5) * 1.8, (12 + r() * 18) * f, (4.5 + r() * 4) * f, mix(ramp([[0, "#3f5c3c"], [0.55, "#6d8f57"], [1, "#a9c27f"]], light), hex("#d9e4d2"), 0.08), 0.9, 2);
+      // knife-laid glass, cool and pale, lighter where the sky catches it (upper left)
+      for (let i = 0; i < 90; i++) {
+        const u = 10 + r() * 180, v = -10 - r() * 180;
+        const lit = clamp(0.95 - (u - 16) / 260 - (v + 186) / -900 + (r() - 0.5) * 0.2);
+        knife(ctx, r, ...P(u, v), -Math.PI / 2 + (r() - 0.5) * 0.12, (16 + r() * 14) * f, (8 + r() * 5) * f, GLASS(lit));
       }
-      for (let i = 0; i < 46; i++) {
-        const u = 20 + r() * 160, v = -18 - Math.pow(r(), 1.3) * 80;
-        if (u > D.u0 - 2 && u < D.u1 + 2) continue;
-        const col = ramp([[0, "#cf7b84"], [0.5, "#e69ea3"], [1, "#f7cfcb"]], r());
-        dab(ctx, ...P(u + 0.5, v + 0.6), (2.6 + r() * 1.8) * f, (2.1 + r() * 1.4) * f, 0, mix(col, SHADOW, 0.35), 0.4, false);
-        dab(ctx, ...P(u, v), (2.4 + r() * 1.8) * f, (2 + r() * 1.4) * f, r(), col, 0.95);
-        dab(ctx, ...P(u - 0.6, v - 0.6), 0.9 * f, 0.8 * f, 0, WARM, 0.6);
+      // plants behind the glass: leafy bristle strokes rising from the beds, blush blooms among them
+      for (let i = 0; i < 110; i++) {
+        const u = 18 + r() * 164, v = -16 - Math.pow(r(), 1.6) * 100;
+        if (u > D.u0 - 3 && u < D.u1 + 3 && r() < 0.8) continue;
+        const light = clamp(0.25 + r() * 0.55 - (v + 16) / -260);
+        stroke(ctx, r, ...P(u, v), -Math.PI / 2 + (r() - 0.5) * 1.6, (10 + r() * 14) * f, (5 + r() * 4) * f, mix(ramp(GREEN_LEAVES, light), GLASS(0.8), 0.22), 0.85, 2);
       }
-      // a slim shelf inside the left bay with three small glass bottles: two with droppers, one round
-      bar(24, -60, 74, -60, 2.4, hex("#b49a7a"), 0);
-      for (const [u, h, tint, kind] of [[31, 16, "#e9cfa0", "dropper"], [44, 11, "#f3e6e1", "round"], [56, 18, "#dcc28f", "dropper"], [68, 12, "#f0d9d6", "round"]]) {
-        const [bx, by] = P(u, -61);
-        const bw = (kind === "round" ? 9 : 7.5) * f, bh = h * f;
-        const body = new Path2D();
-        if (kind === "round") body.ellipse(bx, by - bh * 0.42, bw * 0.55, bh * 0.45, 0, 0, Math.PI * 2);
-        else body.roundRect(bx - bw / 2, by - bh * 0.72, bw, bh * 0.72, 1.2 * f);
-        ctx.fillStyle = rgba(mix(hex(tint), WARM, 0.25), 0.92); ctx.fill(body);
-        ctx.strokeStyle = rgba(hex("#8f7a5e"), 0.5); ctx.lineWidth = 0.7 * f; ctx.stroke(body);
-        stroke(ctx, r, bx - bw * 0.25, by - bh * 0.15, -Math.PI / 2, bh * 0.45, 1.1 * f, hex("#ffffff"), 0.7, 0); // the glass catching light
-        if (kind === "dropper") {
-          dab(ctx, bx, by - bh * 0.8, bw * 0.3, bh * 0.1, 0, hex("#c7a265"), 1); // a gold collar
-          dab(ctx, bx, by - bh * 0.98, bw * 0.24, bh * 0.14, 0, hex("#f3ece0"), 1); // the dropper bulb
-        } else dab(ctx, bx, by - bh * 0.92, bw * 0.22, bh * 0.1, 0, hex("#c7a265"), 1);
+      for (let i = 0; i < 30; i++) {
+        const u = 22 + r() * 156, v = -20 - Math.pow(r(), 1.2) * 70;
+        if (u > D.u0 - 3 && u < D.u1 + 3) continue;
+        const col = mix(ramp([[0, "#d9827f"], [0.5, "#eba3a6"], [1, "#f6c7c3"]], r()), GLASS(0.9), 0.15);
+        for (let q = 0; q < 3; q++) stroke(ctx, r, ...P(u + (r() - 0.5) * 3, v + (r() - 0.5) * 3), r() * 6.28, 5 * f, 3.6 * f, mix(col, q ? col : WARM, 0.25), 0.9, 0);
       }
-      // the lit doorway (seen when the door swings open)
+      // a slim shelf in the left bay with three little glass bottles
+      knife(ctx, r, ...P(24, -60), 0, 48 * f, 3.2 * f, hex("#a9896a"));
+      for (const [u, h, tint] of [[33, 14, "#e8cf9f"], [46, 10, "#f2e3dd"], [58, 16, "#dcc08b"]]) {
+        knife(ctx, r, ...P(u - 3.2, -61), -Math.PI / 2, h * f, 6.4 * f, mix(hex(tint), WARM, 0.2));
+        dab(ctx, ...P(u, -62 - h), 2.2 * f, 1.6 * f, 0, hex("#c2995a"), 1);
+        stroke(ctx, r, ...P(u - 1.6, -63), -Math.PI / 2, h * 0.6 * f, 1.3 * f, hex("#ffffff"), 0.6, 0);
+      }
+      // the lit doorway behind the door
       const doorway = doorPath(D.u0, D.u1, 0, D.top);
-      ctx.fillStyle = rgba(hex("#56704f")); ctx.fill(doorway);
+      ctx.fillStyle = rgba(hex("#5a7350")); ctx.fill(doorway);
       clipBoth(ctx, doorway);
-      glaze(ctx, ...P(100, -50), 22 * f, 46 * f, hex("#fff1c9"), 0.55);
-      for (let i = 0; i < 18; i++) stroke(ctx, r, ...P(D.u0 + r() * 36, -4 - r() * 60), -Math.PI / 2 + (r() - 0.5) * 1.4, 12 * f, 5 * f, mix(hex("#4c6a45"), hex("#a8c383"), r()), 0.85, 2);
-      for (let i = 0; i < 6; i++) dab(ctx, ...P(D.u0 + 4 + r() * 28, -20 - r() * 40), 2.4 * f, 2 * f, r(), hex("#f0b8b6"), 0.9);
+      glaze(ctx, ...P(100, -52), 22 * f, 48 * f, hex("#fff0c8"), 0.6);
+      for (let i = 0; i < 16; i++) stroke(ctx, r, ...P(D.u0 + r() * 36, -4 - r() * 56), -Math.PI / 2 + (r() - 0.5) * 1.4, 12 * f, 5 * f, ramp(GREEN_LEAVES, r()), 0.85, 2);
+      for (let i = 0; i < 5; i++) dab(ctx, ...P(D.u0 + 5 + r() * 26, -18 - r() * 36), 2.6 * f, 2.2 * f, r(), hex("#eeb0ae"), 0.9);
       unclipBoth(ctx);
-      unclipBoth(ctx);
-
-      // ---- the glass itself: a pale wash with long diagonal gleams (the door has its own glass)
-      const glass = poly([[18, -16], [18, -122], [100, -183], [182, -122], [182, -16]]);
-      clipBoth(ctx, glass);
-      ctx.save();
-      ctx.beginPath(); ctx.rect(x - 120 * f, base - 200 * f, 240 * f, 200 * f); ctx.rect(...P(D.u0, D.top), (D.u1 - D.u0) * f, -D.top * f);
-      ctx.clip("evenodd");
-      ctx.fillStyle = rgba(hex("#eaf3ee"), 0.16); ctx.fillRect(x - 120 * f, base - 200 * f, 240 * f, 200 * f);
-      for (let i = 0; i < 9; i++) {
-        const u = 20 + r() * 150, v = -30 - r() * 130;
-        stroke(ctx, r, ...P(u, v), -0.95, (24 + r() * 34) * f, (1.6 + r() * 2.4) * f, hex("#ffffff"), 0.3 + r() * 0.2, 0);
-      }
-      ctx.restore();
+      // two long gleams across the panes
+      for (const [u, v, l] of [[30, -40, 70], [120, -60, 60], [60, -150, 40]]) stroke(ctx, r, ...P(u, v), -0.95, l * f, 4 * f, hex("#f8fcfa"), 0.4, 1);
       unclipBoth(ctx);
 
-      // ---- the stone plinth
-      const plinth = poly([[12, -16], [188, -16], [190, 0], [10, 0]]);
-      ctx.fillStyle = rgba(hex("#d9ccb2")); ctx.fill(plinth);
+      // ---- the stone plinth, knife-laid like the windmill's tower
+      const plinth = poly([[11, -17], [189, -17], [191, 0], [9, 0]]);
+      ctx.fillStyle = rgba(CREAM(0.5)); ctx.fill(plinth);
       clipBoth(ctx, plinth);
-      for (let row = 0; row < 2; row++) for (let i = 0; i < 9; i++) {
-        const u = 8 + i * 21 + (row % 2) * 10, v = -12 + row * 8;
-        const litT = clamp(0.85 - (u - 10) / 220 + (r() - 0.5) * 0.15);
-        knife(ctx, r, ...P(u, v), (r() - 0.5) * 0.04, 19 * f, 7 * f, mix(hex("#b9a98c"), hex("#f2e8d4"), litT));
-      }
+      for (let i = 0; i < 22; i++) { const u = 6 + r() * 186; knife(ctx, r, ...P(u, -16 + r() * 14), (r() - 0.5) * 0.08, 20 * f, 8 * f, CREAM(clamp(0.9 - (u - 10) / 210))); }
       unclipBoth(ctx);
-      bar(10, -16, 190, -16, 3.5, mix(CREAM, CREAM_SH, 0.2), 0.2); // the sill
 
-      // ---- glazing bars: walls, transom, gable and the round window
-      for (const u of [18, 41, 64, 136, 159, 182]) bar(u, -16, u, -122, 3.8, CREAM);
-      bar(18, -70, D.u0 - 2, -70, 2.6, CREAM);
-      bar(D.u1 + 2, -70, 182, -70, 2.6, CREAM);
-      bar(D.u0 - 2, -16, D.u0 - 2, -122, 3.6, CREAM); // the door frame
-      bar(D.u1 + 2, -16, D.u1 + 2, -122, 3.6, CREAM);
-      for (const u of [41, 64, 136, 159]) { const v = -122 - (u < 100 ? u - 18 : 182 - u) * (61 / 82); bar(u, -124, u, v, 2.4, CREAM, 0); }
-      bar(D.u0 - 2, -124, D.u0 - 2, -124 - (D.u0 - 2 - 18) * (61 / 82), 2.4, CREAM, 0);
-      bar(D.u1 + 2, -124, D.u1 + 2, -124 - (182 - D.u1 - 2) * (61 / 82), 2.4, CREAM, 0);
-      // the round window in the gable, with its spokes
-      const [ocx, ocy] = P(100, -150), orad = 13 * f;
-      ctx.save();
-      ctx.beginPath(); ctx.arc(ocx, ocy, orad, 0, Math.PI * 2);
-      ctx.fillStyle = rgba(hex("#c8dcd5"), 0.95); ctx.fill();
-      ctx.restore();
-      for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI; bar(100 + Math.cos(a) * 12, -150 + Math.sin(a) * 12, 100 - Math.cos(a) * 12, -150 - Math.sin(a) * 12, 1.4, CREAM, 0); }
-      ctx.lineWidth = 3.2 * f; ctx.strokeStyle = rgba(CREAM); ctx.beginPath(); ctx.arc(ocx, ocy, orad, 0, Math.PI * 2); ctx.stroke();
-      ctx.lineWidth = 1 * f; ctx.strokeStyle = rgba(CREAM_SH, 0.7); ctx.beginPath(); ctx.arc(ocx, ocy + 0.8 * f, orad + 1.4 * f, 0.1, Math.PI - 0.1); ctx.stroke();
-      // the eaves beam and the gable's bargeboards, a little proud of the glass, in soft sage
-      bar(8, -123, 192, -123, 4.5, mix(SAGE, CREAM, 0.35), 0.3);
-      bar(6, -121, 101, -190, 5, mix(SAGE, CREAM, 0.25), 0.3);
-      bar(194, -121, 99, -190, 5, mix(SAGE, SHADOW, 0.05), 0.2);
-      // a little scalloped trim under the bargeboards
-      for (let i = 1; i < 12; i++) {
-        for (const side of [-1, 1]) {
-          const t = i / 12, u = 100 + side * t * 94, v = -190 + t * 67;
-          dab(ctx, ...P(u, v + 4.6), 2.2 * f, 1.7 * f, 0, mix(CREAM, CREAM_SH, 0.15), 0.95);
+      // ---- frames: chunky cream bars, the gable edged in sage
+      for (const u of [17, 49, 151, 183]) bar(u, -14, u, -124, 6, CREAM);
+      bar(D.u0 - 3, -14, D.u0 - 3, -122, 6.5, CREAM);
+      bar(D.u1 + 3, -14, D.u1 + 3, -122, 6.5, CREAM);
+      bar(17, -72, D.u0 - 3, -72, 4.5, CREAM);
+      bar(D.u1 + 3, -72, 183, -72, 4.5, CREAM);
+      bar(10, -124, 190, -124, 7, CREAM);
+      for (const u of [49, 151]) bar(u, -124, u, -124 - (u < 100 ? u - 16 : 184 - u) * (62 / 84), 4.5, CREAM);
+      bar(100, -124, 100, -140, 4.5, CREAM);
+      // the round window: a cream ring, glass inside
+      dab(ctx, ...P(100, -152), 15 * f, 15 * f, 0, CREAM(0.8), 1);
+      dab(ctx, ...P(100, -152), 10.5 * f, 10.5 * f, 0, GLASS(0.7), 1);
+      knife(ctx, r, ...P(91, -152), 0, 18 * f, 3 * f, CREAM(0.7));
+      knife(ctx, r, ...P(98.5, -161), Math.PI / 2, 18 * f, 3 * f, CREAM(0.75));
+      stroke(ctx, r, ...P(94, -150), -0.9, 8 * f, 2.4 * f, hex("#ffffff"), 0.5, 0);
+      // bargeboards in sage, from the eaves up to the ridge, and a finial
+      bar(4, -121, 100, -190, 8, SAGE);
+      bar(196, -121, 100, -190, 8, (lit) => SAGE(lit * 0.6));
+      dab(ctx, ...P(100, -194), 4.5 * f, 4.5 * f, 0, SAGE(0.55), 1);
+      dab(ctx, ...P(98.8, -195.4), 1.8 * f, 1.8 * f, 0, WARM, 0.7);
+
+      // ---- climbing roses up the left corner, a few on the right
+      const leaves = (u, v, n, s = 1) => {
+        for (let i = 0; i < n; i++) {
+          const light = r();
+          stroke(ctx, r, ...P(u + (r() - 0.5) * 14 * s, v + (r() - 0.5) * 14 * s), r() * Math.PI * 2, (8 + r() * 6) * f * s, (4.5 + r() * 2.5) * f * s, mix(ramp(GREEN_LEAVES, light), WARM, light * 0.1), 0.9, 2);
         }
-      }
-      // the finial: a short spike and a ball
-      bar(100, -190, 100, -204, 2, hex("#8f9c7c"), 0);
-      dab(ctx, ...P(100, -206), 3.2 * f, 3.2 * f, 0, mix(SAGE, CREAM, 0.3), 1);
-      dab(ctx, ...P(99, -207), 1.3 * f, 1.3 * f, 0, WARM, 0.8);
-
-      // ---- climbing roses up the left corner and over the eaves
-      const leafAt = (u, v, s = 1) => stroke(ctx, r, ...P(u, v), r() * Math.PI * 2, (6 + r() * 5) * f * s, (3.2 + r() * 2) * f * s, mix(ramp([[0, "#3e5a3b"], [0.6, "#5e7d4d"], [1, "#93ac68"]], r()), WARM, 0.08), 0.92, 1);
-      const rose = (u, v, s) => {
-        const col = ramp([[0, "#c96f7a"], [0.5, "#e39aa0"], [1, "#f6c9c6"]], r());
-        dab(ctx, ...P(u + 0.6, v + 0.8), s * 1.05 * f, s * 0.85 * f, 0, mix(col, SHADOW, 0.35), 0.45, false);
-        for (let q = 0; q < 5; q++) { const a = (q / 5) * Math.PI * 2 + r(); stroke(ctx, r, ...P(u + Math.cos(a) * s * 0.3, v + Math.sin(a) * s * 0.3), a + 1.4, s * 1.2 * f, s * 0.8 * f, mix(col, q % 2 ? WARM : col, 0.25), 0.92, 0); }
-        dab(ctx, ...P(u, v), s * 0.35 * f, s * 0.3 * f, 0, mix(col, hex("#8f3f4c"), 0.35), 0.9);
       };
-      for (let i = 0; i < 46; i++) { const t = r(); leafAt(10 + Math.sin(t * 9) * 5 + r() * 8, -4 - t * 118); }
-      for (let i = 0; i < 26; i++) { const t = r(); leafAt(12 + t * 46, -124 - t * 32 + (r() - 0.5) * 8, 0.9); }
-      for (let i = 0; i < 12; i++) { const t = r(); rose(12 + Math.sin(t * 9) * 4 + r() * 8, -10 - t * 112, 3 + r() * 1.6); }
-      for (let i = 0; i < 6; i++) { const t = r(); rose(14 + t * 42, -126 - t * 30 + (r() - 0.5) * 6, 2.6 + r() * 1.2); }
-      // a few rose leaves on the right corner too, lighter
-      for (let i = 0; i < 16; i++) { const t = r(); leafAt(186 + r() * 8, -2 - t * 46, 0.8); }
-      for (let i = 0; i < 4; i++) rose(186 + r() * 7, -8 - r() * 36, 2.6 + r());
+      for (let i = 0; i < 7; i++) { const t = i / 6; leaves(12 + Math.sin(t * 7) * 4, -6 - t * 100, 6); }
+      for (let i = 0; i < 2; i++) leaves(16 + i * 11, -128 - i * 8, 5, 0.9);
+      for (let i = 0; i < 3; i++) leaves(188, -8 - i * 16, 5, 0.85);
+      for (let i = 0; i < 8; i++) { const t = r(); cosmos(...P(12 + Math.sin(t * 7) * 4 + (r() - 0.5) * 10, -10 - t * 100), (3.8 + r() * 1.6) * f, r); }
+      for (let i = 0; i < 2; i++) cosmos(...P(16 + r() * 22, -128 - r() * 16), (3.2 + r()) * f, r);
+      for (let i = 0; i < 4; i++) cosmos(...P(186 + r() * 6, -6 - r() * 40), (3.2 + r()) * f, r);
 
-      // ---- two terracotta pots of pink blossom by the door
+      // ---- two terracotta pots of blossom by the door
       for (const [u, s] of [[68, 1], [132, 0.92]]) {
         const pot = poly([[u - 8 * s, -15 * s], [u + 8 * s, -15 * s], [u + 6 * s, 0], [u - 6 * s, 0]]);
-        ctx.fillStyle = rgba(hex("#c27a5c")); ctx.fill(pot);
+        ctx.fillStyle = rgba(hex("#b8664f")); ctx.fill(pot);
         clipBoth(ctx, pot);
-        for (let i = 0; i < 6; i++) knife(ctx, r, ...P(u - 8 * s + r() * 14 * s, -14 * s + r() * 13 * s), -Math.PI / 2, 6 * f, 4 * f, mix(hex("#a5604a"), hex("#e3a283"), r()));
+        for (let i = 0; i < 5; i++) knife(ctx, r, ...P(u - 8 * s + r() * 12 * s, -14 * s + r() * 12 * s), -Math.PI / 2, 7 * f, 5 * f, mix(hex("#9c5441"), hex("#e0957a"), clamp(0.8 - i / 6)));
         unclipBoth(ctx);
-        bar(u - 9 * s, -15 * s, u + 9 * s, -15 * s, 3, hex("#d08f70"), 0);
-        for (let i = 0; i < 16; i++) leafAt(u + (r() - 0.5) * 18 * s, -18 * s - r() * 14 * s, 0.8 * s);
-        for (let i = 0; i < 9; i++) cosmos(...P(u + (r() - 0.5) * 18 * s, -20 * s - r() * 14 * s), (3 + r() * 1.5) * f * s, r);
+        knife(ctx, r, ...P(u - 9.5 * s, -15 * s), 0, 19 * s * f, 3.6 * f, hex("#cf8a6c"));
+        leaves(u, -22 * s, 8, 0.8 * s);
+        for (let i = 0; i < 5; i++) cosmos(...P(u + (r() - 0.5) * 16 * s, -22 * s - r() * 10 * s), (3.4 + r()) * f * s, r);
       }
-      // grass and a few daisies along the plinth
-      for (let i = 0; i < 40; i++) stroke(ctx, r, ...P(8 + r() * 186, 1), -Math.PI / 2 + (r() - 0.5) * 0.9, (5 + r() * 7) * f, 2.2 * f, mix(hex("#5f7d4f"), hex("#9cb36b"), r()), 0.9, 1);
-      for (let i = 0; i < 7; i++) daisy(...P(20 + r() * 160, -2 + r() * 3), (2 + r()) * f, r);
+      // grass along the plinth, as around the fountain
+      for (let i = 0; i < 30; i++) stroke(ctx, r, ...P(6 + r() * 190, 1), -Math.PI / 2 + (r() - 0.5) * 0.8, (7 + r() * 7) * f, 3 * f, mix(hex("#5f7d4f"), hex("#9cb36b"), r()), 0.9, 1);
     });
   }
 
@@ -2835,7 +2786,9 @@ const MOBILE = {
 // ---------------------------------------------------------------- the Work garden
 
 const WORK_DESKTOP = {
-  name: "work-desktop", work: true, W: 2400, S: 1350, H: 1350, k: 1,
+  // the first screen (S = 1350 rows) is the original three-landmark garden; the painting carries on below it into
+  // a lower garden with the greenhouse, revealed as the visitor scrolls (H = 2350)
+  name: "work-desktop", work: true, W: 2400, S: 1350, H: 2350, k: 1,
   layout: {
     mounds: [], phrases: [], zones: [],
     skyEnd: 0.42, sun: [0.42, 0.38],
@@ -2847,28 +2800,37 @@ const WORK_DESKTOP = {
     trails: [
       [[0.6, 0.9], [0.42, 0.88], [0.3, 0.8], 0.05, 0.032],
       [[0.6, 0.9], [0.55, 0.78], [0.5, 0.67], 0.05, 0.03],
-      [[0.6, 0.9], [0.66, 0.8], [0.69, 0.64], 0.05, 0.03],
-      [[0.6, 0.9], [0.7, 0.93], [0.79, 0.885], 0.05, 0.036],
+      [[0.6, 0.9], [0.72, 0.84], [0.72, 0.7], 0.05, 0.032],
+      // down from her spot, through the meadow, to the greenhouse in the lower garden
+      [[0.6, 0.9], [0.64, 1.25], [0.5, 1.555], 0.05, 0.05],
     ],
-    trees: [[0.05, 0.64, 0.075, "autumn"], [0.965, 0.7, 0.07, "turning"], [0.34, 0.48, 0.02, "green"], [0.565, 0.47, 0.016, "green"]],
+    trees: [
+      [0.05, 0.64, 0.075, "autumn"], [0.965, 0.7, 0.07, "turning"], [0.34, 0.48, 0.02, "green"], [0.64, 0.475, 0.016, "green"],
+      [0.16, 1.38, 0.07, "green"], [0.86, 1.47, 0.075, "autumn"], [0.03, 1.66, 0.06, "turning"],
+    ],
+    // flowering shrubs framing the greenhouse: [x, y, size, seed]
+    shrubs: [[0.3, 1.56, 0.04, 931], [0.71, 1.55, 0.045, 932]],
     clusters: [
       { seed: 901, x: 0.1, y: 0.9, rx: 0.08, ry: 0.03, n: 40, size: [9, 15], kinds: ["daisy", "cosmos", "tiny"], foliage: true, stems: true },
       { seed: 902, x: 0.92, y: 0.9, rx: 0.07, ry: 0.03, n: 36, size: [9, 15], kinds: ["daisy", "tiny", "spike"], foliage: true, stems: true },
       { seed: 903, x: 0.4, y: 0.6, rx: 0.08, ry: 0.01, n: 30, size: [2.5, 4.5], kinds: ["tiny"] },
+      { seed: 906, x: 0.26, y: 1.66, rx: 0.12, ry: 0.025, n: 36, size: [9, 15], kinds: ["daisy", "cosmos", "tiny"], foliage: true, stems: true },
+      { seed: 907, x: 0.76, y: 1.67, rx: 0.12, ry: 0.025, n: 36, size: [9, 15], kinds: ["cosmos", "daisy", "tiny"], foliage: true, stems: true },
+      { seed: 908, x: 0.55, y: 1.25, rx: 0.1, ry: 0.012, n: 26, size: [3, 5], kinds: ["tiny"] },
     ],
     start: [0.6, 0.9],
     girlH: 0.16,
     landmarks: [
       { slug: "eliminate-bacteria-pro", kind: "fountain", x: 0.2, base: 0.78, w: 0.2, stand: [0.295, 0.8], face: -1, label: [0.2, 0.82] },
       { slug: "dog-nutrition-tracker", kind: "doghouse", x: 0.43, base: 0.62, w: 0.15, puppy: [0.54, 0.655, 0.06], stand: [0.49, 0.662], face: 1, label: [0.46, 0.66] },
-      { slug: "little-moments", kind: "windmill", x: 0.634, base: 0.6, h: 0.26, stand: [0.69, 0.628], face: -1, label: [0.634, 0.625] },
-      { slug: "aurelle", kind: "greenhouse", x: 0.795, base: 0.86, w: 0.176, stand: [0.756, 0.875], face: 1, label: [0.795, 0.885] },
+      { slug: "little-moments", kind: "windmill", x: 0.8, base: 0.65, h: 0.26, stand: [0.71, 0.705], face: 1, label: [0.8, 0.68] },
+      { slug: "aurelle", kind: "greenhouse", x: 0.5, base: 1.5, w: 0.2, stand: [0.4665, 1.515], face: 1, label: [0.5, 1.53] },
     ],
   },
 };
 
 const WORK_MOBILE = {
-  name: "work-mobile", work: true, W: 1080, S: 1920, H: 1920, k: 0.75,
+  name: "work-mobile", work: true, W: 1080, S: 1920, H: 2880, k: 0.75,
   layout: {
     ...WORK_DESKTOP.layout,
     skyEnd: 0.26, sun: [0.4, 0.24],
@@ -2876,23 +2838,26 @@ const WORK_MOBILE = {
     far: [[0, 0.245], [0.5, 0.23], [1, 0.245]],
     hills: [[0.2, 0.27, 0.6, 0.03, "sage"], [0.85, 0.29, 0.5, 0.03, "moss"], [0.5, 0.34, 1.2, 0.02, "sage"]],
     trails: [
-      [[0.4, 0.955], [0.5, 0.82], [0.53, 0.7], 0.12, 0.07],
-      [[0.4, 0.955], [0.3, 0.92], [0.26, 0.855], 0.12, 0.08],
-      [[0.4, 0.955], [0.62, 0.62], [0.57, 0.48], 0.12, 0.06],
-      [[0.53, 0.7], [0.4, 0.48], [0.2, 0.465], 0.07, 0.055],
+      [[0.4, 0.94], [0.44, 0.8], [0.5, 0.69], 0.12, 0.07],
+      [[0.4, 0.94], [0.3, 0.9], [0.26, 0.83], 0.12, 0.08],
+      [[0.4, 0.94], [0.6, 0.62], [0.55, 0.5], 0.12, 0.06],
+      [[0.4, 0.94], [0.3, 1.12], [0.5, 1.345], 0.12, 0.11],
     ],
-    trees: [[0.99, 0.33, 0.08, "autumn"]],
+    trees: [[0.08, 0.4, 0.11, "autumn"], [0.1, 1.17, 0.1, "turning"], [0.93, 1.27, 0.09, "green"]],
+    shrubs: [[0.2, 1.33, 0.07, 931], [0.82, 1.34, 0.075, 932]],
     clusters: [
       { seed: 901, x: 0.12, y: 0.95, rx: 0.14, ry: 0.02, n: 24, size: [10, 16], kinds: ["daisy", "cosmos", "tiny"], foliage: true, stems: true },
       { seed: 902, x: 0.88, y: 0.95, rx: 0.12, ry: 0.02, n: 22, size: [10, 16], kinds: ["daisy", "tiny"], foliage: true, stems: true },
+      { seed: 906, x: 0.22, y: 1.43, rx: 0.2, ry: 0.025, n: 30, size: [10, 16], kinds: ["daisy", "cosmos", "tiny"], foliage: true, stems: true },
+      { seed: 907, x: 0.8, y: 1.44, rx: 0.18, ry: 0.025, n: 28, size: [10, 16], kinds: ["cosmos", "daisy", "tiny"], foliage: true, stems: true },
     ],
-    start: [0.4, 0.955],
+    start: [0.4, 0.94],
     girlH: 0.1,
     landmarks: [
-      { slug: "eliminate-bacteria-pro", kind: "fountain", x: 0.3, base: 0.685, w: 0.42, stand: [0.53, 0.7], face: -1, label: [0.3, 0.705] },
-      { slug: "dog-nutrition-tracker", kind: "doghouse", x: 0.66, base: 0.835, w: 0.3, puppy: [0.37, 0.85, 0.13], stand: [0.26, 0.86], face: 1, label: [0.66, 0.855] },
-      { slug: "little-moments", kind: "windmill", x: 0.73, base: 0.435, h: 0.44, stand: [0.57, 0.47], face: 1, label: [0.73, 0.455] },
-      { slug: "aurelle", kind: "greenhouse", x: 0.26, base: 0.45, w: 0.32, via: [[0.53, 0.7], [0.38, 0.51]], stand: [0.205, 0.465], face: 1, label: [0.26, 0.466] },
+      { slug: "eliminate-bacteria-pro", kind: "fountain", x: 0.28, base: 0.64, w: 0.44, stand: [0.47, 0.65], face: -1, label: [0.28, 0.66] },
+      { slug: "dog-nutrition-tracker", kind: "doghouse", x: 0.62, base: 0.8, w: 0.3, puppy: [0.34, 0.815, 0.13], stand: [0.26, 0.82], face: 1, label: [0.62, 0.82] },
+      { slug: "little-moments", kind: "windmill", x: 0.7, base: 0.44, h: 0.44, stand: [0.55, 0.5], face: 1, label: [0.7, 0.465] },
+      { slug: "aurelle", kind: "greenhouse", x: 0.5, base: 1.3, w: 0.42, stand: [0.425, 1.315], face: 1, label: [0.5, 1.33] },
     ],
   },
 };
@@ -4589,6 +4554,7 @@ const WORK_WIDE = (() => {
         { seed: 904, x: 0.04, y: 0.93, rx: 0.05, ry: 0.025, n: 26, size: [9, 15], kinds: ["daisy", "cosmos", "tiny"], foliage: true, stems: true },
         { seed: 905, x: 0.965, y: 0.93, rx: 0.05, ry: 0.025, n: 26, size: [9, 15], kinds: ["daisy", "tiny"], foliage: true, stems: true },
       ],
+      shrubs: (L.shrubs ?? []).map(([x, y, sz, sd]) => [X(x), y, sz * size, sd]),
       start: [X(L.start[0]), L.start[1]],
       landmarks: L.landmarks.map((m) => ({
         ...m,
@@ -4610,7 +4576,24 @@ if (process.argv.includes("--work")) {
     const t0 = Date.now();
     const { cv, anchors, sprites } = paint(F);
     const fmt = F.name.replace("work-", "");
-    out[fmt] = { ...anchors.work, sprites: anchors.sprites };
+    // every y the page uses is a fraction of the whole (taller) painting, not of its first screen
+    const yk = F.S / F.H, Yf = (v) => +(v * yk).toFixed(5);
+    const w = anchors.work;
+    out[fmt] = {
+      ...w,
+      screen: +yk.toFixed(5),
+      start: [w.start[0], Yf(w.start[1])],
+      girl: { ...w.girl, h: Yf(w.girl.h) },
+      landmarks: w.landmarks.map((m) => ({
+        ...m,
+        base: Yf(m.base),
+        hit: [m.hit[0], Yf(m.hit[1]), m.hit[2], Yf(m.hit[3])],
+        label: [m.label[0], Yf(m.label[1])],
+        stand: [m.stand[0], Yf(m.stand[1])],
+        ...(m.via ? { via: m.via.map(([a, b]) => [a, Yf(b)]) } : {}),
+      })),
+      sprites: anchors.sprites.map((sp) => ({ ...sp, y: Yf(sp.y), h: Yf(sp.h) })),
+    };
     const dir = path.resolve("public/assets/garden/work");
     fs.mkdirSync(path.join(dir, "sprites"), { recursive: true });
     const widths = fmt === "desktop" ? [3000, 2000] : [1080, 720];

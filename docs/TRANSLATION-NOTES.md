@@ -79,7 +79,10 @@ These have no Chinese original:
   | --- | --- |
   | AI Skincare Commercial | AI 护肤广告片 |
   | AI Creative Production | AI 创意制作 |
-  | Overview | 项目概述 |
+  | Jianying, Kling | 剪映、可灵 (the tools' own Chinese names) |
+  | Overview | 概述 (as on the other case studies) |
+  | The Commercial | 广告片 |
+  | More of the garden below (Work page) | 往下走，花园里还有更多 |
 
   - Overview sentence: AURELLE 是我个人创作的一支 AI 生成护肤精华广告片，探索生成式 AI 在美妆广告与视觉叙事中的运用。
   - "AURELLE" stays in English. Text inside the film is not translated.

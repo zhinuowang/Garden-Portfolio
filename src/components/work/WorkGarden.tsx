@@ -9,8 +9,9 @@ import { useLocale } from "@/i18n/locale";
 import { placeName } from "@/i18n/content";
 import { useUi } from "@/i18n/ui";
 
-// The Work page: one compact painted garden with four project landmarks and a
-// small guide. Hover (or focus) a landmark and it lifts, its label grows and the
+// The Work page: one painted garden, taller than the window. The first screen holds
+// three project landmarks; a path leads down to a fourth (the greenhouse) in the
+// lower garden, revealed as the visitor scrolls. A small guide lives in it. Hover (or focus) a landmark and it lifts, its label grows and the
 // girl turns to look; click it and she walks over and shares a short moment with
 // it — kneels to offer the puppy a treat and pat it, touches the fountain's water
 // so two koi leap, takes out her phone for a selfie with the windmill, or opens the
@@ -23,7 +24,8 @@ import { useUi } from "@/i18n/ui";
 
 type Sprite = { name: string; kind: string; x: number; y: number; w: number; h: number; pivot: number[] };
 type Landmark = { slug: string; kind: "fountain" | "doghouse" | "windmill" | "greenhouse"; base: number; hit: number[]; label: number[]; via?: number[][]; stand: number[]; face: number; layers: string[] };
-type Composition = { start: number[]; girl: { w: number; h: number; feet: number[]; phone: number[] }; landmarks: Landmark[]; sprites: Sprite[] };
+/** All y values are fractions of the whole painting; `screen` is how much of it the first screen shows. */
+type Composition = { screen: number; start: number[]; girl: { w: number; h: number; feet: number[]; phone: number[] }; landmarks: Landmark[]; sprites: Sprite[] };
 
 const POSES = ["idle", "walk-a", "walk-b", "reach", "offer", "pet-a", "pet-b", "turn", "phone", "phone-up", "selfie"] as const;
 /** The landmarks rise into the garden in this order when the page opens. */
@@ -147,7 +149,7 @@ function Stage({ fmt, c, ratio, className }: { fmt: "desktop" | "mobile"; c: Com
     <div className={className}>
       <div
         ref={stageRef}
-        className={`work-stage relative mx-auto overflow-hidden ${wipe ? "work-stage--leaving" : ""}`}
+        className={`work-stage relative isolate mx-auto overflow-hidden ${wipe ? "work-stage--leaving" : ""}`}
         style={{ aspectRatio: String(ratio), transformOrigin: focusOrigin, ["--ratio" as string]: String(ratio) } as React.CSSProperties}
       >
         <picture>
@@ -244,6 +246,14 @@ function Stage({ fmt, c, ratio, className }: { fmt: "desktop" | "mobile"; c: Com
           );
         })}
 
+        {/* at the foot of the first screen: the garden carries on below */}
+        <span aria-hidden="true" className="work-more absolute" style={{ top: pct(c.screen * 0.955) }}>
+          <span className="work-more__text">{t.work.more}</span>
+          <svg viewBox="0 0 20 14" className="work-more__chev">
+            <path d="M2 2 L10 11 L18 2" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </span>
+
         {/* the guide, anchored at her feet */}
         <div
           ref={girlRef}
@@ -277,9 +287,10 @@ function Stage({ fmt, c, ratio, className }: { fmt: "desktop" | "mobile"; c: Com
 export default function WorkGarden() {
   return (
     <>
-      {/* a full-width panorama (3000 × 1350) on wide screens; a tall composition on phones */}
-      <Stage fmt="desktop" c={anchors.desktop as Composition} ratio={3000 / 1350} className="work-wide portrait-art:hidden" />
-      <Stage fmt="mobile" c={anchors.mobile as Composition} ratio={9 / 16} className="hidden w-full portrait-art:block" />
+      {/* a full-width panorama (3000 × 2350: a 3000 × 1350 first screen and the lower garden) on wide screens;
+          a tall composition on phones (1080 × 2880: a 9:16 first screen and the lower garden) */}
+      <Stage fmt="desktop" c={anchors.desktop as Composition} ratio={3000 / 2350} className="work-wide portrait-art:hidden" />
+      <Stage fmt="mobile" c={anchors.mobile as Composition} ratio={1080 / 2880} className="hidden w-full portrait-art:block" />
     </>
   );
 }

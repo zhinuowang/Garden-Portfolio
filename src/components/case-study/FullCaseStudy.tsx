@@ -9,6 +9,7 @@ import { PressedBlossom, PressedDaisy, PressedSprig } from "@/components/botanic
 import type { CsBlock, CsImage, FullCaseStudy as Data } from "@/data/case-studies/types";
 import type { Project } from "@/data/projects";
 import JournalContents from "./JournalContents";
+import CommercialVideo from "@/components/aurelle/CommercialVideo";
 import { useCaseStudy } from "@/i18n/content";
 import { useLocale } from "@/i18n/locale";
 import { useUi } from "@/i18n/ui";
@@ -139,6 +140,12 @@ function Block({ b }: { b: CsBlock }) {
             <span className="sr-only"> {t.newTab}</span>
           </a>
         </p>
+      );
+    case "video":
+      return (
+        <div className="mt-6">
+          <CommercialVideo />
+        </div>
       );
     case "placeholder":
       return (

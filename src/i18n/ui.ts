@@ -33,6 +33,7 @@ const en = {
   },
   work: {
     heading: "Choose a place to explore my work.",
+    more: "More of the garden below",
     landmark: (title: string, category: "personal" | "academic", place: string) =>
       `${title}, ${category} project. Walk to ${place.replace(/^The /, "the ")} and open it`,
   },
@@ -46,14 +47,8 @@ const en = {
     pending: "To be provided",
   },
   aurelle: {
-    subtitle: "AI Skincare Commercial",
-    discipline: "AI Creative Production",
-    film: "The commercial",
     video: "AURELLE, AI skincare commercial (1 minute, with sound)",
     noVideo: "Your browser can’t play this video here.",
-    overview: "Overview",
-    overviewText:
-      "AURELLE is a personal AI-generated skincare serum commercial exploring the use of generative AI in beauty advertising and visual storytelling.",
   },
   about: {
     meet: "Meet the Gardener",
@@ -121,6 +116,7 @@ const zh: Ui = {
   },
   work: {
     heading: "选一处角落，看看我的作品吧。",
+    more: "往下走，花园里还有更多",
     landmark: (title, category, place) => `${title}，${category === "academic" ? "学术项目" : "个人项目"}。走到${place}，打开这个项目`,
   },
   cs: {
@@ -133,13 +129,8 @@ const zh: Ui = {
     pending: "待补充",
   },
   aurelle: {
-    subtitle: "AI 护肤广告片",
-    discipline: "AI 创意制作",
-    film: "广告片",
     video: "AURELLE，AI 护肤广告片（1 分钟，有声）",
     noVideo: "你的浏览器暂时无法在这里播放此视频。",
-    overview: "项目概述",
-    overviewText: "AURELLE 是我个人创作的一支 AI 生成护肤精华广告片，探索生成式 AI 在美妆广告与视觉叙事中的运用。",
   },
   about: {
     meet: "认识这位园丁",

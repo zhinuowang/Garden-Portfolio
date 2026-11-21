@@ -17,7 +17,7 @@ import { useEffect, useRef } from "react";
 //
 // Day only: when the lamp is lit the layer fades out gently and then rests — hidden, its sway paused and the
 // scroll handler doing nothing — and when day returns it is placed where it belongs and fades back in. (Only on
-// the three case studies; About and Contact have no floating layer.)
+// the project case studies; About and Contact have no floating layer.)
 
 type Kind = "loose-daisy" | "loose-daisy-half" | "loose-peony" | "loose-peony-red" | "loose-poppy" | "loose-petals" | "lily" | "hibiscus" | "daffodil" | "rose-lavender";
 // a bloom in a cluster, drawn for a cluster entering from the LEFT (the upper-right cluster is mirrored on the
@@ -34,6 +34,11 @@ const GARDENS: Record<string, { ll: Cluster; ur: Cluster }> = {
   "eliminate-bacteria-pro": {
     ll: { w: 248, h: 282, members: [{ kind: "daffodil", x: 88, y: 122, size: 160, rot: 10 }, { kind: "lily", x: 0, y: 0, size: 235, rot: 30, dz: 0.006 }] },
     ur: { w: 292, h: 252, members: [{ kind: "loose-peony", x: 36, y: 0, size: 140, rot: 10 }, { kind: "rose-lavender", x: 0, y: 7, size: 245, rot: -6, dz: 0.006 }, { kind: "loose-daisy", x: 132, y: 48, size: 160, rot: 20, dz: 0.008 }] },
+  },
+  // AURELLE: blush and pale roses, soft and restrained beside the film
+  aurelle: {
+    ll: { w: 262, h: 262, members: [{ kind: "rose-lavender", x: 0, y: 12, size: 240, rot: 6 }, { kind: "loose-petals", x: 150, y: 150, size: 92, rot: 34, dz: 0.008 }] },
+    ur: { w: 250, h: 252, members: [{ kind: "loose-peony", x: 48, y: 30, size: 200, rot: -8 }, { kind: "loose-daisy-half", x: 0, y: 92, size: 150, rot: 14, dz: 0.006 }] },
   },
   "little-moments": {
     ll: { w: 235, h: 285, members: [{ kind: "loose-poppy", x: 54, y: 0, size: 175, rot: 12 }, { kind: "daffodil", x: 0, y: 50, size: 235, rot: -14, dz: 0.006 }, { kind: "loose-petals", x: 132, y: 126, size: 96, rot: 40, dz: 0.008 }] },

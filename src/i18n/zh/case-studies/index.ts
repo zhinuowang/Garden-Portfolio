@@ -2,6 +2,7 @@ import type { FullCaseStudy } from "@/data/case-studies/types";
 import { dogNutritionTrackerZh } from "./dog-nutrition-tracker";
 import { eliminateBacteriaProZh } from "./eliminate-bacteria-pro";
 import { littleMomentsZh } from "./little-moments";
+import { aurelleZh } from "./aurelle";
 
 // A Chinese case study is an overlay on the English one: the same sections and blocks in the same order, giving
 // only the words (headings, text, bullet items, image descriptions, captions, labels). Everything else — image
@@ -18,7 +19,7 @@ export type Overlay<T> = T extends string
       : never;
 
 // never translated: they are identifiers, file paths or links
-const KEEP = new Set(["id", "src", "source", "href", "type", "icon", "width", "height", "bare", "size", "n", "pending"]);
+const KEEP = new Set(["id", "src", "source", "href", "type", "icon", "width", "height", "bare", "size", "n", "pending", "video"]);
 
 function merge(en: unknown, zh: unknown, key = ""): unknown {
   if (zh === undefined || zh === null || KEEP.has(key)) return en;
@@ -40,4 +41,5 @@ export const caseStudiesZh: Record<string, Overlay<FullCaseStudy>> = {
   "dog-nutrition-tracker": dogNutritionTrackerZh,
   "eliminate-bacteria-pro": eliminateBacteriaProZh,
   "little-moments": littleMomentsZh,
+  aurelle: aurelleZh,
 };

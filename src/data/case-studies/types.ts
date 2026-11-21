@@ -27,6 +27,8 @@ export type CsBlock =
   | { type: "link"; href: string; label: string }
   /** a clearly marked gap for the owner to fill in; never invented content */
   | { type: "placeholder"; text: string }
+  /** a project film, shown as supplied with the browser's own controls (see src/data/aurelle.ts) */
+  | { type: "video"; video: "aurelle" }
   /** text with an image beside it on wide screens (the source places them side by side) */
   | { type: "aside"; blocks: CsBlock[]; image: CsImage };
 

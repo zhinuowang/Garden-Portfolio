@@ -195,10 +195,10 @@ export const projects: Project[] = [
     collaboration: null,
     courseContext: null,
     projectDate: null,
-    tools: null,
+    tools: ["Jianying", "Kling"],
     heroImage: null,
     gallery: [],
-    // The page is the video-led project page in src/components/aurelle/ (data in src/data/aurelle.ts).
+    // The page is the case study in src/data/case-studies/aurelle.ts (the film: src/data/aurelle.ts).
     caseStudySections: [],
     sourceAssetReferences: ["Desktop/AURELLE AD.mp4 (the finished commercial, supplied 2026-11-20)"],
     openQuestions: [

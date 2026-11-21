@@ -40,7 +40,8 @@ for (const s of [1, 2, 3]) {
     for (const w of widths) await night(`${pub}/landing/scene-${s}-${fmt}-${w}.webp`, s === 1 ? { sky: 0.22, skyTo: 0.5 } : { sky: 0, depth: 0.95 });
   }
 }
-for (const f of ["garden-desktop-2000", "garden-desktop-3000", "garden-mobile-720", "garden-mobile-1080"]) await night(`${pub}/work/${f}.webp`, { sky: 0.2, skyTo: 0.45 });
+// the Work garden is taller than one screen now: its sky is only the top quarter or so
+for (const f of ["garden-desktop-2000", "garden-desktop-3000", "garden-mobile-720", "garden-mobile-1080"]) await night(`${pub}/work/${f}.webp`, { sky: 0.2, skyTo: 0.27 });
 for (const f of ["journal-desktop", "journal-mobile"]) await night(`${pub}/journal/${f}.webp`, { sky: 0, depth: 0.56 });
 for (const v of ["about", "contact"]) for (const f of ["desktop", "mobile"]) await night(`${pub}/${v}/${v}-${f}.webp`, { sky: 0, depth: 0.56 });
 fs.existsSync(pub);
