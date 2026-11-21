@@ -182,7 +182,8 @@ export default function FullCaseStudy({ project, data: original, next }: { proje
       <div aria-hidden="true" className="journal-backdrop" />
       <FloatingFlora garden={project.slug} />
       <MarkVisited slug={project.slug} />
-      <PressedSprig className="pointer-events-none absolute top-24 -right-3 hidden w-20 rotate-12 opacity-70 md:block" />
+      {/* AURELLE keeps only the floating flower heads in that corner, no pressed stem */}
+      {project.slug !== "aurelle" && <PressedSprig className="pointer-events-none absolute top-24 -right-3 hidden w-20 rotate-12 opacity-70 md:block" />}
       <PressedBlossom className="pointer-events-none absolute top-[46rem] -left-10 hidden w-24 -rotate-12 opacity-60 xl:block" />
 
       <div className="garden-mist garden-mist--journal mx-auto max-w-6xl">

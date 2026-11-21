@@ -195,7 +195,7 @@ export const projects: Project[] = [
     collaboration: null,
     courseContext: null,
     projectDate: null,
-    tools: ["Jianying", "Kling"],
+    tools: ["CapCut", "Kling"],
     heroImage: null,
     gallery: [],
     // The page is the case study in src/data/case-studies/aurelle.ts (the film: src/data/aurelle.ts).

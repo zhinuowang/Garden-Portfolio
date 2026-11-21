@@ -97,7 +97,7 @@ The two categories stay separate.
 - **`public/video/aurelle-poster-{1920,1280}.webp`:** one real frame of the film (59.0 s, the closing product shot), resized only.
 
 **Category A (decorative garden art, not project work):**
-- **Work garden, lower part:** the Work painting continues below the first screen (desktop 3000 × 2350, phone 1080 × 2880). It adds a lower garden with trees, flowering shrubs and a path down to the greenhouse.
-- **Work-page greenhouse:** repainted 2026-11-21 with the same knife-and-bristle method as the other landmarks. `public/assets/garden/work/sprites/*-greenhouse*.webp`, painted by `scripts/paint-landing.mjs --work`.
+- **Work garden, lower part:** the Work painting continues below the first screen (desktop 3000 × 2350, phone 1080 × 2880). The landmarks are arranged two and two: the fountain and the dog house on the first screen, then the windmill and the greenhouse below, staggered and joined by paths, with trees and flowering shrubs.
+- **Work-page greenhouse:** repainted 2026-11-21 with the same knife-and-bristle method as the other landmarks. It was then simplified (2026-11-21), while the dog house gained subtle brushwork and shading, so the two meet at the fountain and windmill's level of texture. `public/assets/garden/work/sprites/*-greenhouse*.webp`, painted by `scripts/paint-landing.mjs --work`.
   - Includes its door layer.
   - The small bottles on its shelf are generic garden decoration, not AURELLE product art.

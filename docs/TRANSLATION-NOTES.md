@@ -79,7 +79,7 @@ These have no Chinese original:
   | --- | --- |
   | AI Skincare Commercial | AI 护肤广告片 |
   | AI Creative Production | AI 创意制作 |
-  | Jianying, Kling | 剪映、可灵 (the tools' own Chinese names) |
+  | CapCut, Kling | 剪映、可灵 (the tools' official Chinese names) |
   | Overview | 概述 (as on the other case studies) |
   | The Commercial | 广告片 |
   | More of the garden below (Work page) | 往下走，花园里还有更多 |

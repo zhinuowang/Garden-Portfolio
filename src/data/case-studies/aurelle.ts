@@ -15,7 +15,7 @@ export const aurelle: FullCaseStudy = {
   subtitle: "AI Skincare Commercial",
   facts: [
     { label: "Type", value: "AI Creative Production" },
-    { label: "Tool", value: "Jianying, Kling" },
+    { label: "Tool", value: "CapCut, Kling" },
   ],
   sections: [
     {

@@ -38,7 +38,8 @@ const GARDENS: Record<string, { ll: Cluster; ur: Cluster }> = {
   // AURELLE: blush and pale roses, soft and restrained beside the film
   aurelle: {
     ll: { w: 262, h: 262, members: [{ kind: "rose-lavender", x: 0, y: 12, size: 240, rot: 6 }, { kind: "loose-petals", x: 150, y: 150, size: 92, rot: 34, dz: 0.008 }] },
-    ur: { w: 250, h: 252, members: [{ kind: "loose-peony", x: 48, y: 30, size: 200, rot: -8 }, { kind: "loose-daisy-half", x: 0, y: 92, size: 150, rot: 14, dz: 0.006 }] },
+    // the whole daisy (not the half one), set in from the edge so the window doesn't crop its petals
+    ur: { w: 262, h: 272, members: [{ kind: "loose-peony", x: 56, y: 24, size: 200, rot: -8 }, { kind: "loose-daisy", x: 72, y: 122, size: 150, rot: 14, dz: 0.006 }] },
   },
   "little-moments": {
     ll: { w: 235, h: 285, members: [{ kind: "loose-poppy", x: 54, y: 0, size: 175, rot: 12 }, { kind: "daffodil", x: 0, y: 50, size: 235, rot: -14, dz: 0.006 }, { kind: "loose-petals", x: 132, y: 126, size: 96, rot: 40, dz: 0.008 }] },

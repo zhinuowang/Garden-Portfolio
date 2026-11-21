@@ -1420,6 +1420,20 @@ function paint(F) {
         }
         stroke(ctx, r, x0, top + (row + 1) * (h / 7), 0, w, w * 0.008, hex("#6d878c"), 0.6, 0);
       }
+      {
+        // a little more paint on the boards: soft bristle strokes along the grain, warmer where the light falls
+        // (upper left), cooler and deeper towards the lower right — on their own random stream so nothing else moves
+        const r2 = rng(seed + 7);
+        for (let i = 0; i < 70; i++) {
+          const px = x0 + r2() * w, py = top + r2() * h, lit = clamp(0.8 - (px - x0) / w * 0.75 - (py - top) / h * 0.25 + (r2() - 0.5) * 0.2);
+          stroke(ctx, r2, px - w * 0.08, py, (r2() - 0.5) * 0.06, w * (0.12 + r2() * 0.14), h * (0.035 + r2() * 0.03), mix(hex("#7f9da3"), hex("#e2ecea"), lit), 0.32, 2);
+        }
+        ctx.save();
+        const shade = ctx.createLinearGradient(x0, top, x0 + w, base);
+        shade.addColorStop(0, "rgba(255,240,210,0.12)"); shade.addColorStop(0.55, "rgba(255,240,210,0)"); shade.addColorStop(1, "rgba(61,82,56,0.16)");
+        ctx.fillStyle = shade; ctx.fillRect(x0, top, w, h);
+        ctx.restore();
+      }
       unclipBoth(ctx);
       // roof: two terracotta slopes with a ridge cap
       const roof = new Path2D();
@@ -1437,6 +1451,15 @@ function paint(F) {
         const t = r(), side = r() < 0.5 ? -1 : 1;
         const px = x + side * t * w * 0.6, py = top - w * 0.36 + t * w * 0.42;
         knife(ctx, r, px, py, side * 0.56 + (side < 0 ? Math.PI : 0), w * 0.12, w * 0.06, mix(hex("#9c5441"), hex("#e0957a"), side < 0 ? 0.7 : 0.25));
+      }
+      {
+        // the roof tiles: a few softer strokes laid down the slope, varying the terracotta
+        const r2 = rng(seed + 8);
+        for (let i = 0; i < 40; i++) {
+          const t = r2(), side = r2() < 0.5 ? -1 : 1;
+          const px = x + side * t * w * 0.58, py = top - w * 0.35 + t * w * 0.4;
+          stroke(ctx, r2, px, py, side * 0.56 + (side < 0 ? Math.PI : 0), w * (0.08 + r2() * 0.08), w * 0.035, mix(hex("#a35a46"), hex("#eaa48a"), (side < 0 ? 0.62 : 0.2) + (r2() - 0.5) * 0.3), 0.4, 2);
+        }
       }
       unclipBoth(ctx);
       // gable in shade under the roof
@@ -1533,7 +1556,7 @@ function paint(F) {
       return;
     }
 
-    withThickness(1, () => {
+    withThickness(0.75, () => {
       ctx.save();
       ctx.filter = `blur(${8 * k}px)`;
       glaze(ctx, ...P(108, 2), 104 * f, 11 * f, SHADOW, 0.4);
@@ -1544,19 +1567,19 @@ function paint(F) {
       ctx.fillStyle = rgba(GLASS(0.55)); ctx.fill(shell);
       clipBoth(ctx, shell);
       // knife-laid glass, cool and pale, lighter where the sky catches it (upper left)
-      for (let i = 0; i < 90; i++) {
+      for (let i = 0; i < 40; i++) {
         const u = 10 + r() * 180, v = -10 - r() * 180;
-        const lit = clamp(0.95 - (u - 16) / 260 - (v + 186) / -900 + (r() - 0.5) * 0.2);
-        knife(ctx, r, ...P(u, v), -Math.PI / 2 + (r() - 0.5) * 0.12, (16 + r() * 14) * f, (8 + r() * 5) * f, GLASS(lit));
+        const lit = clamp(0.72 - (u - 16) / 420 - (v + 186) / -1400 + (r() - 0.5) * 0.08);
+        stroke(ctx, r, ...P(u, v), -Math.PI / 2 + (r() - 0.5) * 0.1, (22 + r() * 16) * f, (9 + r() * 5) * f, GLASS(lit), 0.55, 2);
       }
       // plants behind the glass: leafy bristle strokes rising from the beds, blush blooms among them
-      for (let i = 0; i < 110; i++) {
-        const u = 18 + r() * 164, v = -16 - Math.pow(r(), 1.6) * 100;
+      for (let i = 0; i < 55; i++) {
+        const u = 18 + r() * 164, v = -16 - Math.pow(r(), 1.6) * 90;
         if (u > D.u0 - 3 && u < D.u1 + 3 && r() < 0.8) continue;
-        const light = clamp(0.25 + r() * 0.55 - (v + 16) / -260);
-        stroke(ctx, r, ...P(u, v), -Math.PI / 2 + (r() - 0.5) * 1.6, (10 + r() * 14) * f, (5 + r() * 4) * f, mix(ramp(GREEN_LEAVES, light), GLASS(0.8), 0.22), 0.85, 2);
+        const light = clamp(0.35 + r() * 0.45 - (v + 16) / -260);
+        stroke(ctx, r, ...P(u, v), -Math.PI / 2 + (r() - 0.5) * 1.4, (11 + r() * 12) * f, (5 + r() * 3) * f, mix(ramp(GREEN_LEAVES, light), GLASS(0.75), 0.38), 0.75, 1);
       }
-      for (let i = 0; i < 30; i++) {
+      for (let i = 0; i < 14; i++) {
         const u = 22 + r() * 156, v = -20 - Math.pow(r(), 1.2) * 70;
         if (u > D.u0 - 3 && u < D.u1 + 3) continue;
         const col = mix(ramp([[0, "#d9827f"], [0.5, "#eba3a6"], [1, "#f6c7c3"]], r()), GLASS(0.9), 0.15);
@@ -1578,7 +1601,7 @@ function paint(F) {
       for (let i = 0; i < 5; i++) dab(ctx, ...P(D.u0 + 5 + r() * 26, -18 - r() * 36), 2.6 * f, 2.2 * f, r(), hex("#eeb0ae"), 0.9);
       unclipBoth(ctx);
       // two long gleams across the panes
-      for (const [u, v, l] of [[30, -40, 70], [120, -60, 60], [60, -150, 40]]) stroke(ctx, r, ...P(u, v), -0.95, l * f, 4 * f, hex("#f8fcfa"), 0.4, 1);
+      stroke(ctx, r, ...P(34, -44), -0.95, 56 * f, 3.5 * f, hex("#f8fcfa"), 0.28, 1); // one soft gleam
       unclipBoth(ctx);
 
       // ---- the stone plinth, knife-laid like the windmill's tower
@@ -1600,9 +1623,7 @@ function paint(F) {
       // the round window: a cream ring, glass inside
       dab(ctx, ...P(100, -152), 15 * f, 15 * f, 0, CREAM(0.8), 1);
       dab(ctx, ...P(100, -152), 10.5 * f, 10.5 * f, 0, GLASS(0.7), 1);
-      knife(ctx, r, ...P(91, -152), 0, 18 * f, 3 * f, CREAM(0.7));
-      knife(ctx, r, ...P(98.5, -161), Math.PI / 2, 18 * f, 3 * f, CREAM(0.75));
-      stroke(ctx, r, ...P(94, -150), -0.9, 8 * f, 2.4 * f, hex("#ffffff"), 0.5, 0);
+
       // bargeboards in sage, from the eaves up to the ridge, and a finial
       bar(4, -121, 100, -190, 8, SAGE);
       bar(196, -121, 100, -190, 8, (lit) => SAGE(lit * 0.6));
@@ -1616,12 +1637,9 @@ function paint(F) {
           stroke(ctx, r, ...P(u + (r() - 0.5) * 14 * s, v + (r() - 0.5) * 14 * s), r() * Math.PI * 2, (8 + r() * 6) * f * s, (4.5 + r() * 2.5) * f * s, mix(ramp(GREEN_LEAVES, light), WARM, light * 0.1), 0.9, 2);
         }
       };
-      for (let i = 0; i < 7; i++) { const t = i / 6; leaves(12 + Math.sin(t * 7) * 4, -6 - t * 100, 6); }
-      for (let i = 0; i < 2; i++) leaves(16 + i * 11, -128 - i * 8, 5, 0.9);
-      for (let i = 0; i < 3; i++) leaves(188, -8 - i * 16, 5, 0.85);
-      for (let i = 0; i < 8; i++) { const t = r(); cosmos(...P(12 + Math.sin(t * 7) * 4 + (r() - 0.5) * 10, -10 - t * 100), (3.8 + r() * 1.6) * f, r); }
-      for (let i = 0; i < 2; i++) cosmos(...P(16 + r() * 22, -128 - r() * 16), (3.2 + r()) * f, r);
-      for (let i = 0; i < 4; i++) cosmos(...P(186 + r() * 6, -6 - r() * 40), (3.2 + r()) * f, r);
+      // a single rose climbing the left corner, about halfway up
+      for (let i = 0; i < 4; i++) { const t = i / 3; leaves(13 + Math.sin(t * 5) * 3, -6 - t * 62, 5, 0.9); }
+      for (let i = 0; i < 4; i++) { const t = r(); cosmos(...P(13 + Math.sin(t * 5) * 3 + (r() - 0.5) * 8, -10 - t * 62), (3.8 + r() * 1.2) * f, r); }
 
       // ---- two terracotta pots of blossom by the door
       for (const [u, s] of [[68, 1], [132, 0.92]]) {
@@ -2798,33 +2816,35 @@ const WORK_DESKTOP = {
     hills: [[0.25, 0.43, 0.5, 0.04, "sage"], [0.82, 0.45, 0.45, 0.04, "moss"], [0.5, 0.53, 0.95, 0.03, "sage"]],
     // paths from the girl's spot to each landmark: [from, control, to, width at start, width at end]
     trails: [
-      [[0.6, 0.9], [0.42, 0.88], [0.3, 0.8], 0.05, 0.032],
-      [[0.6, 0.9], [0.55, 0.78], [0.5, 0.67], 0.05, 0.03],
-      [[0.6, 0.9], [0.72, 0.84], [0.72, 0.7], 0.05, 0.032],
-      // down from her spot, through the meadow, to the greenhouse in the lower garden
-      [[0.6, 0.9], [0.64, 1.25], [0.5, 1.555], 0.05, 0.05],
+      [[0.5, 0.93], [0.42, 0.86], [0.37, 0.8], 0.05, 0.034],
+      [[0.5, 0.93], [0.62, 0.86], [0.72, 0.68], 0.05, 0.03],
+      // deeper into the garden: down to the windmill and on to the greenhouse
+      [[0.5, 0.93], [0.44, 1.15], [0.41, 1.385], 0.05, 0.036],
+      [[0.5, 0.93], [0.62, 1.25], [0.69, 1.6], 0.05, 0.042],
     ],
     trees: [
-      [0.05, 0.64, 0.075, "autumn"], [0.965, 0.7, 0.07, "turning"], [0.34, 0.48, 0.02, "green"], [0.64, 0.475, 0.016, "green"],
-      [0.16, 1.38, 0.07, "green"], [0.86, 1.47, 0.075, "autumn"], [0.03, 1.66, 0.06, "turning"],
+      [0.05, 0.64, 0.075, "autumn"], [0.965, 0.7, 0.07, "turning"], [0.34, 0.48, 0.02, "green"], [0.86, 0.475, 0.016, "green"],
+      [0.08, 1.22, 0.065, "green"], [0.94, 1.27, 0.07, "autumn"], [0.13, 1.63, 0.055, "turning"],
     ],
-    // flowering shrubs framing the greenhouse: [x, y, size, seed]
-    shrubs: [[0.3, 1.56, 0.04, 931], [0.71, 1.55, 0.045, 932]],
+    // flowering shrubs: [x, y, size, seed]
+    shrubs: [[0.53, 1.6, 0.04, 931], [0.88, 1.62, 0.045, 932]],
     clusters: [
       { seed: 901, x: 0.1, y: 0.9, rx: 0.08, ry: 0.03, n: 40, size: [9, 15], kinds: ["daisy", "cosmos", "tiny"], foliage: true, stems: true },
       { seed: 902, x: 0.92, y: 0.9, rx: 0.07, ry: 0.03, n: 36, size: [9, 15], kinds: ["daisy", "tiny", "spike"], foliage: true, stems: true },
       { seed: 903, x: 0.4, y: 0.6, rx: 0.08, ry: 0.01, n: 30, size: [2.5, 4.5], kinds: ["tiny"] },
-      { seed: 906, x: 0.26, y: 1.66, rx: 0.12, ry: 0.025, n: 36, size: [9, 15], kinds: ["daisy", "cosmos", "tiny"], foliage: true, stems: true },
-      { seed: 907, x: 0.76, y: 1.67, rx: 0.12, ry: 0.025, n: 36, size: [9, 15], kinds: ["cosmos", "daisy", "tiny"], foliage: true, stems: true },
-      { seed: 908, x: 0.55, y: 1.25, rx: 0.1, ry: 0.012, n: 26, size: [3, 5], kinds: ["tiny"] },
+      { seed: 906, x: 0.24, y: 1.68, rx: 0.12, ry: 0.025, n: 36, size: [9, 15], kinds: ["daisy", "cosmos", "tiny"], foliage: true, stems: true },
+      { seed: 907, x: 0.78, y: 1.07, rx: 0.1, ry: 0.02, n: 30, size: [9, 15], kinds: ["cosmos", "daisy", "tiny"], foliage: true, stems: true },
+      { seed: 908, x: 0.55, y: 1.12, rx: 0.08, ry: 0.012, n: 24, size: [3, 5], kinds: ["tiny"] },
     ],
-    start: [0.6, 0.9],
+    start: [0.5, 0.93],
     girlH: 0.16,
+    // two and two: the fountain and the dog house on the first screen, the windmill and the greenhouse below,
+    // staggered so the walk down feels like going deeper into the garden
     landmarks: [
-      { slug: "eliminate-bacteria-pro", kind: "fountain", x: 0.2, base: 0.78, w: 0.2, stand: [0.295, 0.8], face: -1, label: [0.2, 0.82] },
-      { slug: "dog-nutrition-tracker", kind: "doghouse", x: 0.43, base: 0.62, w: 0.15, puppy: [0.54, 0.655, 0.06], stand: [0.49, 0.662], face: 1, label: [0.46, 0.66] },
-      { slug: "little-moments", kind: "windmill", x: 0.8, base: 0.65, h: 0.26, stand: [0.71, 0.705], face: 1, label: [0.8, 0.68] },
-      { slug: "aurelle", kind: "greenhouse", x: 0.5, base: 1.5, w: 0.2, stand: [0.4665, 1.515], face: 1, label: [0.5, 1.53] },
+      { slug: "eliminate-bacteria-pro", kind: "fountain", x: 0.27, base: 0.76, w: 0.2, stand: [0.37, 0.78], face: -1, label: [0.27, 0.8] },
+      { slug: "dog-nutrition-tracker", kind: "doghouse", x: 0.66, base: 0.62, w: 0.15, puppy: [0.77, 0.655, 0.06], stand: [0.72, 0.662], face: 1, label: [0.69, 0.66] },
+      { slug: "little-moments", kind: "windmill", x: 0.33, base: 1.33, h: 0.26, stand: [0.41, 1.36], face: -1, label: [0.33, 1.36] },
+      { slug: "aurelle", kind: "greenhouse", x: 0.69, base: 1.56, w: 0.2, stand: [0.6565, 1.575], face: 1, label: [0.69, 1.59] },
     ],
   },
 };
@@ -2838,26 +2858,26 @@ const WORK_MOBILE = {
     far: [[0, 0.245], [0.5, 0.23], [1, 0.245]],
     hills: [[0.2, 0.27, 0.6, 0.03, "sage"], [0.85, 0.29, 0.5, 0.03, "moss"], [0.5, 0.34, 1.2, 0.02, "sage"]],
     trails: [
-      [[0.4, 0.94], [0.44, 0.8], [0.5, 0.69], 0.12, 0.07],
-      [[0.4, 0.94], [0.3, 0.9], [0.26, 0.83], 0.12, 0.08],
-      [[0.4, 0.94], [0.6, 0.62], [0.55, 0.5], 0.12, 0.06],
-      [[0.4, 0.94], [0.3, 1.12], [0.5, 1.345], 0.12, 0.11],
+      [[0.72, 0.95], [0.76, 0.64], [0.22, 0.6], 0.12, 0.07],
+      [[0.72, 0.95], [0.6, 0.9], [0.53, 0.83], 0.12, 0.08],
+      [[0.72, 0.95], [0.55, 1.02], [0.47, 1.215], 0.12, 0.08],
+      [[0.72, 0.95], [0.76, 1.2], [0.68, 1.41], 0.12, 0.1],
     ],
-    trees: [[0.08, 0.4, 0.11, "autumn"], [0.1, 1.17, 0.1, "turning"], [0.93, 1.27, 0.09, "green"]],
-    shrubs: [[0.2, 1.33, 0.07, 931], [0.82, 1.34, 0.075, 932]],
+    trees: [[0.08, 0.4, 0.11, "autumn"], [0.92, 1.06, 0.09, "green"], [0.1, 1.37, 0.09, "turning"]],
+    shrubs: [[0.4, 1.415, 0.06, 931], [0.96, 1.42, 0.06, 932]],
     clusters: [
       { seed: 901, x: 0.12, y: 0.95, rx: 0.14, ry: 0.02, n: 24, size: [10, 16], kinds: ["daisy", "cosmos", "tiny"], foliage: true, stems: true },
       { seed: 902, x: 0.88, y: 0.95, rx: 0.12, ry: 0.02, n: 22, size: [10, 16], kinds: ["daisy", "tiny"], foliage: true, stems: true },
-      { seed: 906, x: 0.22, y: 1.43, rx: 0.2, ry: 0.025, n: 30, size: [10, 16], kinds: ["daisy", "cosmos", "tiny"], foliage: true, stems: true },
-      { seed: 907, x: 0.8, y: 1.44, rx: 0.18, ry: 0.025, n: 28, size: [10, 16], kinds: ["cosmos", "daisy", "tiny"], foliage: true, stems: true },
+      { seed: 906, x: 0.25, y: 1.46, rx: 0.2, ry: 0.02, n: 28, size: [10, 16], kinds: ["daisy", "cosmos", "tiny"], foliage: true, stems: true },
+      { seed: 907, x: 0.78, y: 1.47, rx: 0.18, ry: 0.02, n: 26, size: [10, 16], kinds: ["cosmos", "daisy", "tiny"], foliage: true, stems: true },
     ],
-    start: [0.4, 0.94],
+    start: [0.72, 0.95],
     girlH: 0.1,
     landmarks: [
-      { slug: "eliminate-bacteria-pro", kind: "fountain", x: 0.28, base: 0.64, w: 0.44, stand: [0.47, 0.65], face: -1, label: [0.28, 0.66] },
-      { slug: "dog-nutrition-tracker", kind: "doghouse", x: 0.62, base: 0.8, w: 0.3, puppy: [0.34, 0.815, 0.13], stand: [0.26, 0.82], face: 1, label: [0.62, 0.82] },
-      { slug: "little-moments", kind: "windmill", x: 0.7, base: 0.44, h: 0.44, stand: [0.55, 0.5], face: 1, label: [0.7, 0.465] },
-      { slug: "aurelle", kind: "greenhouse", x: 0.5, base: 1.3, w: 0.42, stand: [0.425, 1.315], face: 1, label: [0.5, 1.33] },
+      { slug: "dog-nutrition-tracker", kind: "doghouse", x: 0.6, base: 0.55, w: 0.3, puppy: [0.32, 0.565, 0.13], via: [[0.7, 0.66]], stand: [0.22, 0.58], face: 1, label: [0.6, 0.57] },
+      { slug: "eliminate-bacteria-pro", kind: "fountain", x: 0.3, base: 0.8, w: 0.44, stand: [0.53, 0.81], face: -1, label: [0.3, 0.82] },
+      { slug: "little-moments", kind: "windmill", x: 0.3, base: 1.16, h: 0.44, stand: [0.47, 1.19], face: -1, label: [0.3, 1.18] },
+      { slug: "aurelle", kind: "greenhouse", x: 0.68, base: 1.39, w: 0.42, stand: [0.6, 1.405], face: 1, label: [0.68, 1.415] },
     ],
   },
 };
@@ -4564,6 +4584,7 @@ const WORK_WIDE = (() => {
         ...(m.puppy ? { puppy: [X(m.puppy[0]), m.puppy[1], m.puppy[2] * size] } : {}),
         stand: [X(m.stand[0]), m.stand[1]],
         label: [X(m.label[0]), m.label[1]],
+        ...(m.via ? { via: m.via.map(([a, b]) => [X(a), b]) } : {}),
       })),
     },
   };
