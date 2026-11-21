@@ -96,7 +96,8 @@ export default function CurvedNotes({ texts, desktop, mobile }: { texts: string[
   }, []);
 
   const draw = (c: Composition, key: string, className: string) => {
-    const f = c.noteFont;
+    // on phones the thoughts are set a little smaller, so the longer ones have room along their hills
+    const f = key === "m" ? c.noteFont * 0.9 : c.noteFont;
     return (
       <svg viewBox={`0 0 ${c.viewBox[0]} ${c.viewBox[1]}`} className={`pointer-events-none absolute inset-0 h-full w-full ${className}`} aria-hidden="true" focusable="false">
         <defs>

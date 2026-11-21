@@ -55,7 +55,7 @@ export default function AboutContent() {
           <div className="about-hero">
             <p className="font-hand text-2xl text-moss">{t.meet}</p>
             <h1 className="mt-1 font-serif text-[clamp(2.6rem,6vw,4.4rem)] leading-[1.02] font-medium text-ink">{ui.designer}</h1>
-            <p className="mt-2 text-sm font-semibold tracking-[0.2em] text-ink-soft uppercase">{t.role}</p>
+            <p className="mt-2 text-sm font-semibold tracking-[0.2em] text-ink-soft uppercase max-sm:text-balance">{t.role}</p>
             <p className="mt-6 font-serif text-2xl leading-snug text-ink">{about.intro}</p>
             {about.statement.map((para) => (
               <p key={para.slice(0, 20)} className="mt-4 text-lg leading-relaxed text-ink-soft">{para}</p>

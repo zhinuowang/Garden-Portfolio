@@ -193,7 +193,7 @@ export default function FullCaseStudy({ project, data: original, next }: { proje
 
         <header className="mt-6 max-w-3xl">
           <CategoryBadge category={project.category} />
-          <h1 className="mt-4 font-serif text-[clamp(2.5rem,6vw,4.4rem)] leading-[1.02] font-medium text-ink">{project.title}</h1>
+          <h1 className="mt-4 font-serif text-[clamp(2.5rem,6vw,4.4rem)] leading-[1.02] font-medium text-ink max-sm:text-balance">{project.title}</h1>
           {/* italic only in English: Chinese has no italic, and a faked slant distorts it */}
           {data.subtitle && <p className={`mt-3 font-serif text-[clamp(1.2rem,2.2vw,1.55rem)] text-moss ${locale === "en" ? "italic" : ""}`}>{data.subtitle}</p>}
           <dl className="mt-8 flex flex-wrap gap-x-10 gap-y-4 border-y border-dashed border-moss/35 py-5">
@@ -213,7 +213,7 @@ export default function FullCaseStudy({ project, data: original, next }: { proje
             {data.sections.map((s, i) => (
               <section key={s.id} id={s.id} aria-labelledby={`h-${s.id}`} className="journal-section scroll-mt-28 pt-12 first:pt-2">
                 <p aria-hidden="true" className="font-serif text-sm tracking-[0.2em] text-moss">{pad(i + 1)}</p>
-                <h2 id={`h-${s.id}`} className="mt-1 font-serif text-[clamp(1.75rem,3.4vw,2.4rem)] leading-tight font-medium text-ink">{s.heading}</h2>
+                <h2 id={`h-${s.id}`} className="mt-1 font-serif text-[clamp(1.75rem,3.4vw,2.4rem)] leading-tight font-medium text-ink max-sm:text-balance">{s.heading}</h2>
                 <span aria-hidden="true" className="journal-rule mt-3 block" />
                 {s.blocks.map((b, j) => <Block key={j} b={b} />)}
               </section>
@@ -225,7 +225,7 @@ export default function FullCaseStudy({ project, data: original, next }: { proje
               <Link href="/work" className="inline-flex min-h-11 items-center font-medium text-forest underline-offset-4 hover:underline">
                 ← {t.back}
               </Link>
-              <Link href={`/work/${next.slug}`} className="group inline-flex min-h-11 flex-col items-end text-right">
+              <Link href={`/work/${next.slug}`} className="group inline-flex min-h-11 flex-col items-end text-right max-sm:w-full">
                 <span className="text-xs font-semibold tracking-[0.16em] text-moss uppercase">{t.next}</span>
                 <span className="font-serif text-2xl font-medium text-ink group-hover:text-forest">{next.title} →</span>
               </Link>

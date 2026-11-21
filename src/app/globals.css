@@ -1119,3 +1119,14 @@ html:has(.work-page) body > footer { display: none; }
   box-shadow: 0 24px 50px -32px rgb(60 46 40 / 0.5), 0 2px 6px -2px rgb(60 46 40 / 0.16);
 }
 html[data-night] .aurelle-video { box-shadow: 0 24px 50px -32px rgb(0 0 0 / 0.7); }
+
+/* ---------- Phones only (max-width 639px): nothing here applies at tablet or desktop widths ---------- */
+@media (max-width: 639px) {
+  /* AURELLE: the film runs edge to edge on a phone, so it is as large as the screen allows */
+  .aurelle-video { width: 100vw; max-width: none; margin-inline: calc(50% - 50vw); border-radius: 0; }
+  /* case-study contents: comfortable touch targets in the folded list */
+  .journal-fold nav a { min-height: 2.75rem; align-items: center; }
+  .journal-fold nav a > span:first-child { margin-top: 0; }
+  /* Chinese headings break only at punctuation or a marked break, never inside a word */
+  :lang(zh) :is(#landing-invitation, #work-title) { word-break: keep-all; }
+}
