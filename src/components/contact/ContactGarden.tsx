@@ -46,7 +46,7 @@ export default function ContactGarden() {
   }, [note]);
 
   return (
-    <div className="nightable relative isolate flex min-h-[100svh] items-center overflow-x-clip px-4 pt-28 pb-20 sm:px-6">
+    <div className="nightable relative isolate flex min-h-[100svh] items-center overflow-x-clip px-4 pt-28 pb-20 sm:px-6 max-sm:pt-20">
       <div aria-hidden="true" className="journal-backdrop journal-backdrop--contact" />
 
       {/* one composition: a left-aligned block — the title and the three ways to reach me — and, on the

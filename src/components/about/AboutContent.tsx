@@ -31,7 +31,7 @@ export default function AboutContent() {
   return (
     // a quiet corner of the painted garden: the same oil-painted sky and meadow as the case studies
     // (scripts/paint-landing.mjs --about), with the content resting on a faint layer of light
-    <div className="nightable relative isolate overflow-x-clip px-4 pt-28 pb-24 sm:px-6">
+    <div className="nightable relative isolate overflow-x-clip px-4 pt-28 pb-24 sm:px-6 max-sm:pt-20">
       <div aria-hidden="true" className="journal-backdrop journal-backdrop--about" />
       <article className="garden-mist relative mx-auto max-w-5xl">
         <Ornament name="sprig" w={300} h={600} className="absolute -top-12 -right-3 hidden h-auto w-[3.25rem] rotate-12 md:block lg:-top-6 lg:-right-2 lg:w-[4.5rem]" />

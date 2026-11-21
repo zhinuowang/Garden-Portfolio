@@ -370,15 +370,72 @@ html[data-night-ink] .garden-nav {
 .garden-lang__slash { opacity: 0.5; font-size: 0.85rem; }
 .garden-nav .night-switch { min-width: 2.75rem; justify-content: center; }
 .garden-nav__sep { width: 1px; height: 1rem; margin: 0 0.4rem; background: var(--nav-ink); opacity: 0.25; }
+/* ---- phones (below 640px): one compact row — the brand, the music and a menu button — and a light menu panel.
+   Everything for the phone bar lives inside this query, so none of it can reach the desktop bar. */
 @media (max-width: 639px) {
-  .garden-nav__item { padding: 0 0.55rem; }
   .garden-nav__sep { display: none; }
-}
-/* narrow phones: the language pair and the controls sit a little closer, so the bar stays on two rows (and the
-   smallest screens set the brand one step smaller) */
-@media (max-width: 389px) {
-  .garden-lang__option { padding: 0 0.25rem; min-width: 2.25rem; }
-  .garden-nav :is(.garden-music, .night-switch) { min-width: 2.5rem; }
+  .garden-nav .garden-music { min-width: 2.75rem; }
+  .garden-burger {
+    position: relative; display: inline-flex; align-items: center; justify-content: center;
+    width: 2.75rem; height: 2.75rem; border-radius: 0.6rem; color: var(--nav-ink);
+    transition: color 0.3s ease, background-color 0.2s ease;
+  }
+  .garden-burger:active { background: rgb(64 88 60 / 0.08); }
+  .garden-burger:focus-visible { outline: 2px solid currentColor; outline-offset: 1px; }
+  /* three soft lines that fold into a cross when the menu is open */
+  .garden-burger__lines, .garden-burger__lines::before, .garden-burger__lines::after {
+    position: absolute; left: 50%; width: 1.15rem; height: 1.5px; border-radius: 1px; background: currentColor;
+    translate: -50% 0; transition: transform 0.3s ease, opacity 0.2s ease;
+  }
+  .garden-burger__lines { top: 50%; }
+  .garden-burger__lines::before, .garden-burger__lines::after { content: ""; left: 0; translate: 0 0; }
+  .garden-burger__lines::before { transform: translateY(-0.36rem); }
+  .garden-burger__lines::after { transform: translateY(0.36rem); }
+  .garden-nav[data-menu] .garden-burger__lines { background: transparent; }
+  .garden-nav[data-menu] .garden-burger__lines::before { transform: rotate(45deg); }
+  .garden-nav[data-menu] .garden-burger__lines::after { transform: rotate(-45deg); }
+
+  /* the panel: drops down under the bar; cream by day, deep navy at night; a hairline, no shadow, no blur */
+  .garden-menu {
+    position: absolute; top: 100%; left: 0; right: 0;
+    padding: 0.5rem 1rem 1rem;
+    background: rgb(250 246 236 / 0.98);
+    border-bottom: 1px solid rgb(64 88 60 / 0.12);
+    opacity: 0; transform: translateY(-0.5rem); visibility: hidden;
+    transition: opacity 0.22s ease, transform 0.28s ease, visibility 0s linear 0.28s;
+  }
+  .garden-nav[data-menu] .garden-menu { opacity: 1; transform: none; visibility: visible; transition: opacity 0.22s ease, transform 0.28s ease; }
+  html[data-night-ink] .garden-menu { background: rgb(24 30 50 / 0.98); border-bottom-color: rgb(241 233 214 / 0.1); }
+  /* the page behind stays visible, under the faintest veil; a tap on it closes the menu */
+  .garden-menu-veil {
+    position: absolute; left: 0; right: 0; top: 100%; height: 100svh;
+    background: rgb(28 36 26 / 0.16); opacity: 0; pointer-events: none; transition: opacity 0.25s ease;
+  }
+  .garden-nav[data-menu] .garden-menu-veil { opacity: 1; pointer-events: auto; }
+  html[data-night-ink] .garden-menu-veil { background: rgb(6 8 16 / 0.35); }
+
+  .garden-menu__links { border-bottom: 1px solid rgb(64 88 60 / 0.12); padding-bottom: 0.35rem; margin-bottom: 0.35rem; }
+  html[data-night-ink] .garden-menu__links { border-bottom-color: rgb(241 233 214 / 0.1); }
+  .garden-menu__link {
+    display: flex; align-items: center; min-height: 3rem; padding: 0 0.5rem; border-radius: 0.5rem;
+    font-size: 1.05rem; font-weight: 500; color: var(--nav-ink); transition: color 0.2s ease, background-color 0.2s ease;
+  }
+  .garden-menu__link:hover { color: var(--nav-ink-hover); }
+  .garden-menu__link:active { background: rgb(64 88 60 / 0.07); }
+  html[data-night-ink] .garden-menu__link:active { background: rgb(241 233 214 / 0.07); }
+  .garden-menu__link[aria-current="page"] { color: var(--nav-ink-hover); font-weight: 600; }
+  .garden-menu__link[aria-current="page"]::before { content: ""; width: 0.9rem; height: 1px; margin-right: 0.6rem; background: currentColor; opacity: 0.7; }
+  .garden-menu__link:focus-visible { outline: 2px solid currentColor; outline-offset: -2px; }
+  .garden-menu__row { display: flex; align-items: center; justify-content: space-between; min-height: 3rem; padding: 0 0.5rem; }
+  .garden-menu__label { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--nav-ink); opacity: 0.65; }
+  .garden-menu .garden-lang__option { color: var(--nav-ink); font-size: 0.95rem; padding: 0 0.6rem; }
+  .garden-menu .garden-lang__slash { color: var(--nav-ink); }
+  .garden-menu__night:empty { display: none; }
+  .garden-menu__night { padding: 0 0.1rem; }
+  .garden-menu .night-switch { color: var(--nav-ink); min-height: 3rem; padding: 0 0.4rem; font-size: 0.95rem; }
+  /* in the menu the lantern says its name ("Day") */
+  .garden-menu .night-switch .max-sm\:sr-only { position: static; width: auto; height: auto; margin: 0; padding: 0; overflow: visible; clip: auto; clip-path: none; white-space: nowrap; }
+  @media (prefers-reduced-motion: reduce) { .garden-menu, .garden-menu-veil, .garden-burger__lines, .garden-burger__lines::before, .garden-burger__lines::after { transition: none; } }
 }
 @media (max-width: 359px) { .garden-brand > span:first-child { font-size: 1rem; } }
 
@@ -829,7 +886,7 @@ html[data-night-ink] .portrait-frame figcaption { color: #4d564a; }
    extra trees at its far edges, never stretched */
 html:has(.work-page) body > footer { display: none; }
 .work-wide { width: max(100%, calc((100svh - 4.2rem) * 3000 / 1350)); flex-shrink: 0; }
-@media (max-width: 639px) { .work-wide { width: max(100%, calc((100svh - 7rem) * 3000 / 1350)); } }
+@media (max-width: 639px) { .work-wide { width: max(100%, calc((100svh - 4rem) * 3000 / 1350)); } }
 
 .work-page::before {
   content: "";
@@ -1127,6 +1184,30 @@ html[data-night] .aurelle-video { box-shadow: 0 24px 50px -32px rgb(0 0 0 / 0.7)
   /* case-study contents: comfortable touch targets in the folded list */
   .journal-fold nav a { min-height: 2.75rem; align-items: center; }
   .journal-fold nav a > span:first-child { margin-top: 0; }
+  /* Landing scene 3: on a phone the invitation is a gentle note, not a headline — about 30% smaller, a little
+     more open, and lifted into the quiet lawn above the tree (clear of the bar, the table and the sign) */
+  .landing-invite { top: max(12%, 6.5rem); }
+  #landing-invitation { font-size: clamp(1.4rem, 6.6vw, 1.85rem); line-height: 1.22; }
+  :lang(zh) #landing-invitation { font-size: clamp(1.3rem, 5.6vw, 1.75rem); line-height: 1.35; letter-spacing: 0.04em; }
   /* Chinese headings break only at punctuation or a marked break, never inside a word */
   :lang(zh) :is(#landing-invitation, #work-title) { word-break: keep-all; }
 }
+
+/* ---------- the full-size image viewer (case studies, phones only: it only ever opens below 640px) ---------- */
+.zoom-viewer[open] {
+  position: fixed; inset: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0;
+  background: #121410; overscroll-behavior: contain;
+}
+.zoom-viewer::backdrop { background: #121410; }
+.zoom-viewer__stage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; touch-action: none; }
+.zoom-viewer__img { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; user-select: none; -webkit-user-drag: none; transform-origin: center; }
+.zoom-viewer__close {
+  position: absolute; top: max(0.75rem, env(safe-area-inset-top)); right: 0.75rem;
+  display: inline-flex; align-items: center; justify-content: center; width: 3rem; height: 3rem; border-radius: 999px;
+  color: #fbf6ec; background: rgb(18 20 16 / 0.72); border: 1px solid rgb(255 255 255 / 0.28);
+}
+.zoom-viewer__close svg { width: 1.35rem; height: 1.35rem; }
+.zoom-viewer__close:active { background: rgb(18 20 16 / 0.9); }
+.zoom-viewer__close:focus-visible { outline: 2px solid #fbf6ec; outline-offset: 2px; }
+.zoom-viewer__hint { position: absolute; left: 50%; translate: -50% 0; bottom: max(1rem, env(safe-area-inset-bottom)); padding: 0.3rem 0.8rem; border-radius: 999px; background: rgb(18 20 16 / 0.62); white-space: nowrap; font-size: 0.78rem; color: rgb(251 246 236 / 0.85); pointer-events: none; }
+@media (max-width: 639px) { .journal-section img[data-zoom] { cursor: zoom-in; } }

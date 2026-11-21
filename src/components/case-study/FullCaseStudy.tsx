@@ -10,6 +10,8 @@ import type { CsBlock, CsImage, FullCaseStudy as Data } from "@/data/case-studie
 import type { Project } from "@/data/projects";
 import JournalContents from "./JournalContents";
 import CommercialVideo from "@/components/aurelle/CommercialVideo";
+import ImageZoom from "./ImageZoom";
+import { useRef } from "react";
 import { useCaseStudy } from "@/i18n/content";
 import { useLocale } from "@/i18n/locale";
 import { useUi } from "@/i18n/ui";
@@ -177,8 +179,9 @@ export default function FullCaseStudy({ project, data: original, next }: { proje
   const data = useCaseStudy(project.slug) ?? original;
   const locale = useLocale();
   const t = useUi().cs;
+  const article = useRef<HTMLElement>(null);
   return (
-    <article className="nightable relative isolate overflow-x-clip px-4 pt-28 pb-24 sm:px-6">
+    <article ref={article} className="nightable relative isolate overflow-x-clip px-4 pt-28 pb-24 sm:px-6 max-sm:pt-20">
       <div aria-hidden="true" className="journal-backdrop" />
       <FloatingFlora garden={project.slug} />
       <MarkVisited slug={project.slug} />
@@ -211,7 +214,7 @@ export default function FullCaseStudy({ project, data: original, next }: { proje
 
           <div data-flora-edge className="min-w-0 max-w-3xl">
             {data.sections.map((s, i) => (
-              <section key={s.id} id={s.id} aria-labelledby={`h-${s.id}`} className="journal-section scroll-mt-28 pt-12 first:pt-2">
+              <section key={s.id} id={s.id} aria-labelledby={`h-${s.id}`} className="journal-section scroll-mt-28 pt-12 first:pt-2 max-sm:scroll-mt-20">
                 <p aria-hidden="true" className="font-serif text-sm tracking-[0.2em] text-moss">{pad(i + 1)}</p>
                 <h2 id={`h-${s.id}`} className="mt-1 font-serif text-[clamp(1.75rem,3.4vw,2.4rem)] leading-tight font-medium text-ink max-sm:text-balance">{s.heading}</h2>
                 <span aria-hidden="true" className="journal-rule mt-3 block" />
@@ -233,6 +236,8 @@ export default function FullCaseStudy({ project, data: original, next }: { proje
           </div>
         </div>
       </div>
+      {/* phones: tap an image to see it full size */}
+      <ImageZoom container={article} />
     </article>
   );
 }

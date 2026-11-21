@@ -45,7 +45,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
   if (full) return <FullCaseStudy project={project} data={full} next={next} />;
 
   return (
-    <article className="px-4 pt-28 pb-20 sm:px-6">
+    <article className="px-4 pt-28 pb-20 sm:px-6 max-sm:pt-20">
       <MarkVisited slug={project.slug} />
       <div className="mx-auto max-w-4xl">
         <Link href="/work" className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-forest underline-offset-4 hover:underline">

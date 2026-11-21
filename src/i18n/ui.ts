@@ -10,7 +10,7 @@ const en = {
   brand: "A Garden of Ideas",
   designer: "Zhinuo Wang",
   skip: "Skip to content",
-  nav: { label: "Main", home: "A Garden of Ideas — home", about: "About", work: "Work", contact: "Contact" },
+  nav: { label: "Main", home: "A Garden of Ideas — home", about: "About", work: "Work", contact: "Contact", openMenu: "Open menu", closeMenu: "Close menu" },
   lang: { group: "Language", en: "Switch to English", zh: "切换到中文" },
   music: {
     play: "Play soft background music",
@@ -44,6 +44,9 @@ const en = {
     contentsLabel: "Contents",
     toWrite: "to write —",
     pending: "To be provided",
+    zoom: "View full size",
+    zoomHint: "Pinch to zoom · double-tap to zoom in or out",
+    zoomClose: "Close the full-size image",
   },
   aurelle: {
     video: "AURELLE, AI skincare commercial (1 minute, with sound)",
@@ -92,7 +95,7 @@ const zh: Ui = {
   brand: "A Garden of Ideas",
   designer: "王之诺",
   skip: "跳到正文",
-  nav: { label: "主导航", home: "A Garden of Ideas — 首页", about: "关于我", work: "作品", contact: "联系我" },
+  nav: { label: "主导航", home: "A Garden of Ideas — 首页", about: "关于我", work: "作品", contact: "联系我", openMenu: "打开菜单", closeMenu: "关闭菜单" },
   lang: { group: "语言", en: "Switch to English", zh: "切换到中文" },
   music: {
     play: "播放轻柔的背景音乐",
@@ -125,6 +128,9 @@ const zh: Ui = {
     contentsLabel: "目录",
     toWrite: "待补充 —",
     pending: "待补充",
+    zoom: "查看大图",
+    zoomHint: "双指缩放 · 双击放大或还原",
+    zoomClose: "关闭大图",
   },
   aurelle: {
     video: "AURELLE，AI 护肤广告片（1 分钟，有声）",
