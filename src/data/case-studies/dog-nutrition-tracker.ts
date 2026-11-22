@@ -62,12 +62,12 @@ export const dogNutritionTracker: FullCaseStudy = {
     {
       id: "persona",
       heading: "Persona",
-      blocks: [{ type: "figure", size: "md", image: img("persona.png", 948, 1068, "Two persona sheets, Owner 001 and Owner 002, each with a portrait and the persona’s notes.", "Personas.png") }],
+      blocks: [{ type: "figure", size: "md", image: img("persona.png", 948, 1068, "Two persona sheets, Owner-007 and Owner-004, each with a portrait and the persona’s notes.", "Personas.png") }],
     },
     {
       id: "journey",
       heading: "User Journey Map",
-      blocks: [{ type: "figure", size: "md", image: img("user-journey-map.png", 942, 1196, "User journey maps for Owner 001 and Owner 002, each a table of stages with an emotion curve.", "User Journey Map.png") }],
+      blocks: [{ type: "figure", size: "md", image: img("user-journey-map.png", 942, 1196, "User journey maps for Owner-004 and Owner-007, each a table of stages with an emotion curve.", "User Journey Map.png") }],
     },
     {
       id: "storyboard",

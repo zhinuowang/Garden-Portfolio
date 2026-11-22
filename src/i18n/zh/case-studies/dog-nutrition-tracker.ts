@@ -42,8 +42,8 @@ export const dogNutritionTrackerZh: Overlay<FullCaseStudy> = {
         { image: { alt: "“Behavioral Strategies”行为策略图表：三张卡片——预先分好的零食、记笔记、冰箱留言或发消息——分别标注人数与用途。" } },
       ],
     },
-    { heading: "用户角色", blocks: [{ image: { alt: "两份用户角色卡片 Owner 001 与 Owner 002，各附头像与角色说明。" } }] },
-    { heading: "用户旅程图", blocks: [{ image: { alt: "Owner 001 与 Owner 002 的用户旅程图，每张都是按阶段排列的表格，并附情绪曲线。" } }] },
+    { heading: "用户角色", blocks: [{ image: { alt: "两份用户角色卡片 Owner-007 与 Owner-004，各附头像与角色说明。" } }] },
+    { heading: "用户旅程图", blocks: [{ image: { alt: "Owner-004 与 Owner-007 的用户旅程图，每张都是按阶段排列的表格，并附情绪曲线。" } }] },
     { heading: "故事板", blocks: [{ image: { alt: "六格手绘故事板，讲述一位狗主人与这款应用的故事。" } }] },
     { heading: "用户任务流程图", blocks: [{ image: { alt: "用户任务流程图：由步骤与决策节点组成的流程图。" } }] },
     {
