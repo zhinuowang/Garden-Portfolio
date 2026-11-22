@@ -33,6 +33,17 @@ const dmSans = DM_Sans({
 export const metadata: Metadata = {
   title: site.title,
   description: site.description,
+  // The favicon: a tiny oil painting of a cottage in the garden (scripts/paint-favicon.py writes these to public/).
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "16x16 32x32 48x48" },
+      { url: "/icon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon-16.png", sizes: "16x16", type: "image/png" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
+  manifest: "/site.webmanifest",
   openGraph: {
     title: site.title,
     description: site.description,
