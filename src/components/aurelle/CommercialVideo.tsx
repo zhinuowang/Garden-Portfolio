@@ -8,8 +8,9 @@ import { useUi } from "@/i18n/ui";
 // The finished commercial, shown as it is: the original file at its own 16:9 shape (never cropped, stretched or
 // filtered), the browser's own controls (play and pause, progress, volume, fullscreen — they work everywhere,
 // including Safari on iPhone, and with the keyboard and screen readers), a real frame of the film as its poster,
-// and no autoplay. Only the file's index is fetched until the visitor presses play ("metadata"), and the video
-// exists on this page alone, so no other page downloads it. While it plays with sound the garden's music steps
+// and no autoplay. Nothing of the film is fetched until the visitor presses play (preload "none"): Cloudflare
+// Pages answers every request with the whole file (no byte ranges), so even a "metadata" preload could pull megabytes.
+// The video exists on this page alone, so no other page downloads it. While it plays with sound the garden's music steps
 // aside (src/lib/mediaAudio.ts).
 
 export default function CommercialVideo() {
@@ -37,7 +38,7 @@ export default function CommercialVideo() {
       width={v.width}
       height={v.height}
       poster={v.poster.src}
-      preload="metadata"
+      preload="none"
       controls
       playsInline
       aria-label={t.video}
